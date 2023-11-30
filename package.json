@@ -1,7 +1,7 @@
 {
-  "name": "chatgpt-diagrams",
-  "version": "0.0.6",
-  "description": "Enhance the ChatGPT website to allow diagrams to be presented inline.",
+  "name": "puzlog",
+  "version": "0.1.0",
+  "description": "TODO",
   "type": "module",
   "scripts": {
     "start": "webpack --mode=development --watch",
@@ -57,7 +57,6 @@
     "webpack-cli": "^5.1.1"
   },
   "dependencies": {
-    "mermaid": "^10.1.0"
   },
   "browserslist": "> 0.5%, last 2 versions, not dead"
 }

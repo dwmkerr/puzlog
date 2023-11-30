@@ -1,16 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT Diagrams",
-  "description": "Render diagrams directly in ChatGPT",
-  "options_ui": {
-    "page": "options.html",
-    "open_in_tab": true
-  },
+  "name": "Puzlog",
+  "description": "TODO",
   "permissions": ["storage"],
   "content_scripts": [
     {
       "js": ["content.js"],
-      "matches": ["https://chat.openai.com/*", "http://localhost/*"]
+      "matches": ["https://TODO/*", "http://localhost/*"]
     }
   ],
   "icons": {
