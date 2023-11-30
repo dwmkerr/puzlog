@@ -2,7 +2,14 @@
   "manifest_version": 3,
   "name": "Puzlog",
   "description": "TODO",
-  "permissions": ["storage"],
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "action": {
+    "default_title": "Click to view a popup",
+    "default_popup": "popup.html"
+  },
   "content_scripts": [
     {
       "js": ["content.js"],

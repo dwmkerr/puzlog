@@ -32,7 +32,7 @@ export default (_, argv) => ({
     type: "filesystem",
   },
   entry: {
-    options: "./src/options.ts",
+    popup: "./src/popup.ts",
     content: "./src/content.ts",
   },
   output: {
@@ -58,9 +58,9 @@ export default (_, argv) => ({
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "src/options.html",
-      filename: "options.html",
-      chunks: ["options"],
+      template: "src/popup.html",
+      filename: "popup.html",
+      chunks: ["popup"],
       hash: true,
       inject: true,
     }),
