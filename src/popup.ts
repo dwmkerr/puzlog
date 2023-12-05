@@ -1,5 +1,5 @@
 import { PuzzleState } from "./puzzleState";
-import { msToTime } from "./helpers";
+import { msToTime, timeAgo } from "./helpers";
 
 async function currentTabId(): Promise<number> {
   const [currentTab] = await chrome.tabs.query({
@@ -49,24 +49,26 @@ async function reset(): Promise<PuzzleState> {
 }
 
 interface PopupDOM {
-  startButton: HTMLElement;
-  pauseButton: HTMLElement;
-  finishButton: HTMLElement;
-  resetButton: HTMLElement;
+  startButton: HTMLButtonElement;
+  pauseButton: HTMLButtonElement;
+  finishButton: HTMLButtonElement;
+  resetButton: HTMLButtonElement;
   timerDiv: HTMLElement;
-  showStateButton: HTMLElement;
+  showStateButton: HTMLButtonElement;
   stateCode: HTMLElement;
+  timeSinceStart: HTMLElement;
 }
 
 function getPopupDOM(): PopupDOM {
   return {
-    startButton: getElementOrFail("start"),
-    pauseButton: getElementOrFail("pause"),
-    finishButton: getElementOrFail("finish"),
-    resetButton: getElementOrFail("reset"),
+    startButton: getElementOrFail("start") as HTMLButtonElement,
+    pauseButton: getElementOrFail("pause") as HTMLButtonElement,
+    finishButton: getElementOrFail("finish") as HTMLButtonElement,
+    resetButton: getElementOrFail("reset") as HTMLButtonElement,
     timerDiv: getElementOrFail("timer"),
-    showStateButton: getElementOrFail("show_state"),
+    showStateButton: getElementOrFail("show_state") as HTMLButtonElement,
     stateCode: getElementOrFail("state"),
+    timeSinceStart: getElementOrFail("timeSinceStart"),
   };
 }
 
@@ -76,13 +78,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const popupDOM = getPopupDOM();
   popupDOM.startButton.addEventListener("click", async () => {
-    popupDOM.startButton.style.display = "none";
-    popupDOM.pauseButton.style.display = "block";
+    popupDOM.startButton.disabled = true;
+    popupDOM.pauseButton.disabled = false;
     await start();
   }); // addItems() should be addItems
   popupDOM.pauseButton.addEventListener("click", async () => {
-    popupDOM.startButton.style.display = "block";
-    popupDOM.pauseButton.style.display = "none";
+    popupDOM.startButton.disabled = false;
+    popupDOM.pauseButton.disabled = true;
+    await stop();
+  }); // addItems() should be addItems
+  popupDOM.finishButton.addEventListener("click", async () => {
+    popupDOM.startButton.disabled = false;
+    popupDOM.pauseButton.disabled = true;
     await stop();
   }); // addItems() should be addItems
   popupDOM.showStateButton.addEventListener("click", async () => {
@@ -101,6 +108,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         timerDiv.style.display = "block";
         timerDiv.innerText = msToTime(duration);
         popupDOM.stateCode.innerText = JSON.stringify(newValue, null, 2);
+
+        //  If we have a time start, update the 'time since start' div.
+        if (state.timeStart) {
+          const timeStart = new Date(state.timeStart);
+          const timeAgoText = timeAgo(timeStart, new Date());
+          popupDOM.timeSinceStart.innerText = `Started ${timeAgoText}`;
+        }
       }
     }
   });

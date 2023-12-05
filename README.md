@@ -1,7 +1,6 @@
 # puzlog
 
 // TODO:
-// 0. duration is reset on start
 // 1. other fields are reset on start
 // 0. add finish button, when finish, option to copy and paste into spreadsheet
 // 1. create or load state
@@ -227,3 +226,7 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 
 - [ ] build(!): consider webpack dev server to serve sample page in local dev mode
 - [ ] build(!): Create script to open a new chrome window, with the appropriate command line flags to load the dist unpacked
+
+**Later**
+
+- [ ] bug: timer logic is a little odd, if you stop/pause at 00:01:01:999 for example, then pressing 'start' waits a full second before updating the tick. This is because of the logic being a bit weird, think we need to track the start/pause timestamp and make calculations based on that rather than 'last tick'

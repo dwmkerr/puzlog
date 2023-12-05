@@ -1,4 +1,4 @@
-import { puzzleIdFromUrl, storageKeyFromPuzzleId } from "./helpers";
+import { puzzleIdFromUrl, storageKeyFromPuzzleId, timeAgo } from "./helpers";
 
 describe("helpers", () => {
   describe("puzzleIdFromUrl", () => {
@@ -29,6 +29,36 @@ describe("helpers", () => {
       expect(result).toEqual(
         "puzlog:https://www.theguardian.com/crosswords/cryptic/29233"
       );
+    });
+  });
+
+  describe("timeAgo function", () => {
+    it('returns "2 seconds ago" for a time 2 seconds ago', () => {
+      const currentTime = new Date();
+      const earlierTime = new Date(currentTime.getTime() - 2000); // 2 seconds ago
+      const result = timeAgo(earlierTime, currentTime);
+      expect(result).toBe("2 seconds ago");
+    });
+
+    test('returns "2 minutes ago" for a time 2 minutes ago', () => {
+      const currentTime = new Date();
+      const earlierTime = new Date(currentTime.getTime() - 120000); // 2 minutes ago
+      const result = timeAgo(earlierTime, currentTime);
+      expect(result).toBe("2 minutes ago");
+    });
+
+    test('returns "2 hours ago" for a time 2 hours ago', () => {
+      const currentTime = new Date();
+      const earlierTime = new Date(currentTime.getTime() - 7200000); // 2 hours ago
+      const result = timeAgo(earlierTime, currentTime);
+      expect(result).toBe("2 hours ago");
+    });
+
+    test('returns "2 days ago" for a time 2 days ago', () => {
+      const currentTime = new Date();
+      const earlierTime = new Date(currentTime.getTime() - 172800000); // 2 days ago
+      const result = timeAgo(earlierTime, currentTime);
+      expect(result).toBe("2 days ago");
     });
   });
 });

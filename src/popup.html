@@ -1,84 +1,95 @@
-<!-- popup.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Puzlog</title>
+    <script src="popup.js"></script>
     <style>
       html {
-        font-family: Gill Sans, Gill Sans MT, Calibri, sans-serif;
-        min-height: 5em;
-        min-width: 10em;
-        background: white;
+        width: 350px; /* max: 1000px */
+        height: 200px; /* max: 750px */
+        font-size: 150%;
+      }
+      body {
+        font-family: "Arial", sans-serif;
+        text-align: center;
+        margin: 1em;
+        max-width: 450px;
+        max-height: 200px;
+        overflow: hidden;
+        background-color: #f0f0f0;
+        color: #333;
       }
 
-      button {
-        display: inline-block;
-        outline: 0;
-        cursor: pointer;
-        padding: 5px 16px;
-        font-size: 14px;
-        font-weight: 500;
-        line-height: 20px;
-        vertical-align: middle;
-        border: 1px solid;
-        border-radius: 6px;
-        color: #24292e;
-        background-color: #fafbfc;
-        border-color: #1b1f2326;
-        box-shadow: rgba(27, 31, 35, 0.04) 0px 1px 0px 0px,
-          rgba(255, 255, 255, 0.25) 0px 1px 0px 0px inset;
-        transition: 0.2s cubic-bezier(0.3, 0, 0.5, 1);
-        transition-property: color, background-color, border-color;
-        :hover {
-          background-color: #f3f4f6;
-          border-color: #1b1f2326;
-          transition-duration: 0.1s;
-        }
-      }
-
-      h1 {
-        font-size: 1.1em;
-      }
-
-      #container {
-        background: white;
-        border: 2px black;
-      }
-
-      .monospace {
-        font-family: "Lucida Console", Courier, monospace;
+      #header {
+        font-size: 1.2em;
+        margin-bottom: 0.5em;
       }
 
       #timer {
-        display: block;
-        background: #dedede;
         font-size: 2em;
-        padding: 1em;
-        text-align: center;
+        margin: 0.5em 0;
+        letter-spacing: 2px;
+      }
+
+      #controls {
+        display: flex;
+        justify-content: center;
+        gap: 1em;
+      }
+
+      button {
+        flex: 1;
+        padding: 0.8em;
+        font-size: 1em;
+        cursor: pointer;
+        background-color: #fff;
+        color: #333;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #f0f0f0;
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
       }
 
       #start {
+        border-color: #2ea44f;
       }
 
       #pause {
-        display: none;
+        border-color: #dbab09;
       }
 
-      #state {
-        display: none;
+      #timeSinceStart {
+        font-size: 0.8em;
+        margin-top: 0.5em;
       }
     </style>
-    <script src="popup.js"></script>
   </head>
   <body>
-    <div id="container">
-      <h1>Puzlog</h1>
-      <button id="start">▶️ Start</button>
-      <button id="pause">⏸️ Pause</button>
-      <button id="finish">🏁 Finish</button>
-      <button id="reset">🗑️ Reset</button>
-      <div id="timer" class="monospace">00:00</div>
+    <div id="header">Puzlog</div>
+    <div id="timer">00:00:00</div>
+    <div id="controls">
+      <button id="start">Start</button>
+      <button id="pause" disabled>Pause</button>
+      <button id="finish">Finish</button>
+    </div>
+    <div id="timeSinceStart">Press 'Start' to begin the timer</div>
+    <div id="advanced" style="display: none">
+      <button id="reset">Reset</button>
       <p><a id="show_state">Show State</a></p>
-      <code id="state" />
+      <code id="state" style="display: none" />
     </div>
   </body>
 </html>

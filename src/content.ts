@@ -87,9 +87,12 @@ async function startPuzzle(currentState: PuzzleState): Promise<PuzzleState> {
   //  a more specific event to the runtime to let the popup (or anything else)
   //  respond without having to watch the entire state. However, this works for
   //  now.
+  let lastTick = now;
   const intervalId = window.setInterval(async () => {
-    localExtensionState.puzzleState.durationWorking =
-      new Date().getTime() - now.getTime();
+    const thisTick = new Date();
+    const tickDuration = thisTick.getTime() - lastTick.getTime();
+    localExtensionState.puzzleState.durationWorking += tickDuration;
+    lastTick = thisTick;
     await saveState(localExtensionState.puzzleState);
   }, 1000);
 
