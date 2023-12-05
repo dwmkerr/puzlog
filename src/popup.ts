@@ -1,3 +1,4 @@
+import { PuzzleState } from "./puzzleState";
 import { msToTime } from "./helpers";
 
 async function currentTabId(): Promise<number> {
@@ -20,37 +21,75 @@ function getElementOrFail(id: string): HTMLElement {
   return element;
 }
 
-async function sendMessage(message: any): Promise<void> {
+// Chrome 'sendMessage' uses the 'any' type, disable the warning.
+// eslint-disable-next-line
+async function sendMessage(message: any): Promise<PuzzleState> {
   //  Send the start message to the current tab.
   const tabId = await currentTabId();
   const newState = await chrome.tabs.sendMessage(tabId, message);
-  const stateCode = getElementOrFail("state");
-  stateCode.innerText = JSON.stringify(newState, null, 2);
   return newState;
 }
 
-async function getState(): Promise<void> {
+async function getState(): Promise<PuzzleState> {
   return await sendMessage({ command: "getState" });
 }
 
-async function start(): Promise<void> {
+async function start(): Promise<PuzzleState> {
   const newState = await sendMessage({ command: "start" });
 
   return newState;
 }
 
-async function stop(): Promise<void> {
+async function stop(): Promise<PuzzleState> {
   return await sendMessage({ command: "stop" });
 }
 
-async function reset(): Promise<void> {
+async function reset(): Promise<PuzzleState> {
   return await sendMessage({ command: "reset" });
+}
+
+interface PopupDOM {
+  startButton: HTMLElement;
+  pauseButton: HTMLElement;
+  finishButton: HTMLElement;
+  resetButton: HTMLElement;
+  timerDiv: HTMLElement;
+  showStateButton: HTMLElement;
+  stateCode: HTMLElement;
+}
+
+function getPopupDOM(): PopupDOM {
+  return {
+    startButton: getElementOrFail("start"),
+    pauseButton: getElementOrFail("pause"),
+    finishButton: getElementOrFail("finish"),
+    resetButton: getElementOrFail("reset"),
+    timerDiv: getElementOrFail("timer"),
+    showStateButton: getElementOrFail("show_state"),
+    stateCode: getElementOrFail("state"),
+  };
 }
 
 //  Get the button and set the handler.
 document.addEventListener("DOMContentLoaded", async () => {
-
   console.log(`puzlog: initialising popup...`);
+
+  const popupDOM = getPopupDOM();
+  popupDOM.startButton.addEventListener("click", async () => {
+    popupDOM.startButton.style.display = "none";
+    popupDOM.pauseButton.style.display = "block";
+    await start();
+  }); // addItems() should be addItems
+  popupDOM.pauseButton.addEventListener("click", async () => {
+    popupDOM.startButton.style.display = "block";
+    popupDOM.pauseButton.style.display = "none";
+    await stop();
+  }); // addItems() should be addItems
+  popupDOM.showStateButton.addEventListener("click", async () => {
+    popupDOM.stateCode.style.display = "block";
+  }); // addItem() should be addItems
+  popupDOM.resetButton.addEventListener("click", () => reset()); // addItems() should be addItems
+
   //  When we start, we want to watch for changes.
   const state = await getState();
   chrome.storage.onChanged.addListener((changes) => {
@@ -58,18 +97,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       //  If the key is our puzzle key, then we can update the UI.
       if (key === state.storageKey) {
         const duration = newValue.durationWorking;
-        console.log(`timer: ${duration}`);
         const timerDiv = getElementOrFail("timer");
         timerDiv.style.display = "block";
         timerDiv.innerText = msToTime(duration);
+        popupDOM.stateCode.innerText = JSON.stringify(newValue, null, 2);
       }
     }
   });
-
-  const stateCode = getElementOrFail("state");
-
-  stateCode.innerText = JSON.stringify(state, null, 2);
-  getElementOrFail("start").addEventListener("click", () => start()); // addItems() should be addItems
-  getElementOrFail("stop").addEventListener("click", () => stop()); // addItems() should be addItems
-  getElementOrFail("reset").addEventListener("click", () => reset()); // addItems() should be addItems
 });

@@ -2,10 +2,7 @@
   "manifest_version": 3,
   "name": "Puzlog",
   "description": "TODO",
-  "permissions": [
-    "storage",
-    "activeTab"
-  ],
+  "permissions": ["storage", "activeTab"],
   "action": {
     "default_title": "Click to view a popup",
     "default_popup": "popup.html"
@@ -13,7 +10,7 @@
   "content_scripts": [
     {
       "js": ["content.js"],
-      "matches": ["https://TODO/*", "http://localhost/*"]
+      "matches": ["https://theguardian.com/*", "http://localhost/*"]
     }
   ],
   "icons": {

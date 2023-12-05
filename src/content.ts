@@ -1,38 +1,5 @@
-import {
-  puzzleIdFromUrl,
-  storageKeyFromPuzzleId,
-} from "./helpers";
-
-enum TimerState {
-  Stopped,
-  Started,
-}
-
-interface PuzzleState {
-  puzzleId: string;
-  storageKey: string;
-  url: string;
-  title: string;
-  timeLoad: Date;
-  timeLastAccess: Date;
-  timeStart: Date;
-  timeFinish: Date | undefined;
-  durationWorking: number;
-  timerState: TimerState;
-  timerId: number | undefined;
-}
-
-//  Start the extension.
-console.log("initialising puzlog...");
-console.log("listening for messages...");
-
-//  TODO:
-//  1. create or load state
-//  2. register hanlders
-//  3. start/stop/pause timer
-//  4. finish xword
-//  5. export JSON
-//  6. save state to cloud
+import { puzzleIdFromUrl, storageKeyFromPuzzleId } from "./helpers";
+import { TimerState, PuzzleState } from "./puzzleState";
 
 //  Listen for messages, route to the appropriate handlers.
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -42,20 +9,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const log = `recieved command '${command}' from ${source}`;
     console.log(log);
     if (command === "getState") {
-      const state = await getState();
-      sendResponse(state);
+      sendResponse(localExtensionState.puzzleState);
     } else if (command === "start") {
-      const state = await getState();
+      const state = localExtensionState.puzzleState;
+      //  Bail if we are started.
+      if (state.timerState === TimerState.Started) {
+        return;
+      }
       const newState = await startPuzzle(state);
       await saveState(newState);
       sendResponse(newState);
     } else if (command === "stop") {
-      const state = await getState();
+      const state = localExtensionState.puzzleState;
+      //  Bail if we are stoped.
+      if (state.timerState === TimerState.Stopped) {
+        return;
+      }
       const newState = await stopPuzzle(state);
       await saveState(newState);
       sendResponse(newState);
     } else if (command === "reset") {
-      const state = await initState();
+      const state = initState(location.href, document.title);
       await saveState(state);
       sendResponse(state);
     }
@@ -65,66 +39,60 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-async function initState(): Promise<PuzzleState> {
-  const url = location.href;
+function initState(url: string, title: string): PuzzleState {
   const puzzleId = puzzleIdFromUrl(url);
   const storageKey = storageKeyFromPuzzleId(puzzleId);
-
   const now = new Date();
   const state = {
     url,
     puzzleId,
     storageKey,
-    title: location.href || "",
+    title,
     timeLoad: now,
     timeLastAccess: now,
     timeStart: now,
-    timeFinish: undefined,
+    timeFinish: null,
     durationWorking: 0,
     timerState: TimerState.Stopped,
-    timerId: undefined,
+    timerId: null,
   };
   return state;
 }
 
-async function getState(): Promise<PuzzleState> {
-  //  Get the current url, puzzle id and storage key.
-  const url = location.href;
-  const puzzleId = puzzleIdFromUrl(url);
-  const storageKey = storageKeyFromPuzzleId(puzzleId);
-
+async function loadState(storageKey: string): Promise<PuzzleState | null> {
   //  Grab the puzzle state.
-  console.log(`${storageKey}: checking for puzzle state`);
+  console.log(`checking for saved puzzle state...`);
   const storage = await chrome.storage.local.get(storageKey);
   const storageObject = storage[storageKey];
   const storedPuzzleState = storageObject as PuzzleState;
 
-  //  Temporarily we are just going to ingore saved state and start fresh each
-  //  time...
-  const startClean = true;
-
-  //  If there is no stored state, create the new state and return.
-  if (startClean || !storedPuzzleState) {
-    const state = await initState();
-    return state;
+  //  If there is no stored puzzle state, we're done.
+  if (!storedPuzzleState) {
+    console.log(`no saved state exists.`);
+    return null;
   }
 
   //  ...otherwise, return our saved state.
+  console.log(`found saved state from ${storedPuzzleState.timeLastAccess}`);
   return storedPuzzleState;
 }
 
 async function startPuzzle(currentState: PuzzleState): Promise<PuzzleState> {
+  console.log(`starting puzzle...`);
   //  This could be a clean start or a resume. Start the timer and update the
   //  state.
   const now = new Date();
+
+  //  TODO we could improve on this by changing the duration and then firing
+  //  a more specific event to the runtime to let the popup (or anything else)
+  //  respond without having to watch the entire state. However, this works for
+  //  now.
   const intervalId = window.setInterval(async () => {
-    const s1 = await getState();
-    const s2 = {
-      ...s1,
-      durationWorking: new Date() - now,
-    };
-    await saveState(s2);
+    localExtensionState.puzzleState.durationWorking =
+      new Date().getTime() - now.getTime();
+    await saveState(localExtensionState.puzzleState);
   }, 1000);
+
   return {
     ...currentState,
     timeLastAccess: now,
@@ -135,20 +103,66 @@ async function startPuzzle(currentState: PuzzleState): Promise<PuzzleState> {
 }
 
 async function stopPuzzle(currentState: PuzzleState): Promise<PuzzleState> {
-  //  Create our state with some initial values.
+  console.log(`stopping puzzle...`);
+  //  Stop the timer.
+  if (currentState.timerId) {
+    window.clearInterval(currentState.timerId);
+  }
+
+  //  Update the state.
   const now = new Date();
   return {
     ...currentState,
     timeFinish: now,
     timeLastAccess: now,
     timerState: TimerState.Stopped,
+    timerId: null,
   };
 }
 
 async function saveState(currentState: PuzzleState): Promise<void> {
   console.log(`${currentState.storageKey}: saving for puzzle state`);
+  localExtensionState.puzzleState = currentState;
   const items = {
     [currentState.storageKey]: currentState,
   };
   await chrome.storage.local.set(items);
 }
+
+async function startup(): Promise<PuzzleState> {
+  console.log("initialising puzlog...");
+
+  //  Get the current url, puzzle id and storage key.
+  const url = location.href;
+  const puzzleId = puzzleIdFromUrl(url);
+  const storageKey = storageKeyFromPuzzleId(puzzleId);
+
+  //  Try and load the puzzle state from storage. We'll only get a return value
+  //  if the user has spent some time on the xword already.
+  const savedState = await loadState(storageKey);
+  // const state = savedState || initState(url, document.title);
+  const alwaysStartClean = true;
+  console.log(`initialising clean state`);
+  const state = alwaysStartClean ? initState(url, document.title) : savedState;
+
+  //  We won't need this check in the future, but for now avoids warnings.
+  if (state === null) {
+    throw new Error(`failed to initialise puzzle state`);
+  }
+
+  //  Record the puzzle state, we're now good to go.
+  localExtensionState.puzzleState = state;
+  console.log(`...puzlog started`);
+  return state;
+}
+
+//  This is the state local to each tab. It's basically a local copy of the
+//  puzzle state and data for the timer.
+const localExtensionState = {
+  puzzleState: {} as PuzzleState,
+};
+
+//  Start the extension.
+(async () => {
+  await startup();
+})();

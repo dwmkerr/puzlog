@@ -1,35 +1,84 @@
 <!-- popup.html -->
 <!DOCTYPE html>
 <html>
-<head>
-  <style>
-    html {
-      min-height: 5em;
-      min-width: 10em;
-      background: white;
-    }
+  <head>
+    <style>
+      html {
+        font-family: Gill Sans, Gill Sans MT, Calibri, sans-serif;
+        min-height: 5em;
+        min-width: 10em;
+        background: white;
+      }
 
-    #container {
-      background: white;
-      border: 2px black;
-    }
+      button {
+        display: inline-block;
+        outline: 0;
+        cursor: pointer;
+        padding: 5px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        vertical-align: middle;
+        border: 1px solid;
+        border-radius: 6px;
+        color: #24292e;
+        background-color: #fafbfc;
+        border-color: #1b1f2326;
+        box-shadow: rgba(27, 31, 35, 0.04) 0px 1px 0px 0px,
+          rgba(255, 255, 255, 0.25) 0px 1px 0px 0px inset;
+        transition: 0.2s cubic-bezier(0.3, 0, 0.5, 1);
+        transition-property: color, background-color, border-color;
+        :hover {
+          background-color: #f3f4f6;
+          border-color: #1b1f2326;
+          transition-duration: 0.1s;
+        }
+      }
 
-    #timer {
-      display: hidden;
-    }
-  </style>
-  <script src="popup.js"></script>
-</head>
-<body>
-  <div id="container">
-    <h1>Puzlog</h1>
-    <button id="start">Start</button>
-    <button id="stop">Stop</button>
-    <button id="reset">Reset</button>
-    <div id="timer">
+      h1 {
+        font-size: 1.1em;
+      }
+
+      #container {
+        background: white;
+        border: 2px black;
+      }
+
+      .monospace {
+        font-family: "Lucida Console", Courier, monospace;
+      }
+
+      #timer {
+        display: block;
+        background: #dedede;
+        font-size: 2em;
+        padding: 1em;
+        text-align: center;
+      }
+
+      #start {
+      }
+
+      #pause {
+        display: none;
+      }
+
+      #state {
+        display: none;
+      }
+    </style>
+    <script src="popup.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <h1>Puzlog</h1>
+      <button id="start">▶️ Start</button>
+      <button id="pause">⏸️ Pause</button>
+      <button id="finish">🏁 Finish</button>
+      <button id="reset">🗑️ Reset</button>
+      <div id="timer" class="monospace">00:00</div>
+      <p><a id="show_state">Show State</a></p>
+      <code id="state" />
     </div>
-    <h3>State</h3>
-    <code id="state" />
-  </div>
-</body>
+  </body>
 </html>

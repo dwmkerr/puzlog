@@ -1,5 +1,16 @@
 # puzlog
 
+// TODO:
+// 0. duration is reset on start
+// 1. other fields are reset on start
+// 0. add finish button, when finish, option to copy and paste into spreadsheet
+// 1. create or load state
+// 2. register hanlders
+// 3. start/stop/pause timer
+// 4. finish xword
+// 5. export JSON
+// 6. save state to cloud
+
 [![main](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml/badge.svg)](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml)
 [![codecov](https://codecov.io/gh/dwmkerr/puzlog/branch/main/graph/badge.svg?token=6Wj5EwCVqf)](https://codecov.io/gh/dwmkerr/puzlog)
 
@@ -13,19 +24,19 @@ Chrome Web Store: [Install TODO](https://chrome.google.com/webstore/detail/chatg
 
 - [Quickstart](#quickstart)
 - [Developer Guide](#developer-guide)
-    - [Developer Commands](#developer-commands)
-    - [Code Structure](#code-structure)
-    - [Running the Sample Pages](#running-the-sample-pages)
-    - [Manifest](#manifest)
-    - [Formatting and Code Quality Rules](#formatting-and-code-quality-rules)
-    - [Pre-Commit Hooks](#pre-commit-hooks)
-    - [Testing](#testing)
-    - [Debugging](#debugging)
-    - [Reloading the Extension](#reloading-the-extension)
-    - [Verifying Pull Requests](#verifying-pull-requests)
+  - [Developer Commands](#developer-commands)
+  - [Code Structure](#code-structure)
+  - [Running the Sample Pages](#running-the-sample-pages)
+  - [Manifest](#manifest)
+  - [Formatting and Code Quality Rules](#formatting-and-code-quality-rules)
+  - [Pre-Commit Hooks](#pre-commit-hooks)
+  - [Testing](#testing)
+  - [Debugging](#debugging)
+  - [Reloading the Extension](#reloading-the-extension)
+  - [Verifying Pull Requests](#verifying-pull-requests)
 - [Versioning](#versioning)
 - [Releasing](#releasing)
-    - [Extension Screenshots](#extension-screenshots)
+  - [Extension Screenshots](#extension-screenshots)
 - [Task List](#task-list)
 
 <!-- vim-markdown-toc -->
@@ -40,7 +51,7 @@ npm install
 npm run build
 ```
 
-Open [Chrome Extensions](chrome://extensions), choose 'Load Unpacked' and select the `./dist` folder. Open a puzzle, such as https://www.theguardian.com/crosswords/quiptic/1254. 
+Open [Chrome Extensions](chrome://extensions), choose 'Load Unpacked' and select the `./dist` folder. Open a puzzle, such as https://www.theguardian.com/crosswords/quiptic/1254.
 
 Press the 'Puzlog' button in the toolbar, you will now have the option to record timings, track progress and so on.
 
@@ -64,6 +75,8 @@ npm start
 ```
 
 Load the unpacked extension in your browser from the `./dist` folder.
+
+There is a CodePen with the popup which is useful for quickly playing with the formatting: https://codepen.io/dwmkerr/pen/gOqZRRW
 
 ### Developer Commands
 
