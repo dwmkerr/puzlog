@@ -91,6 +91,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     popupDOM.startButton.disabled = false;
     popupDOM.pauseButton.disabled = true;
     await stop();
+
+    //  Navigate to the puzlog index.
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("puzlog.html"),
+    });
   }); // addItems() should be addItems
   popupDOM.showStateButton.addEventListener("click", async () => {
     popupDOM.stateCode.style.display = "block";

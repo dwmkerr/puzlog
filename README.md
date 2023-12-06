@@ -1,6 +1,9 @@
 # puzlog
 
 // TODO:
+// 0. timer > 1 min
+// 0. time since lower sensitivity
+// 0. load/save to storage, fix datetimes
 // 1. other fields are reset on start
 // 0. add finish button, when finish, option to copy and paste into spreadsheet
 // 1. create or load state

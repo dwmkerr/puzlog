@@ -64,6 +64,13 @@ export default (_, argv) => ({
       hash: true,
       inject: true,
     }),
+    new HtmlWebpackPlugin({
+      template: "src/puzlog.html",
+      filename: "puzlog.html",
+      chunks: ["puzlog"],
+      hash: true,
+      inject: true,
+    }),
     new CopyPlugin({
       patterns: [
         //  Copy the images, icons etc, as is.

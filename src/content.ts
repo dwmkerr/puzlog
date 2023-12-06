@@ -143,10 +143,10 @@ async function startup(): Promise<PuzzleState> {
   //  Try and load the puzzle state from storage. We'll only get a return value
   //  if the user has spent some time on the xword already.
   const savedState = await loadState(storageKey);
-  // const state = savedState || initState(url, document.title);
-  const alwaysStartClean = true;
-  console.log(`initialising clean state`);
-  const state = alwaysStartClean ? initState(url, document.title) : savedState;
+  const state = savedState || initState(url, document.title);
+  // const alwaysStartClean = true;
+  // console.log(`initialising clean state`);
+  // const state = alwaysStartClean ? initState(url, document.title) : savedState;
 
   //  We won't need this check in the future, but for now avoids warnings.
   if (state === null) {
