@@ -1,14 +1,5 @@
 # puzlog
 
-// TODO:
-// 0. add finish button, when finish, option to copy and paste into spreadsheet
-// 1. create or load state
-// 2. register hanlders
-// 3. start/stop/pause timer
-// 4. finish xword
-// 5. export JSON
-// 6. save state to cloud
-
 [![main](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml/badge.svg)](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml)
 [![codecov](https://codecov.io/gh/dwmkerr/puzlog/branch/main/graph/badge.svg?token=6Wj5EwCVqf)](https://codecov.io/gh/dwmkerr/puzlog)
 
@@ -222,6 +213,13 @@ done
 A quick-and-dirty list of improvements and next steps:
 
 Items with a `!` could be applied to the ChatGPT diagrams extension.
+
+- [ ] bug: timer state seems to be lost when changing tabs
+- [ ] check: see if a basic status indicator in the tab icon would be possible
+- [ ] feat: simple on-page timer/start/stop
+- [ ] epic: finish xword
+- [ ] epic: export json
+- [ ] epic: save to cloud
 
 - [ ] build(!): consider webpack dev server to serve sample page in local dev mode
 - [ ] build(!): Create script to open a new chrome window, with the appropriate command line flags to load the dist unpacked
