@@ -1,5 +1,7 @@
 import { PuzzleState } from "./puzzleState";
 import { msToTime, timeAgo } from "./helpers";
+import { getElementOrFail } from "./document";
+import * as extensionInterface from "./extensionInterface";
 
 async function currentTabId(): Promise<number> {
   const [currentTab] = await chrome.tabs.query({
@@ -11,14 +13,6 @@ async function currentTabId(): Promise<number> {
     throw new Error(`unable to identify current tab`);
   }
   return id;
-}
-
-function getElementOrFail(id: string): HTMLElement {
-  const element = document.getElementById(id);
-  if (!element) {
-    throw new Error(`failed to get required element: ${id}`);
-  }
-  return element;
 }
 
 // Chrome 'sendMessage' uses the 'any' type, disable the warning.
@@ -49,6 +43,7 @@ async function reset(): Promise<PuzzleState> {
 }
 
 interface PopupDOM {
+  puzlogTitle: HTMLLinkElement;
   startButton: HTMLButtonElement;
   pauseButton: HTMLButtonElement;
   finishButton: HTMLButtonElement;
@@ -61,6 +56,7 @@ interface PopupDOM {
 
 function getPopupDOM(): PopupDOM {
   return {
+    puzlogTitle: getElementOrFail("puzlog_title") as HTMLLinkElement,
     startButton: getElementOrFail("start") as HTMLButtonElement,
     pauseButton: getElementOrFail("pause") as HTMLButtonElement,
     finishButton: getElementOrFail("finish") as HTMLButtonElement,
@@ -93,33 +89,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     await stop();
 
     //  Navigate to the puzlog index.
-    chrome.tabs.create({
-      url: chrome.runtime.getURL("puzlog.html"),
-    });
+    extensionInterface.navigateToPuzlogInterface();
   }); // addItems() should be addItems
   popupDOM.showStateButton.addEventListener("click", async () => {
     popupDOM.stateCode.style.display = "block";
   }); // addItem() should be addItems
   popupDOM.resetButton.addEventListener("click", () => reset()); // addItems() should be addItems
+  popupDOM.puzlogTitle.addEventListener("click", () =>
+    extensionInterface.navigateToPuzlogInterface()
+  );
 
-  //  When we start, we want to watch for changes.
+  //  This function updates our UI with state.
+  const updateUI = (state: PuzzleState) => {
+    const duration = state.elapsedTime;
+    const timerDiv = getElementOrFail("timer");
+    timerDiv.style.display = "block";
+    timerDiv.innerText = msToTime(duration);
+    popupDOM.stateCode.innerText = JSON.stringify(state, null, 2);
+
+    //  If we have a time start, update the 'time since start' div.
+    if (state.timeStart) {
+      const timeStart = new Date(state.timeStart);
+      const timeAgoText = timeAgo(timeStart, new Date());
+      popupDOM.timeSinceStart.innerText = `Started ${timeAgoText}`;
+    }
+  };
+
+  //  Get current state and watch state for changes.
   const state = await getState();
-  chrome.storage.onChanged.addListener((changes) => {
-    for (const [key, { newValue }] of Object.entries(changes)) {
-      //  If the key is our puzzle key, then we can update the UI.
-      if (key === state.storageKey) {
-        const duration = newValue.durationWorking;
-        const timerDiv = getElementOrFail("timer");
-        timerDiv.style.display = "block";
-        timerDiv.innerText = msToTime(duration);
-        popupDOM.stateCode.innerText = JSON.stringify(newValue, null, 2);
-
-        //  If we have a time start, update the 'time since start' div.
-        if (state.timeStart) {
-          const timeStart = new Date(state.timeStart);
-          const timeAgoText = timeAgo(timeStart, new Date());
-          popupDOM.timeSinceStart.innerText = `Started ${timeAgoText}`;
-        }
+  updateUI(state);
+  chrome.runtime.onMessage.addListener((request) => {
+    if (request.command === "stateUpdated") {
+      const puzzleState = request.puzzleState as PuzzleState;
+      if (puzzleState) {
+        updateUI(puzzleState);
       }
     }
   });

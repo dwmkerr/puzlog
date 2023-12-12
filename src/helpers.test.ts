@@ -1,6 +1,29 @@
-import { puzzleIdFromUrl, storageKeyFromPuzzleId, timeAgo } from "./helpers";
+import {
+  puzzleIdFromUrl,
+  storageKeyFromPuzzleId,
+  timeAgo,
+  msToTime,
+} from "./helpers";
 
 describe("helpers", () => {
+  describe("msToTime Function", () => {
+    it("should convert milliseconds to hh:mm:ss format", () => {
+      // Test case 1: 3665000 milliseconds (1 hour, 1 minute, 5 seconds)
+      expect(msToTime(3665000)).toEqual("01:01:05");
+
+      // Test case 2: 900000 milliseconds (15 minutes)
+      expect(msToTime(900000)).toEqual("00:15:00");
+
+      // Test case 3: 60000 milliseconds (1 minute)
+      expect(msToTime(60000)).toEqual("00:01:00");
+
+      // Test case 4: Negative milliseconds, large milliseconds, and zero milliseconds
+      expect(msToTime(-1000)).toEqual("00:00:00");
+      expect(msToTime(86400000)).toEqual("24:00:00");
+      expect(msToTime(0)).toEqual("00:00:00");
+    });
+  });
+
   describe("puzzleIdFromUrl", () => {
     it("correctly creates a puzzle id from a simple puzzle url", () => {
       const input = "https://www.theguardian.com/crosswords/cryptic/29233";

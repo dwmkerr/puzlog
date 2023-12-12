@@ -9,17 +9,16 @@ export function storageKeyFromPuzzleId(puzzleId: string): string {
   return `puzlog:${puzzleId}`;
 }
 
-export function msToTime(duration: number) {
-  const milliseconds = duration;
-  const seconds = milliseconds / 1000;
-  const minutes = seconds / 60;
-  const hours = minutes / 60;
+export function msToTime(milliseconds: number): string {
+  const seconds = Math.floor(milliseconds / 1000);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
 
-  const strSeconds = `${Math.round(seconds)}`.padStart(2, "0");
-  const strMinutes = `${Math.round(minutes)}`.padStart(2, "0");
-  const strHours = `${Math.round(hours)}`.padStart(2, "0");
+  const pad = (value: number): string =>
+    value < 10 ? `0${value}` : `${value}`;
 
-  return `${strHours}:${strMinutes}:${strSeconds}`;
+  return `${pad(hours)}:${pad(minutes)}:${pad(remainingSeconds)}`;
 }
 
 export function timeAgo(previousTime: Date, currentTime: Date): string {

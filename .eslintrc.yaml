@@ -13,3 +13,5 @@ parserOptions:
   sourceType: module
 rules:
   prettier/prettier: ["error"]
+  # I quite like having explicit type defintiions so disable this rule.
+  "@typescript-eslint/no-inferrable-types": "off"

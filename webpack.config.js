@@ -32,6 +32,7 @@ export default (_, argv) => ({
     type: "filesystem",
   },
   entry: {
+    puzlog: "./src/puzlog.ts",
     popup: "./src/popup.ts",
     content: "./src/content.ts",
   },

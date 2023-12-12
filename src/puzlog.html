@@ -1,3 +1,86 @@
-<h1>Puzlog</h1>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Puzlog</title>
+    <script src="puzlog.js"></script>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f0f0f0;
+        margin: 20px;
+      }
 
-Testing the index.
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #333;
+        color: #fff;
+      }
+
+      tr:first-child {
+        background-color: #d3d3d3; /* Visual style for the first item */
+      }
+
+      tr:hover {
+        background-color: #f5f5f5; /* Hover effect for better interactivity */
+      }
+
+      .star {
+        color: #ffcc00;
+      }
+
+      .icon {
+        font-size: 1.2em;
+        margin-right: 5px;
+        color: #4caf50; /* Green color for checkmark */
+      }
+
+      .incomplete {
+        color: #ffc107; /* Amber color for incomplete */
+      }
+
+      .unfilled-star {
+        color: #ccc; /* Gray color for unfilled stars */
+        cursor: pointer;
+      }
+
+      .unfilled-star:hover {
+        color: #ffcc00; /* Hover effect for unfilled stars */
+      }
+
+      .edit-delete-icons {
+        font-size: 1.2em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Puzlog</h1>
+    <p>Testing the index.</p>
+    <table id="puzzles_table">
+      <thead>
+        <tr>
+          <th>Crossword</th>
+          <th>Ranking</th>
+          <th>Date Started</th>
+          <th>Date Finished</th>
+          <th>Time Taken</th>
+          <th>Correct Clues</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+    </table>
+  </body>
+</html>
