@@ -1,3 +1,4 @@
+import * as extensionInterface from "./extensionInterface";
 import { puzzleIdFromUrl, storageKeyFromPuzzleId } from "./helpers";
 import {
   TimerState,
@@ -135,6 +136,14 @@ async function stopPuzzle(currentState: PuzzleState): Promise<PuzzleState> {
 }
 
 async function saveState(currentState: PuzzleState): Promise<void> {
+  //  If our timer state is changing, we can update the icon.
+  if (localExtensionState.puzzleState.timerState !== currentState.timerState) {
+    extensionInterface.setIconTimerState(
+      currentState.timerState,
+      localExtensionState.tabId
+    );
+  }
+
   //  Update our local state.
   localExtensionState.puzzleState = currentState;
 
@@ -170,18 +179,38 @@ async function startup(): Promise<PuzzleState> {
   //  if the user has spent some time on the xword already.
   const savedState = await loadState(storageKey);
   const state = savedState || initState(url, document.title);
-  // const alwaysStartClean = true;
-  // console.log(`initialising clean state`);
-  // const state = alwaysStartClean ? initState(url, document.title) : savedState;
 
   //  We won't need this check in the future, but for now avoids warnings.
   if (state === null) {
     throw new Error(`failed to initialise puzzle state`);
   }
 
-  //  Record the puzzle state, we're now good to go.
+  //  Record the puzzle state and current tab id, we're now good to go.
   localExtensionState.puzzleState = state;
-  console.log(`...puzlog started`);
+  localExtensionState.tabId = 0; // await extensionInterface.getCurrentTabId();
+  log(`${savedState ? "loaded saved state" : "initialised clean state"}`);
+  log(`tabId - ${localExtensionState.tabId}`);
+
+  //  We'll now wait for visibility changes (e.g. chrome minimised, tab hidden
+  //  and so on). If the timer has been started, we'll pause it when the tab
+  //  becomes invisible. We could make it an option to automatically restart
+  //  the timer when it is visible again.
+  document.addEventListener("visibilitychange", () => {
+    log(`visibilitychanged - ${document.visibilityState}`);
+    if (document.visibilityState === "visible") {
+      //  TODO: consider the option to automatically restart the timer.
+    } else {
+      //  The document is now no longer visible - pause the timer if needed.
+      if (localExtensionState.puzzleState.timerState === TimerState.Started) {
+        log(`pausing timer as page is losing visibility...`);
+        // const newState = await stopPuzzle(localExtensionState.puzzleState);
+        // await saveState(newState);
+      }
+    }
+  });
+
+  log("...initialised");
+
   return state;
 }
 
@@ -191,7 +220,12 @@ async function startup(): Promise<PuzzleState> {
 const localExtensionState = {
   puzzleState: {} as PuzzleState,
   stopwatch: new Stopwatch(),
+  tabId: 0 as number,
 };
+
+function log(message: string) {
+  console.log(`puzlog(${localExtensionState.puzzleState.title}): ${message}`);
+}
 
 //  Start the extension.
 (async () => {

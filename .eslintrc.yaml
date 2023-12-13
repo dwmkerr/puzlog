@@ -4,6 +4,7 @@ extends:
 plugins:
   - "prettier"
   - "@typescript-eslint"
+  - "html"
 env:
   browser: true
   node: true

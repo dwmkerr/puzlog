@@ -3,23 +3,11 @@ import { msToTime, timeAgo } from "./helpers";
 import { getElementOrFail } from "./document";
 import * as extensionInterface from "./extensionInterface";
 
-async function currentTabId(): Promise<number> {
-  const [currentTab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true,
-  });
-  const id = currentTab.id;
-  if (id === undefined) {
-    throw new Error(`unable to identify current tab`);
-  }
-  return id;
-}
-
 // Chrome 'sendMessage' uses the 'any' type, disable the warning.
 // eslint-disable-next-line
 async function sendMessage(message: any): Promise<PuzzleState> {
   //  Send the start message to the current tab.
-  const tabId = await currentTabId();
+  const tabId = await extensionInterface.getCurrentTabId();
   const newState = await chrome.tabs.sendMessage(tabId, message);
   return newState;
 }

@@ -17,6 +17,7 @@ Chrome Web Store: [Install TODO](https://chrome.google.com/webstore/detail/chatg
   - [Code Structure](#code-structure)
   - [Running the Sample Pages](#running-the-sample-pages)
   - [Manifest](#manifest)
+  - [Generating Icons](#generating-icons)
   - [Formatting and Code Quality Rules](#formatting-and-code-quality-rules)
   - [Pre-Commit Hooks](#pre-commit-hooks)
   - [Testing](#testing)
@@ -118,6 +119,16 @@ The sample page is served at `http://localhost:3000`.
 ### Manifest
 
 Note that the `version` field is omitted from [`manifest.json`](./src/manifest.json). The version in the manifest file is set to the current value in the [`package.json`](package.json) file as part of the build process.
+
+### Generating Icons
+
+You can use the `./scripts/generate-icons-from-128.sh` script to generate icons of all required sizes from 128 pixel icons:
+
+```bash
+./scripts/generate-icons-from-128.sh src/images/icon128.png
+./scripts/generate-icons-from-128.sh src/images/icon128-started.png
+./scripts/generate-icons-from-128.sh src/images/icon128-stopped.png
+```
 
 ### Formatting and Code Quality Rules
 
@@ -230,4 +241,7 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 
 **Later**
 
+- [ ] feat(!): cross browser support with web extension polyfill
+- [ ] refactor: create a 'puzzleId' based on a number rather than a URL - easier for links etc, however hold off on this as it might make sharing harder
+- [ ] refactor: move bulk of logic into service worker
 - [ ] bug: timer logic is a little odd, if you stop/pause at 00:01:01:999 for example, then pressing 'start' waits a full second before updating the tick. This is because of the logic being a bit weird, think we need to track the start/pause timestamp and make calculations based on that rather than 'last tick'

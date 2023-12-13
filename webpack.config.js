@@ -32,7 +32,8 @@ export default (_, argv) => ({
     type: "filesystem",
   },
   entry: {
-    puzlog: "./src/puzlog.ts",
+    // puzlog: "./src/puzlog.ts",
+    puzlog: "./src/pages/puzlog/puzlog.tsx",
     popup: "./src/popup.ts",
     content: "./src/content.ts",
   },
@@ -44,12 +45,12 @@ export default (_, argv) => ({
     asyncChunks: false,
   },
   resolve: {
-    extensions: [".ts", ".js"],
+    extensions: [".ts", ".js", ".tsx", ".jsx"],
   },
   module: {
     rules: [
       {
-        test: /\.ts$/,
+        test: /\.tsx?$/,
         exclude: /node_modules/,
         use: {
           loader: "ts-loader",
@@ -62,11 +63,19 @@ export default (_, argv) => ({
       template: "src/popup.html",
       filename: "popup.html",
       hash: true,
+      inject: false,
     }),
+    // new HtmlWebpackPlugin({
+    //   template: "src/puzlog.html",
+    //   filename: "puzlog.html",
+    //   hash: true,
+    //   inject: false,
+    // }),
     new HtmlWebpackPlugin({
-      template: "src/puzlog.html",
+      template: "src/pages/puzlog/puzlog.html",
       filename: "puzlog.html",
       hash: true,
+      inject: false,
     }),
     new CopyPlugin({
       patterns: [
