@@ -61,16 +61,12 @@ export default (_, argv) => ({
     new HtmlWebpackPlugin({
       template: "src/popup.html",
       filename: "popup.html",
-      chunks: ["popup"],
       hash: true,
-      inject: true,
     }),
     new HtmlWebpackPlugin({
       template: "src/puzlog.html",
       filename: "puzlog.html",
-      chunks: ["puzlog"],
       hash: true,
-      inject: true,
     }),
     new CopyPlugin({
       patterns: [

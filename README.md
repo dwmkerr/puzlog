@@ -214,7 +214,11 @@ A quick-and-dirty list of improvements and next steps:
 
 Items with a `!` could be applied to the ChatGPT diagrams extension.
 
+- [ ] feat: timer stop on change tab
+- [ ] bug: doesn't work across multiple tabs
+- [ ] feat: in progress icon for puzlog page
 - [ ] bug: timer state seems to be lost when changing tabs
+- [x] bug(!): it seems all scripts are executed twice (loaded twice, even with `{ once: true }` in DOM Content Loaded
 - [ ] check: see if a basic status indicator in the tab icon would be possible
 - [ ] feat: simple on-page timer/start/stop
 - [ ] epic: finish xword
