@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { PuzzleState } from "../../puzzleState";
 import { loadPuzzles, deletePuzzle } from "../../extensionInterface";
 import { msToTime } from "../../helpers";
+import PuzzleGrid from "./PuzzleGrid";
 
 import StatusIcon from "./StatusIcon";
 
@@ -13,7 +14,7 @@ type Props = {
   count: number;
 };
 
-const Puzlog: React.FC<Props> = ({ title, count }) => {
+const Puzlog: React.FC<Props> = ({}) => {
   // State to store the array of puzzles
   const [puzzles, setPuzzles] = useState<PuzzleState[]>([]);
 
@@ -35,8 +36,6 @@ const Puzlog: React.FC<Props> = ({ title, count }) => {
 
   return (
     <div>
-      <h1>{title}</h1>
-      <p>Count: {count}</p>
       <h1>Puzlog</h1>
       <p>Testing the index.</p>
       <table id="puzzles_table">
@@ -83,6 +82,9 @@ const Puzlog: React.FC<Props> = ({ title, count }) => {
           ))}
         </tbody>
       </table>
+      <div>
+        <PuzzleGrid puzzles={puzzles} />
+      </div>
     </div>
   );
 };

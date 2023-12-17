@@ -87,13 +87,13 @@ const StatusIcon = ({ status, size }: StatusIconProps) => {
               cy="12"
               r="10"
               stroke={colors.green}
-              stroke-width="2"
+              strokeWidth="2"
               fill="none"
             />
             <path
               d="M6,12l4,4l8-8"
               stroke={colors.green}
-              stroke-width="2"
+              strokeWidth="2"
               fill="none"
             />
           </svg>
