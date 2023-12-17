@@ -3,6 +3,7 @@ import { puzzleIdFromUrl, storageKeyFromPuzzleId } from "./helpers";
 import {
   TimerState,
   PuzzleState,
+  PuzzleStatus,
   toSerializableObject,
   fromSerializableObject,
 } from "./puzzleState";
@@ -31,8 +32,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       //  We can move the 'finish' logic into its own function later when it
       //  becomes more substantial.
       const state = localExtensionState.puzzleState;
-      state.timeFinish = new Date();
       const newState = await stopPuzzle(state);
+      newState.timeFinish = new Date();
+      newState.status = PuzzleStatus.Finished;
       await saveState(newState);
       sendResponse(newState);
     } else if (command === "reset") {
@@ -55,6 +57,7 @@ function initState(url: string, title: string): PuzzleState {
     puzzleId,
     storageKey,
     title,
+    status: PuzzleStatus.NotStarted,
     timeLoad: now,
     timeLastAccess: now,
     timeStart: now,
@@ -77,7 +80,13 @@ async function loadState(storageKey: string): Promise<PuzzleState | null> {
   try {
     const storedPuzzleState = fromSerializableObject(storageObject);
     console.log(`found saved state from ${storedPuzzleState.timeLastAccess}`);
-    return storedPuzzleState;
+
+    //  No matter what state the timer was in, it is stopped when we load a
+    //  puzzle from storage (as timers are ephemeral to the extension).
+    return {
+      ...storedPuzzleState,
+      timerState: TimerState.Stopped,
+    };
   } catch (err) {
     console.error(
       `unable to convert saved state to puzzle state, puzzle state will be reset`,
@@ -110,6 +119,7 @@ async function startPuzzle(currentState: PuzzleState): Promise<PuzzleState> {
 
   return {
     ...currentState,
+    status: PuzzleStatus.Started,
     timeLastAccess: now,
     timeStart: currentState.timeStart || now, // only update start time if clean
     timerState: TimerState.Started,

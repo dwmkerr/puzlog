@@ -1,3 +1,10 @@
+export enum PuzzleStatus {
+  NotStarted,
+  Started,
+  Finished,
+  Unknown,
+}
+
 export enum TimerState {
   Stopped,
   Started,
@@ -8,6 +15,7 @@ export interface PuzzleState {
   storageKey: string;
   url: string;
   title: string;
+  status: PuzzleStatus;
   timeLoad: Date;
   timeLastAccess: Date;
   timeStart: Date;
@@ -24,6 +32,7 @@ export function toSerializableObject(
     storageKey: state.storageKey,
     url: state.url,
     title: state.title,
+    status: PuzzleStatus[state.status],
     timeLoad: state.timeLoad.toISOString(),
     timeLastAccess: state.timeLastAccess.toISOString(),
     timeStart: state.timeStart.toISOString(),
@@ -41,16 +50,24 @@ export function fromSerializableObject(
     const parsedDate = new Date(dateString);
 
     if (isNaN(parsedDate.getTime())) {
-      throw new Error(`date field ${fieldName} is invalid: ${dateString}`);
+      throw new Error(`date field '${fieldName}' is invalid: ${dateString}`);
     }
 
     return parsedDate;
   }
+
+  function parsePuzzleStatus(value: string): PuzzleStatus {
+    return (
+      PuzzleStatus[value as keyof typeof PuzzleStatus] || PuzzleStatus.Unknown
+    );
+  }
+
   return {
     puzzleId: object["puzzleId"] as string,
     storageKey: object["storageKey"] as string,
     url: object["url"] as string,
     title: object["title"] as string,
+    status: parsePuzzleStatus(object["status"] as string),
     timeLoad: parseDateField("timeLoad"),
     timeLastAccess: parseDateField("timeLastAccess"),
     timeStart: parseDateField("timeStart"),

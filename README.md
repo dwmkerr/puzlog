@@ -225,6 +225,8 @@ A quick-and-dirty list of improvements and next steps:
 
 Items with a `!` could be applied to the ChatGPT diagrams extension.
 
+- [ ] feat: finished status and icon
+- [ ] feat: cheated clues
 - [ ] feat: timer stop on change tab
 - [ ] bug: doesn't work across multiple tabs
 - [ ] feat: in progress icon for puzlog page
@@ -241,6 +243,9 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 
 **Later**
 
+- [ ] feat: better anagram helper
+- [ ] feat(option): elapsed time vs clock time
+- [ ] feat(option): grey overlay on site when timer not started (to force timer)
 - [ ] feat(!): cross browser support with web extension polyfill
 - [ ] refactor: create a 'puzzleId' based on a number rather than a URL - easier for links etc, however hold off on this as it might make sharing harder
 - [ ] refactor: move bulk of logic into service worker

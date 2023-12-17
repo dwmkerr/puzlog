@@ -26,6 +26,10 @@ async function stop(): Promise<PuzzleState> {
   return await sendMessage({ command: "stop" });
 }
 
+async function finish(): Promise<PuzzleState> {
+  return await sendMessage({ command: "finish" });
+}
+
 async function reset(): Promise<PuzzleState> {
   return await sendMessage({ command: "reset" });
 }
@@ -74,7 +78,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   popupDOM.finishButton.addEventListener("click", async () => {
     popupDOM.startButton.disabled = false;
     popupDOM.pauseButton.disabled = true;
-    await stop();
+    await finish();
 
     //  Navigate to the puzlog index.
     extensionInterface.navigateToPuzlogInterface();

@@ -1,6 +1,7 @@
 import {
   PuzzleState,
   TimerState,
+  PuzzleStatus,
   toSerializableObject,
   fromSerializableObject,
 } from "./puzzleState"; // Replace 'yourFile' with the actual file path
@@ -12,6 +13,7 @@ describe("puzzleState", () => {
       storageKey: "puzlog:https://www.theguardian.com/crosswords/cryptic/29233",
       url: "https://www.theguardian.com/crosswords/cryptic/29233",
       title: "Sample Puzzle",
+      status: PuzzleStatus.Started,
       timeLoad: new Date("2023-01-01T12:00:00Z"),
       timeLastAccess: new Date("2023-01-01T12:05:00Z"),
       timeStart: new Date("2023-01-01T12:10:00Z"),
@@ -32,6 +34,7 @@ describe("puzzleState", () => {
       storageKey: "puzlog:https://www.theguardian.com/crosswords/cryptic/29233",
       url: "https://www.theguardian.com/crosswords/cryptic/29233",
       title: "Sample Puzzle",
+      status: "badstatus", // should deesrialize to 'PuzzleStatus.Unknown'.
       timeLoad: "invalid-date", // Invalid ISO8601 string
       timeLastAccess: "2023-01-01T12:05:00.000Z",
       timeStart: "2023-01-01T12:10:00.000Z",
@@ -42,7 +45,14 @@ describe("puzzleState", () => {
 
     // Attempting to deserialize should throw an error
     expect(() => fromSerializableObject(invalidSerializedObject)).toThrowError(
-      "Invalid timeLoad: invalid-date"
+      "date field 'timeLoad' is invalid: invalid-date"
     );
+
+    //  Fix the dates, then check we get a Unknown PuzzleStatus.
+    const deserializedObject = fromSerializableObject({
+      ...invalidSerializedObject,
+      timeLoad: new Date().toISOString(),
+    });
+    expect(deserializedObject.status).toEqual(PuzzleStatus.Unknown);
   });
 });

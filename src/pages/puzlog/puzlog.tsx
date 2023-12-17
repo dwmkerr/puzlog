@@ -55,13 +55,12 @@ const Puzlog: React.FC<Props> = ({ title, count }) => {
           {puzzles.map((puzzle, index) => (
             <tr key={index}>
               <td className="incomplete">
-                <span className="icon">&#10007;</span>
-                <a href={puzzle.url}>{puzzle.title}</a>
-                <StatusIcon size={16} status="NotStarted" />
-                <StatusIcon size={24} status="Started" />
-                <StatusIcon size={48} status="Paused" />
-                <StatusIcon size={64} status="Succeeded" />
-                <StatusIcon size={128} status="Failed" />
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <StatusIcon size={16} status={puzzle.status} />
+                  <a href={puzzle.url} style={{ paddingLeft: "0.4em" }}>
+                    {puzzle.title}
+                  </a>
+                </div>
               </td>
               <td>
                 <span className="unfilled-star">&#9734;</span>
