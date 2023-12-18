@@ -1,4 +1,9 @@
-import { PuzzleState, TimerState, fromSerializableObject } from "./puzzleState";
+import {
+  PuzzleState,
+  TimerState,
+  toSerializableObject,
+  fromSerializableObject,
+} from "./lib/puzzleState";
 
 export function navigateToPuzlogInterface() {
   //  Navigate to the puzlog index.
@@ -24,8 +29,37 @@ export async function deletePuzzle(storageKey: string): Promise<void> {
   await chrome.storage.local.remove([storageKey]);
 }
 
+export async function savePuzzle(
+  puzzle: PuzzleState,
+  broadcastUpdate: boolean
+): Promise<void> {
+  //  Create a serializable version of the state. Then create the payload to
+  //  add to the local storage.
+  const serializableState = toSerializableObject(puzzle);
+  const items = {
+    [puzzle.storageKey]: serializableState,
+  };
+
+  //  Save the payload, check for errors, throw if needed.
+  await chrome.storage.local.set(items);
+  if (chrome.runtime.lastError) {
+    throw new Error(
+      `error setting state to '${puzzle.storageKey}': ${chrome.runtime.lastError.message}`
+    );
+  }
+
+  //  If we have been asked to broadcast updates, then send a message to the
+  //  runtime, notifying other parts of the extension that our state is updated.
+  if (broadcastUpdate) {
+    chrome.runtime.sendMessage({
+      command: "stateUpdated",
+      puzzleState: puzzle,
+    });
+  }
+}
+
 export function setIconTimerState(timerState: TimerState, tabId: number): void {
-  console.log(`bailling on changing icon...`);
+  console.log(`bailing on changing icon for tab ${tabId}...`);
   return;
   switch (timerState) {
     case TimerState.Stopped:

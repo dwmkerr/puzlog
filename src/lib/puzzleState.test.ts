@@ -20,6 +20,7 @@ describe("puzzleState", () => {
       timeFinish: new Date("2023-01-01T12:20:00Z"),
       elapsedTime: 600, // 10 minutes in seconds
       timerState: TimerState.Started,
+      hintsOrMistakes: 2,
     };
 
     const serializedObject = toSerializableObject(originalPuzzleState);
@@ -41,6 +42,7 @@ describe("puzzleState", () => {
       timeFinish: "2023-01-01T12:20:00.000Z",
       elapsedTime: 600, // 10 minutes in seconds
       timerState: TimerState.Started,
+      hintsOrMistakes: 2,
     };
 
     // Attempting to deserialize should throw an error
@@ -54,5 +56,28 @@ describe("puzzleState", () => {
       timeLoad: new Date().toISOString(),
     });
     expect(deserializedObject.status).toEqual(PuzzleStatus.Unknown);
+  });
+
+  it("should set the correct values for fields which have not been stored", () => {
+    const serliazedObjectPartial = {
+      puzzleId: "https://www.theguardian.com/crosswords/cryptic/29233",
+      storageKey: "puzlog:https://www.theguardian.com/crosswords/cryptic/29233",
+      url: "https://www.theguardian.com/crosswords/cryptic/29233",
+      title: "Sample Puzzle",
+      // status: null, // should be 'unknown'.
+      timeLoad: "2023-01-01T12:00:00.000Z",
+      timeLastAccess: "2023-01-01T12:05:00.000Z",
+      timeStart: "2023-01-01T12:10:00.000Z",
+      timeFinish: "2023-01-01T12:20:00.000Z",
+      elapsedTime: 600, // 10 minutes in seconds
+      // timerState: null, // should be 'stopped'.
+      // hintsOrMistakes: null, // should be '0'.
+    };
+
+    //  Fix the dates, then check we get a Unknown PuzzleStatus.
+    const deserializedObject = fromSerializableObject(serliazedObjectPartial);
+    expect(deserializedObject.status).toEqual(PuzzleStatus.Unknown);
+    expect(deserializedObject.timerState).toEqual(TimerState.Stopped);
+    expect(deserializedObject.hintsOrMistakes).toEqual(0);
   });
 });

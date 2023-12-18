@@ -10,7 +10,11 @@ export function storageKeyFromPuzzleId(puzzleId: string): string {
 }
 
 export function msToTime(milliseconds: number): string {
-  const seconds = Math.floor(milliseconds / 1000);
+  //  Treat negative numbers as zero.
+  const ms = milliseconds > 0 ? milliseconds : 0;
+
+  //  Break up into hh:mm:ss.
+  const seconds = Math.floor(ms / 1000);
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const remainingSeconds = seconds % 60;

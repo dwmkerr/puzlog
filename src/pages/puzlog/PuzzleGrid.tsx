@@ -2,23 +2,28 @@ import React, { useState } from "react";
 import { AgGridReact } from "ag-grid-react"; // React Grid Logic
 import "ag-grid-community/styles/ag-grid.css"; // Core CSS
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Theme
-import { PuzzleState } from "../../puzzleState";
+import { PuzzleState } from "../../lib/puzzleState";
 import StatusIcon from "./StatusIcon";
 import { msToTime } from "../../helpers";
 
-interface PuzzleGridProps {
+type UpdatePuzzleFunc = (puzzle: PuzzleState) => Promise<void>;
+
+interface PuzzleGridProps extends React.HTMLProps<HTMLDivElement> {
   puzzles: PuzzleState[];
+  updatePuzzle: UpdatePuzzleFunc;
 }
 
-const PuzzleGrid = ({ puzzles }: PuzzleGridProps) => {
+const PuzzleGrid = ({ puzzles, updatePuzzle, ...props }: PuzzleGridProps) => {
   //  Turn the puzzles ino a set of row data.
   const rowData = puzzles.map((puzzle) => ({
     title: puzzle.title,
     url: puzzle.url,
     status: puzzle.status,
+    hintsOrMistakes: puzzle.hintsOrMistakes,
     timeStart: puzzle.timeStart, //.toISOString().substr(0, 10),
     timeEnd: puzzle.timeStart, //toISOString().substr(0, 10),
     elapsedTime: msToTime(puzzle.elapsedTime),
+    puzzle,
   }));
   const StatusRenderer = ({ value }) => (
     <span
@@ -77,15 +82,46 @@ const PuzzleGrid = ({ puzzles }: PuzzleGridProps) => {
       }),
       cellRenderer: TitleRenderer,
     },
+    {
+      field: "hintsOrMistakes",
+      filter: true,
+      editable: true,
+    },
     { field: "rating", filter: true },
     { field: "timeStart", filter: true },
     { field: "timeEnd", filter: true },
     { field: "elapsedTime", filter: true },
   ]);
 
+  const onCellValueChanged = async (event) => {
+    //  Get the key info on the change.
+    const {
+      data: puzzleRowData,
+      oldValue,
+      newValue,
+      colDef: { field },
+    } = event;
+    console.log(
+      `Cell Change for ID ${puzzleRowData.title} field ${field}: ${oldValue} -> ${newValue}`
+    );
+    console.log("raw puzzle", puzzleRowData.puzzle);
+
+    //  Update the puzzle state, save it, broadcast changes.
+    const updatedPuzzle = {
+      ...puzzleRowData.puzzle,
+      [field]: newValue,
+    };
+    console.log("updated puzzle", updatedPuzzle);
+    await updatePuzzle(updatedPuzzle);
+  };
+
   return (
-    <div className="ag-theme-quartz" style={{ height: "10em" }}>
-      <AgGridReact rowData={rowData} columnDefs={colDefs} />
+    <div className="ag-theme-quartz" {...props}>
+      <AgGridReact
+        rowData={rowData}
+        columnDefs={colDefs}
+        onCellValueChanged={onCellValueChanged}
+      />
     </div>
   );
 };

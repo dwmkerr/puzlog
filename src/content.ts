@@ -4,9 +4,8 @@ import {
   TimerState,
   PuzzleState,
   PuzzleStatus,
-  toSerializableObject,
   fromSerializableObject,
-} from "./puzzleState";
+} from "./lib/puzzleState";
 import { Stopwatch } from "./stopwatch";
 
 //  Listen for messages, route to the appropriate handlers.
@@ -64,6 +63,7 @@ function initState(url: string, title: string): PuzzleState {
     timeFinish: null,
     elapsedTime: 0,
     timerState: TimerState.Stopped,
+    hintsOrMistakes: 0,
   };
   return state;
 }
@@ -157,24 +157,9 @@ async function saveState(currentState: PuzzleState): Promise<void> {
   //  Update our local state.
   localExtensionState.puzzleState = currentState;
 
-  //  Create a serializable version of the state.
-  const serializableState = toSerializableObject(currentState);
-
-  const items = {
-    [currentState.storageKey]: serializableState,
-  };
-  await chrome.storage.local.set(items);
-  if (chrome.runtime.lastError) {
-    console.error(
-      `error setting state to '${currentState.storageKey}': ${chrome.runtime.lastError.message}`
-    );
-  }
-
-  //  Notify other parts of the extension that our state is updated.
-  chrome.runtime.sendMessage({
-    command: "stateUpdated",
-    puzzleState: currentState,
-  });
+  //  Save the puzzle in the extension storage. Broadcast changes.
+  const broadcastUpdate = true;
+  extensionInterface.savePuzzle(currentState, broadcastUpdate);
 }
 
 async function startup(): Promise<PuzzleState> {

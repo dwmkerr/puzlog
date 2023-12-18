@@ -18,6 +18,7 @@ describe("helpers", () => {
       expect(msToTime(60000)).toEqual("00:01:00");
 
       // Test case 4: Negative milliseconds, large milliseconds, and zero milliseconds
+      debugger;
       expect(msToTime(-1000)).toEqual("00:00:00");
       expect(msToTime(86400000)).toEqual("24:00:00");
       expect(msToTime(0)).toEqual("00:00:00");

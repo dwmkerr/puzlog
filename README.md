@@ -225,8 +225,9 @@ A quick-and-dirty list of improvements and next steps:
 
 Items with a `!` could be applied to the ChatGPT diagrams extension.
 
-- [ ] feat: finished status and icon
-- [ ] feat: cheated clues
+- [x] feat: finished status and icon
+- [x] feat: cheated clues
+- [ ] bug: cannot sort or filter by 'title'
 - [ ] feat: timer stop on change tab
 - [ ] bug: doesn't work across multiple tabs
 - [ ] feat: in progress icon for puzlog page
@@ -243,6 +244,7 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 
 **Later**
 
+- [ ] feat: cheated clues set on in-page overlay
 - [ ] feat: better anagram helper
 - [ ] feat(option): elapsed time vs clock time
 - [ ] feat(option): grey overlay on site when timer not started (to force timer)

@@ -1,5 +1,5 @@
 import React from "react";
-import { PuzzleStatus } from "../../puzzleState";
+import { PuzzleStatus } from "../../lib/puzzleState";
 
 interface StatusIconProps {
   status: PuzzleStatus;

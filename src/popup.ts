@@ -1,4 +1,4 @@
-import { PuzzleState } from "./puzzleState";
+import { PuzzleState } from "./lib/puzzleState";
 import { msToTime, timeAgo } from "./helpers";
 import { getElementOrFail } from "./document";
 import * as extensionInterface from "./extensionInterface";

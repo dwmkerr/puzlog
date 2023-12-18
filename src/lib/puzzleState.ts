@@ -22,6 +22,7 @@ export interface PuzzleState {
   timeFinish: Date | null;
   elapsedTime: number;
   timerState: TimerState;
+  hintsOrMistakes: number;
 }
 
 export function toSerializableObject(
@@ -39,6 +40,7 @@ export function toSerializableObject(
     timeFinish: state.timeFinish ? state.timeFinish.toISOString() : null,
     elapsedTime: state.elapsedTime,
     timerState: state.timerState,
+    hintsOrMistakes: state.hintsOrMistakes,
   };
 }
 
@@ -62,6 +64,10 @@ export function fromSerializableObject(
     );
   }
 
+  //  Note that as well as deserializing, this code is also handling the logic
+  //  for fields which might not be stored (for example fields which have been
+  //  added to the extension since the puzzle was initially logged). This is
+  //  also covered in the unit tests.
   return {
     puzzleId: object["puzzleId"] as string,
     storageKey: object["storageKey"] as string,
@@ -73,6 +79,7 @@ export function fromSerializableObject(
     timeStart: parseDateField("timeStart"),
     timeFinish: object["timeFinish"] ? parseDateField("timeFinish") : null,
     elapsedTime: object["elapsedTime"] as number,
-    timerState: object["timerState"] as TimerState,
+    timerState: (object["timerState"] as TimerState) || TimerState.Stopped,
+    hintsOrMistakes: (object["hintsOrMistakes"] as number) || 0,
   };
 }
