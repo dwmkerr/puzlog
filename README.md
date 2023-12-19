@@ -227,7 +227,7 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 
 - [x] feat: finished status and icon
 - [x] feat: cheated clues
-- [ ] bug: cannot sort or filter by 'title'
+- [x] bug: cannot sort or filter by 'title'
 - [ ] feat: timer stop on change tab
 - [ ] bug: doesn't work across multiple tabs
 - [ ] feat: in progress icon for puzlog page

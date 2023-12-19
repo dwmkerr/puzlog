@@ -80,6 +80,11 @@ const PuzzleGrid = ({ puzzles, updatePuzzle, ...props }: PuzzleGridProps) => {
         status: params.data.status,
         url: params.data.url,
       }),
+      //  Filters take the value of 'field' or 'valueGetter'. Given that
+      //  'valueGetter' returns an object (so that we can have a composite
+      //  value) we need to explicitly provide the string that the filter
+      //  will operate on.
+      filterValueGetter: (params) => params.data.title,
       cellRenderer: TitleRenderer,
     },
     {
