@@ -227,6 +227,7 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 
 - [x] feat: rating component, rating in data model
 - [x] feat: notes field
+- [ ] wip: fix styes in shadow root component
 - [ ] feat: move logic from content to background - note that we get a promise failure if we try and change values from the puzlog page - does it expect a content script running?
 - [ ] feat: simple on-page timer/start/stop
 - [ ] bug: timer state seems to be lost when changing tabs
