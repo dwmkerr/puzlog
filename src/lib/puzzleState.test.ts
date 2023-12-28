@@ -21,6 +21,8 @@ describe("puzzleState", () => {
       elapsedTime: 600, // 10 minutes in seconds
       timerState: TimerState.Started,
       hintsOrMistakes: 2,
+      rating: null,
+      notes: "Hard 🥵 <\"';", // note complex characters...
     };
 
     const serializedObject = toSerializableObject(originalPuzzleState);
@@ -43,6 +45,8 @@ describe("puzzleState", () => {
       elapsedTime: 600, // 10 minutes in seconds
       timerState: TimerState.Started,
       hintsOrMistakes: 2,
+      rating: 2,
+      notes: "Fun, not too hard",
     };
 
     // Attempting to deserialize should throw an error
@@ -69,15 +73,18 @@ describe("puzzleState", () => {
       timeLastAccess: "2023-01-01T12:05:00.000Z",
       timeStart: "2023-01-01T12:10:00.000Z",
       timeFinish: "2023-01-01T12:20:00.000Z",
-      elapsedTime: 600, // 10 minutes in seconds
+      elapsedTime: 600, // 10 minutes in seconds.
       // timerState: null, // should be 'stopped'.
       // hintsOrMistakes: null, // should be '0'.
+      // rating: null, // should be 'null'.
+      // notes: null, // should be "".
     };
 
     //  Fix the dates, then check we get a Unknown PuzzleStatus.
     const deserializedObject = fromSerializableObject(serliazedObjectPartial);
     expect(deserializedObject.status).toEqual(PuzzleStatus.Unknown);
     expect(deserializedObject.timerState).toEqual(TimerState.Stopped);
-    expect(deserializedObject.hintsOrMistakes).toEqual(0);
+    expect(deserializedObject.hintsOrMistakes).toEqual(null);
+    expect(deserializedObject.notes).toEqual("");
   });
 });

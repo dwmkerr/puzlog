@@ -22,7 +22,9 @@ export interface PuzzleState {
   timeFinish: Date | null;
   elapsedTime: number;
   timerState: TimerState;
-  hintsOrMistakes: number;
+  hintsOrMistakes: number | null;
+  rating: number | null;
+  notes: string | null;
 }
 
 export function toSerializableObject(
@@ -41,6 +43,8 @@ export function toSerializableObject(
     elapsedTime: state.elapsedTime,
     timerState: state.timerState,
     hintsOrMistakes: state.hintsOrMistakes,
+    rating: state.rating,
+    notes: state.notes,
   };
 }
 
@@ -80,6 +84,8 @@ export function fromSerializableObject(
     timeFinish: object["timeFinish"] ? parseDateField("timeFinish") : null,
     elapsedTime: object["elapsedTime"] as number,
     timerState: (object["timerState"] as TimerState) || TimerState.Stopped,
-    hintsOrMistakes: (object["hintsOrMistakes"] as number) || 0,
+    hintsOrMistakes: (object["hintsOrMistakes"] as number) || null,
+    rating: (object["rating"] as number) || null,
+    notes: (object["notes"] as string) || "",
   };
 }

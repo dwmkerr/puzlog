@@ -1,6 +1,6 @@
 import { PuzzleState } from "./lib/puzzleState";
 import { msToTime, timeAgo } from "./helpers";
-import { getElementOrFail } from "./document";
+import { getElementOrFail } from "./lib/document";
 import * as extensionInterface from "./extensionInterface";
 
 // Chrome 'sendMessage' uses the 'any' type, disable the warning.
@@ -18,6 +18,7 @@ async function getState(): Promise<PuzzleState> {
 
 async function start(): Promise<PuzzleState> {
   const newState = await sendMessage({ command: "start" });
+  chrome.runtime.sendMessage({ action: "startTimer" });
 
   return newState;
 }
@@ -34,6 +35,13 @@ async function reset(): Promise<PuzzleState> {
   return await sendMessage({ command: "reset" });
 }
 
+async function showOverlay(show: boolean): Promise<PuzzleState> {
+  return await sendMessage({
+    command: extensionInterface.TabMessages.ShowOverlay,
+    show,
+  });
+}
+
 interface PopupDOM {
   puzlogTitle: HTMLLinkElement;
   startButton: HTMLButtonElement;
@@ -44,6 +52,7 @@ interface PopupDOM {
   showStateButton: HTMLButtonElement;
   stateCode: HTMLElement;
   timeSinceStart: HTMLElement;
+  showOverlayCheckbox: HTMLInputElement;
 }
 
 function getPopupDOM(): PopupDOM {
@@ -57,6 +66,9 @@ function getPopupDOM(): PopupDOM {
     showStateButton: getElementOrFail("show_state") as HTMLButtonElement,
     stateCode: getElementOrFail("state"),
     timeSinceStart: getElementOrFail("timeSinceStart"),
+    showOverlayCheckbox: getElementOrFail(
+      "checkbox_show_overlay"
+    ) as HTMLInputElement,
   };
 }
 
@@ -90,6 +102,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   popupDOM.puzlogTitle.addEventListener("click", () =>
     extensionInterface.navigateToPuzlogInterface()
   );
+
+  popupDOM.showOverlayCheckbox.addEventListener("click", async () => {
+    const checked = popupDOM.showOverlayCheckbox.checked;
+    await showOverlay(checked);
+  });
 
   //  This function updates our UI with state.
   const updateUI = (state: PuzzleState) => {

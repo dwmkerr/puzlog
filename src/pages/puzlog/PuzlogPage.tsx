@@ -1,23 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { PuzzleState } from "../../lib/puzzleState";
-import {
-  loadPuzzles,
-  deletePuzzle,
-  savePuzzle,
-} from "../../extensionInterface";
-import { msToTime } from "../../helpers";
+import { loadPuzzles, savePuzzle } from "../../extensionInterface";
 import PuzzleGrid from "./PuzzleGrid";
 
-import StatusIcon from "./StatusIcon";
-
-type Props = {
-  // Define the properties (props) that your component accepts
-  // For example:
-  title: string;
-  count: number;
-};
-
-const PuzlogPage = ({}: Props) => {
+const PuzlogPage = () => {
   // State to store the array of puzzles
   const [puzzles, setPuzzles] = useState<PuzzleState[]>([]);
 
@@ -53,60 +39,22 @@ const PuzlogPage = ({}: Props) => {
   };
 
   return (
-    <div style={{ height: "100%" }}>
+    <div
+      style={{
+        padding: "1em",
+        display: "flex",
+        flexDirection: "column",
+        flexGrow: 1,
+      }}
+    >
       <h1>Puzlog</h1>
       <p>
-        Testing the index.{" "}
         <a onClick={() => downloadPuzzles(puzzles, "puzzles.json")}>Download</a>
       </p>
-      <table id="puzzles_table">
-        <thead>
-          <tr>
-            <th>Crossword</th>
-            <th>Ranking</th>
-            <th>Date Started</th>
-            <th>Date Finished</th>
-            <th>Time Taken</th>
-            <th>Correct Clues</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {puzzles.map((puzzle, index) => (
-            <tr key={index}>
-              <td className="incomplete">
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <StatusIcon size={16} status={puzzle.status} />
-                  <a href={puzzle.url} style={{ paddingLeft: "0.4em" }}>
-                    {puzzle.title}
-                  </a>
-                </div>
-              </td>
-              <td>
-                <span className="unfilled-star">&#9734;</span>
-                <span className="unfilled-star">&#9734;</span>
-              </td>
-              <td>{puzzle.timeStart.toISOString().substr(0, 10)}</td>
-              <td>TODO</td>
-              <td>{msToTime(puzzle.elapsedTime)}</td>
-              <td>TODO</td>
-              <td className="edit-delete-icons">
-                <span title="Edit">&#9998;</span>
-                <span
-                  title="Delete"
-                  onClick={() => deletePuzzle(puzzle.storageKey)}
-                >
-                  &#10006;
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
       <PuzzleGrid
         puzzles={puzzles}
         updatePuzzle={async (puzzle) => await savePuzzle(puzzle, true)}
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "100%", flexGrow: 1 }}
       />
     </div>
   );

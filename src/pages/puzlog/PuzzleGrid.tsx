@@ -1,16 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, CSSProperties } from "react";
 import { AgGridReact } from "ag-grid-react"; // React Grid Logic
+import { ColDef, ICellRendererParams } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css"; // Core CSS
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Theme
-import { PuzzleState } from "../../lib/puzzleState";
+import { PuzzleState, PuzzleStatus } from "../../lib/puzzleState";
 import StatusIcon from "./StatusIcon";
+import StarRating from "../../components/StarRating";
 import { msToTime } from "../../helpers";
+import theme from "../../theme";
 
 type UpdatePuzzleFunc = (puzzle: PuzzleState) => Promise<void>;
 
 interface PuzzleGridProps extends React.HTMLProps<HTMLDivElement> {
   puzzles: PuzzleState[];
   updatePuzzle: UpdatePuzzleFunc;
+}
+
+interface PuzzleRowData {
+  title: string;
+  url: string;
+  status: PuzzleStatus;
+  hintsOrMistakes: number | null;
+  rating: number | null;
+  timeStart: Date;
+  timeFinish: Date | null;
+  elapsedTime: number;
+  notes: string;
+  puzzle: PuzzleState;
 }
 
 const PuzzleGrid = ({ puzzles, updatePuzzle, ...props }: PuzzleGridProps) => {
@@ -20,49 +36,85 @@ const PuzzleGrid = ({ puzzles, updatePuzzle, ...props }: PuzzleGridProps) => {
     url: puzzle.url,
     status: puzzle.status,
     hintsOrMistakes: puzzle.hintsOrMistakes,
-    timeStart: puzzle.timeStart, //.toISOString().substr(0, 10),
-    timeEnd: puzzle.timeStart, //toISOString().substr(0, 10),
+    rating: puzzle.rating,
+    timeStart: puzzle.timeStart,
+    timeFinish: puzzle.timeFinish,
     elapsedTime: msToTime(puzzle.elapsedTime),
+    notes: puzzle.notes,
     puzzle,
   }));
-  const StatusRenderer = ({ value }) => (
-    <span
-      style={{
-        display: "flex",
-        height: "100%",
-        width: "100%",
-        alignItems: "center",
-      }}
-    >
-      <StatusIcon size={16} status={value} />
-    </span>
-  );
 
-  const TitleRenderer = ({ value }) => (
-    <span
-      style={{
-        display: "flex",
-        height: "100%",
-        width: "100%",
-        alignItems: "center",
-      }}
-    >
-      <StatusIcon size={16} status={value.status} />
-      <a href={value.url} style={{ paddingLeft: "1em" }}>
-        <p
+  // eslint-disable-next-line
+  // const StatusRenderer = ({ value }: any) => (
+  //   <span
+  //     style={{
+  //       display: "flex",
+  //       height: "100%",
+  //       width: "100%",
+  //       alignItems: "center",
+  //     }}
+  //   >
+  //     <StatusIcon size={16} status={value} />
+  //   </span>
+  // );
+
+  const TitleRenderer = (props: ICellRendererParams<PuzzleRowData>) => {
+    const finishedLinkStyle: CSSProperties = {
+      fontWeight: "bold",
+      //  TODO extract to var - also used in the finished icon
+      //  TODO use the same color as the 'in progress' icon - so icons and links
+      //  always match colors
+      color: theme.colors.success,
+    };
+    return (
+      <span
+        style={{
+          display: "flex",
+          height: "100%",
+          width: "100%",
+          alignItems: "center",
+        }}
+      >
+        <StatusIcon
+          size={16}
+          status={props.data?.status || PuzzleStatus.Unknown}
+        />
+        <a
+          href={props.data?.url}
           style={{
-            textOverflow: "ellipsis",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
+            paddingLeft: "1em",
+            ...(props.data?.status === PuzzleStatus.Finished
+              ? finishedLinkStyle
+              : {}),
           }}
         >
-          {value.title}
-        </p>
-      </a>
-    </span>
-  );
+          <p
+            style={{
+              textOverflow: "ellipsis",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {props.value /* i.e. the title */}
+          </p>
+        </a>
+      </span>
+    );
+  };
+  const RatingRenderer = (props: ICellRendererParams<PuzzleRowData>) => {
+    const onStarsChanged = (stars: number) => {
+      props.node.setDataValue("rating", stars);
+    };
+    return (
+      <StarRating
+        maxStars={3}
+        stars={props.value}
+        onStarsChanged={onStarsChanged}
+      />
+    );
+  };
 
-  const [colDefs] = useState([
+  const [colDefs] = useState<ColDef[]>([
     // {
     //   field: "status",
     //   headerName: "",
@@ -72,19 +124,11 @@ const PuzzleGrid = ({ puzzles, updatePuzzle, ...props }: PuzzleGridProps) => {
     // },
     {
       field: "title",
+      headerName: "Crossword",
       filter: true,
+      minWidth: 300,
       // width: 480,
       flex: 1,
-      valueGetter: (params) => ({
-        title: params.data.title,
-        status: params.data.status,
-        url: params.data.url,
-      }),
-      //  Filters take the value of 'field' or 'valueGetter'. Given that
-      //  'valueGetter' returns an object (so that we can have a composite
-      //  value) we need to explicitly provide the string that the filter
-      //  will operate on.
-      filterValueGetter: (params) => params.data.title,
       cellRenderer: TitleRenderer,
     },
     {
@@ -92,13 +136,44 @@ const PuzzleGrid = ({ puzzles, updatePuzzle, ...props }: PuzzleGridProps) => {
       filter: true,
       editable: true,
     },
-    { field: "rating", filter: true },
-    { field: "timeStart", filter: true },
-    { field: "timeEnd", filter: true },
+    {
+      field: "rating",
+      filter: true,
+      cellRenderer: RatingRenderer,
+    },
+    {
+      field: "timeStart",
+      headerName: "Start Time",
+      filter: true,
+      //  Default to sort by most recent first...
+      sort: "desc",
+    },
+    {
+      field: "timeFinish",
+      headerName: "Finish Time",
+      filter: true,
+    },
+    {
+      headerName: "Total Time",
+      filter: true,
+      valueGetter: ({ data }: { data: PuzzleRowData }) => {
+        const d2ms = (d: Date) => d.getTime();
+        return data.timeFinish !== null
+          ? msToTime(d2ms(data.timeFinish) - d2ms(data.timeStart))
+          : "";
+      },
+    },
     { field: "elapsedTime", filter: true },
+    {
+      field: "notes",
+      filter: true,
+      editable: true,
+    },
   ]);
 
-  const onCellValueChanged = async (event) => {
+  // Disable the implicit any warning for the ag-grid event.
+  // eslint-disable-next-line
+  const onCellValueChanged = async (event: any) => {
     //  Get the key info on the change.
     const {
       data: puzzleRowData,
@@ -109,14 +184,12 @@ const PuzzleGrid = ({ puzzles, updatePuzzle, ...props }: PuzzleGridProps) => {
     console.log(
       `Cell Change for ID ${puzzleRowData.title} field ${field}: ${oldValue} -> ${newValue}`
     );
-    console.log("raw puzzle", puzzleRowData.puzzle);
 
     //  Update the puzzle state, save it, broadcast changes.
     const updatedPuzzle = {
       ...puzzleRowData.puzzle,
       [field]: newValue,
     };
-    console.log("updated puzzle", updatedPuzzle);
     await updatePuzzle(updatedPuzzle);
   };
 

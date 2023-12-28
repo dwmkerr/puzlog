@@ -7,4 +7,4 @@ if (!container) {
   throw new Error(`puzlog: cannot find container element`);
 }
 const root = createRoot(container); // createRoot(container!) if you use TypeScript
-root.render(<PuzlogPage title="test" count={2} />);
+root.render(<PuzlogPage />);

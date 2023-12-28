@@ -1,5 +1,6 @@
 import React from "react";
 import { PuzzleStatus } from "../../lib/puzzleState";
+import theme from "../../theme";
 
 interface StatusIconProps {
   status: PuzzleStatus;
@@ -10,8 +11,8 @@ const StatusIcon = ({ status, size }: StatusIconProps) => {
   // Define pastel colors
   const colors = {
     grey: "#B0B0B0",
-    blue: "#448dc5",
-    green: "#5cb85c",
+    blue: theme.colors.inProgress,
+    green: theme.colors.success,
     red: "#d9534f",
     amber: "#f0ad4e",
   };

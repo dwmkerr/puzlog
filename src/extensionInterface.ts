@@ -5,6 +5,10 @@ import {
   fromSerializableObject,
 } from "./lib/puzzleState";
 
+export enum TabMessages {
+  ShowOverlay = "ShowOverlay",
+}
+
 export function navigateToPuzlogInterface() {
   //  Navigate to the puzlog index.
   chrome.tabs.create({

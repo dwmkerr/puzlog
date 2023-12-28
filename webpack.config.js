@@ -32,10 +32,10 @@ export default (_, argv) => ({
     type: "filesystem",
   },
   entry: {
-    // puzlog: "./src/puzlog.ts",
-    puzlog: "./src/pages/puzlog/puzlog.tsx",
     popup: "./src/popup.ts",
     content: "./src/content.ts",
+    service_worker: "./src/service_worker.ts",
+    puzlog: "./src/pages/puzlog/puzlog.tsx",
   },
   output: {
     publicPath: "",

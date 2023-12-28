@@ -1,4 +1,5 @@
 import * as extensionInterface from "./extensionInterface";
+import { ExtensionOverlay } from "./lib/ExtensionOverlay";
 import { puzzleIdFromUrl, storageKeyFromPuzzleId } from "./helpers";
 import {
   TimerState,
@@ -7,6 +8,25 @@ import {
   fromSerializableObject,
 } from "./lib/puzzleState";
 import { Stopwatch } from "./stopwatch";
+
+//  New code below.
+// let timerValue = 0;
+
+//  Note that ports are used for continuous bidirectional communication - think
+//  timers state and stop/start.
+// const port = chrome.runtime.connect({ name: 'content-script' });
+
+// port.onMessage.addListener((msg) => {
+//   if (msg.action === 'update') {
+//     timerValue = msg.timer;
+//     updateUI();
+//   }
+// });
+
+// function updateUI() {
+//   // Update the UI with the current timer value
+//   console.log('Current Timer Value:', timerValue);
+// }
 
 //  Listen for messages, route to the appropriate handlers.
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -40,6 +60,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const state = initState(location.href, document.title);
       await saveState(state);
       sendResponse(state);
+    } else if (command === extensionInterface.TabMessages.ShowOverlay) {
+      const show = request.show as boolean;
+      if (show) {
+        localExtensionState.extensionOverlay?.show();
+      } else {
+        localExtensionState.extensionOverlay?.hide();
+      }
     }
   })();
 
@@ -64,6 +91,8 @@ function initState(url: string, title: string): PuzzleState {
     elapsedTime: 0,
     timerState: TimerState.Stopped,
     hintsOrMistakes: 0,
+    rating: null,
+    notes: "",
   };
   return state;
 }
@@ -204,6 +233,12 @@ async function startup(): Promise<PuzzleState> {
     }
   });
 
+  //  The refactored logic that aims to move most code out of content.js starts
+  //  here.
+
+  //  Create the extension interface. It will remain hidden until we show it.
+  localExtensionState.extensionOverlay = ExtensionOverlay.create(document);
+
   log("...initialised");
 
   return state;
@@ -216,6 +251,7 @@ const localExtensionState = {
   puzzleState: {} as PuzzleState,
   stopwatch: new Stopwatch(),
   tabId: 0 as number,
+  extensionOverlay: null as ExtensionOverlay | null,
 };
 
 function log(message: string) {

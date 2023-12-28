@@ -225,22 +225,34 @@ A quick-and-dirty list of improvements and next steps:
 
 Items with a `!` could be applied to the ChatGPT diagrams extension.
 
-- [x] feat: finished status and icon
-- [x] feat: cheated clues
-- [x] bug: cannot sort or filter by 'title'
+- [x] feat: rating component, rating in data model
+- [x] feat: notes field
+- [ ] feat: move logic from content to background - note that we get a promise failure if we try and change values from the puzlog page - does it expect a content script running?
+- [ ] feat: simple on-page timer/start/stop
+- [ ] bug: timer state seems to be lost when changing tabs
 - [ ] feat: timer stop on change tab
 - [ ] bug: doesn't work across multiple tabs
 - [ ] feat: in progress icon for puzlog page
-- [ ] bug: timer state seems to be lost when changing tabs
+- [x] feat: finished status and icon
+- [x] feat: cheated clues
+- [x] bug: cannot sort or filter by 'title'
+- [x] feat: sort by date started
 - [x] bug(!): it seems all scripts are executed twice (loaded twice, even with `{ once: true }` in DOM Content Loaded
 - [ ] check: see if a basic status indicator in the tab icon would be possible
-- [ ] feat: simple on-page timer/start/stop
 - [ ] epic: finish xword
 - [ ] epic: export json
 - [ ] epic: save to cloud
 
 - [ ] build(!): consider webpack dev server to serve sample page in local dev mode
 - [ ] build(!): Create script to open a new chrome window, with the appropriate command line flags to load the dist unpacked
+
+- [ ] refactor: create a 'puzzleId' based on a number rather than a URL - easier for links etc, however hold off on this as it might make sharing harder
+- [ ] highlight selected
+
+**Cleanup**
+
+- [ ] style of icon, header of column should be separate or indented
+- [ ] width of crossword title column
 
 **Later**
 
@@ -249,6 +261,8 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 - [ ] feat(option): elapsed time vs clock time
 - [ ] feat(option): grey overlay on site when timer not started (to force timer)
 - [ ] feat(!): cross browser support with web extension polyfill
-- [ ] refactor: create a 'puzzleId' based on a number rather than a URL - easier for links etc, however hold off on this as it might make sharing harder
 - [ ] refactor: move bulk of logic into service worker
 - [ ] bug: timer logic is a little odd, if you stop/pause at 00:01:01:999 for example, then pressing 'start' waits a full second before updating the tick. This is because of the logic being a bit weird, think we need to track the start/pause timestamp and make calculations based on that rather than 'last tick'
+- [ ] feat: auto track progress based on jquery/expressions (e.g. selecting completed clues)
+- [ ] feat: crossword series, setter, publish date, based on expressions, could be combined with the above
+- [ ] feat: nullable fields should have an 'unset' style in the grid (e.g. grey) so users know to fill them in

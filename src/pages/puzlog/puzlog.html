@@ -8,74 +8,30 @@
       html {
         font-size: 150%;
         height: 100%;
+        margin: 0px;
       }
 
       body {
         font-family: "Arial", sans-serif;
         background-color: #f0f0f0;
-        margin: 20px;
         height: 100%;
+        margin: 0px;
       }
 
       #root {
         height: 100%;
+        display: flex;
+        flex-direction: column;
       }
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
+      a {
+        color: #337ab7;
+        text-decoration: none;
       }
 
-      th,
-      td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-      }
-
-      th {
-        background-color: #333;
-        color: #fff;
-      }
-
-      tr {
-        align-items: center;
-      }
-
-      tr:first-child {
-        background-color: #d3d3d3; /* Visual style for the first item */
-      }
-
-      tr:hover {
-        background-color: #f5f5f5; /* Hover effect for better interactivity */
-      }
-
-      .star {
-        color: #ffcc00;
-      }
-
-      .icon {
-        font-size: 1.2em;
-        margin-right: 5px;
-        color: #4caf50; /* Green color for checkmark */
-      }
-
-      .incomplete {
-        color: #ffc107; /* Amber color for incomplete */
-      }
-
-      .unfilled-star {
-        color: #ccc; /* Gray color for unfilled stars */
-        cursor: pointer;
-      }
-
-      .unfilled-star:hover {
-        color: #ffcc00; /* Hover effect for unfilled stars */
-      }
-
-      .edit-delete-icons {
-        font-size: 1.2em;
+      a:hover {
+        color: #22527b;
+        text-decoration: underline;
       }
     </style>
   </head>
