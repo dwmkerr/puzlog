@@ -1,20 +1,62 @@
 import React from "react";
-import styles from "./ExtensionToolbar.css";
+
+const iconStyle: React.CSSProperties = {
+  width: "24px",
+  height: "24px",
+  marginLeft: "10px",
+  cursor: "pointer",
+};
 
 const ExtensionToolbar = () => {
   return (
-    <div>
-      <style>{styles}</style>
-      <div className="toolbar">
-        <div className="left">
-          <div className="timer">00:00</div>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        height: "40px",
+        backgroundColor: "white",
+        color: "black",
+        padding: "0 10px",
+      }}
+    >
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <div className="timer" style={{ marginRight: "10px" }}>
+          00:00{" "}
         </div>
-        <div className="middle">Puzlog</div>
-        <div className="right">
-          <div className="icon">&amp;#128065;</div>
-          <div className="icon">&amp;#128279;</div>
-          <div className="icon">&amp;#9654;</div>
-          <div className="icon">&amp;#9724;</div>
+      </div>
+      <div
+        style={{
+          flex: 1,
+          textAlign: "center",
+        }}
+      >
+        Puzlog
+      </div>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+        }}
+      >
+        <div className="icon" style={iconStyle}>
+          &amp;#128065;
+        </div>
+        <div className="icon" style={iconStyle}>
+          &amp;#128279;
+        </div>
+        <div className="icon" style={iconStyle}>
+          &amp;#9654;
+        </div>
+        <div className="icon" style={iconStyle}>
+          &amp;#9724;
         </div>
       </div>
     </div>

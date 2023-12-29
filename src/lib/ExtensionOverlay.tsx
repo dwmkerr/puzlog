@@ -6,11 +6,9 @@ export class ExtensionOverlay {
   private static readonly ID_IFRAME = "puzlog-extension-frame";
 
   private iframe: HTMLIFrameElement;
-  private container: HTMLDivElement;
 
-  private constructor(iframe: HTMLIFrameElement, container: HTMLDivElement) {
+  private constructor(iframe: HTMLIFrameElement) {
     this.iframe = iframe;
-    this.container = container;
   }
 
   static create(document: Document): ExtensionOverlay {
@@ -42,6 +40,17 @@ export class ExtensionOverlay {
       throw new Error("Cannot access puzlog extension iframe content");
     }
 
+    //  Create the basic styles for the iframe body/html. This is a like a css
+    //  reset thing.
+    const style = iframeDocument.createElement("style");
+    style.textContent = `
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    };
+    `;
+    iframeDocument.head.appendChild(style);
+
     //  Now create the contain div in the iframe, a attach a closed shadow root
     //  and then build the UI.
     const shadowContainer = iframeDocument.createElement("div");
@@ -56,7 +65,7 @@ export class ExtensionOverlay {
     // overlayDiv.style.display = 'none';
     // // Customize additional styles here
     // document.body.appendChild(overlayDiv);
-    return new ExtensionOverlay(iframe, shadowContainer);
+    return new ExtensionOverlay(iframe);
   }
 
   show(): void {
