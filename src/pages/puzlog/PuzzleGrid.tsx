@@ -77,6 +77,7 @@ const PuzzleGrid = ({ puzzles, updatePuzzle, ...props }: PuzzleGridProps) => {
       >
         <StatusIcon
           size={16}
+          style={{ minWidth: 16 }}
           status={props.data?.status || PuzzleStatus.Unknown}
         />
         <a

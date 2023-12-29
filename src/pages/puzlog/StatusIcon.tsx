@@ -7,7 +7,7 @@ interface StatusIconProps {
   size: number;
 }
 
-const StatusIcon = ({ status, size }: StatusIconProps) => {
+const StatusIcon = ({ status, size, ...props }: StatusIconProps) => {
   // Define pastel colors
   const colors = {
     grey: "#B0B0B0",
@@ -22,7 +22,7 @@ const StatusIcon = ({ status, size }: StatusIconProps) => {
     switch (status) {
       case PuzzleStatus.NotStarted:
         return (
-          <svg height={size} width={size} viewBox="0 0 24 24">
+          <svg height={size} width={size} viewBox="0 0 24 24" {...props}>
             <circle
               cx="12"
               cy="12"
@@ -43,7 +43,7 @@ const StatusIcon = ({ status, size }: StatusIconProps) => {
         );
       case PuzzleStatus.Started:
         return (
-          <svg height={size} width={size} viewBox="0 0 32 32">
+          <svg height={size} width={size} viewBox="0 0 32 32" {...props}>
             <g fill={colors.blue} stroke={colors.blue}>
               <path d="M16,2A14,14,0,1,0,30,16,14.0158,14.0158,0,0,0,16,2Zm0,26A12,12,0,0,1,16,4V16l8.4812,8.4814A11.9625,11.9625,0,0,1,16,28Z"></path>
             </g>
@@ -82,7 +82,7 @@ const StatusIcon = ({ status, size }: StatusIconProps) => {
       //   );
       case PuzzleStatus.Finished:
         return (
-          <svg height={size} width={size} viewBox="0 0 24 24">
+          <svg height={size} width={size} viewBox="0 0 24 24" {...props}>
             <circle
               cx="12"
               cy="12"
@@ -121,7 +121,7 @@ const StatusIcon = ({ status, size }: StatusIconProps) => {
       case PuzzleStatus.Unknown: // Added 'Unknown' state
       default:
         return (
-          <svg height={size} width={size} viewBox="0 0 24 24">
+          <svg height={size} width={size} viewBox="0 0 24 24" {...props}>
             <circle
               cx="12"
               cy="12"

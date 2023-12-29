@@ -230,7 +230,7 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 - [ ] wip: fix styes in shadow root component
 - [ ] feat: move logic from content to background - note that we get a promise failure if we try and change values from the puzlog page - does it expect a content script running?
 - [ ] refactor: no stopwatch for now - just total time, stopwatch can come later
-- [ ] bug: icons should always be visible in grid
+- [x] bug: icons should always be visible in grid
 - [ ] feat: simple on-page timer/start/stop
 - [ ] bug: timer state seems to be lost when changing tabs
 - [ ] feat: timer stop on change tab
