@@ -227,7 +227,8 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 
 - [x] feat: rating component, rating in data model
 - [x] feat: notes field
-- [ ] wip: fix styes in shadow root component
+- [x] wip: fix styes in shadow root component
+- [ ] feature: simple timer (from start time) in extension toolbar
 - [ ] feat: move logic from content to background - note that we get a promise failure if we try and change values from the puzlog page - does it expect a content script running?
 - [ ] refactor: no stopwatch for now - just total time, stopwatch can come later
 - [x] bug: icons should always be visible in grid
@@ -259,6 +260,7 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 
 **Later**
 
+- [ ] refactor: use react for popup page
 - [ ] feat: cheated clues set on in-page overlay
 - [ ] feat: better anagram helper
 - [ ] feat(option): elapsed time vs clock time

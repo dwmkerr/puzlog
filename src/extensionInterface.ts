@@ -9,6 +9,14 @@ export enum TabMessages {
   ShowOverlay = "ShowOverlay",
 }
 
+export enum RuntimeMessages {
+  OpenPuzlogTab = "OpenPuzlogTab",
+}
+
+export function SendRuntimeMessage_OpenPuzlogTab() {
+  chrome.runtime.sendMessage({ command: RuntimeMessages.OpenPuzlogTab });
+}
+
 export function navigateToPuzlogInterface() {
   //  Navigate to the puzlog index.
   chrome.tabs.create({

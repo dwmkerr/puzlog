@@ -7,6 +7,9 @@
     "default_title": "Click to view a popup",
     "default_popup": "popup.html"
   },
+  "background": {
+    "service_worker": "service_worker.js"
+  },
   "content_scripts": [
     {
       "js": ["content.js"],

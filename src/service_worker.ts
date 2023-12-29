@@ -35,3 +35,13 @@
 //     port.postMessage({ action: "update", timer: timers[tabId] || 0 });
 //   }
 // });
+//
+import * as ExtensionInterface from "./extensionInterface";
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.command === ExtensionInterface.RuntimeMessages.OpenPuzlogTab) {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("puzlog.html"),
+    });
+  }
+});

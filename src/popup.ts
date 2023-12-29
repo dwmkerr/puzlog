@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }); // addItem() should be addItems
   popupDOM.resetButton.addEventListener("click", () => reset()); // addItems() should be addItems
   popupDOM.puzlogTitle.addEventListener("click", () =>
-    extensionInterface.navigateToPuzlogInterface()
+    extensionInterface.SendRuntimeMessage_OpenPuzlogTab()
   );
 
   popupDOM.showOverlayCheckbox.addEventListener("click", async () => {

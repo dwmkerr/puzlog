@@ -30,6 +30,7 @@ export class ExtensionOverlay {
       width: "100%",
       height: "50px",
       border: "none", // Remove border
+      zIndex: 9999, // try and sit on top of everthing
     });
 
     //  Add the iframe to the document and access its content doc. If the
