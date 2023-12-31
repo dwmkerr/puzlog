@@ -28,29 +28,24 @@ interface ExtensionToolbarProps {
   puzzleId: string;
 }
 
-const ExtensionToolbar = (props: ExtensionToolbarProps) => {
+const ExtensionToolbar = ({ puzzleId }: ExtensionToolbarProps) => {
   const [timerMilliseconds, setTimerMilliseconds] = useState(0);
 
   useEffect(() => {
-    extensionInterface.onRuntimeMessage(
+    extensionInterface.onMessage(
       "tabStateUpdated",
       async (tabId: number | null, message: TabStateUpdatedCommand) => {
         //  Bail if it is not our puzzle...
-        if (message.puzzleState.puzzleId !== props.puzzleId) {
+        if (message.puzzleState.puzzleId !== puzzleId) {
           return;
         }
         setTimerMilliseconds(message.puzzleState.elapsedTime);
       }
     );
   }, []);
-  const start = () => {
-    extensionInterface.sendRuntimeMessage("start", {
-      puzzleId: props.puzzleId,
-    });
-  };
   const finish = () => {
     extensionInterface.sendRuntimeMessage("finish", {
-      puzzleId: props.puzzleId,
+      puzzleId,
     });
   };
   return (
@@ -85,7 +80,9 @@ const ExtensionToolbar = (props: ExtensionToolbarProps) => {
         >
           <a
             onClick={() => {
-              extensionInterface.SendRuntimeMessage_OpenPuzlogTab();
+              extensionInterface.sendRuntimeMessage("OpenPuzlogTab", {
+                puzzleId,
+              });
             }}
           >
             Puzlog
@@ -99,7 +96,7 @@ const ExtensionToolbar = (props: ExtensionToolbarProps) => {
             alignItems: "center",
           }}
         >
-          <div className="icon" style={iconStyle} onClick={start}>
+          <div className="icon" style={iconStyle}>
             <FaPlay />
           </div>
           <div className="icon" style={iconStyle} onClick={finish}>

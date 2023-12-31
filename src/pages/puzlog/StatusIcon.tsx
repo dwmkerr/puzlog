@@ -2,7 +2,7 @@ import React from "react";
 import { PuzzleStatus } from "../../lib/puzzleState";
 import theme from "../../theme";
 
-interface StatusIconProps {
+interface StatusIconProps extends React.ComponentPropsWithoutRef<"svg"> {
   status: PuzzleStatus;
   size: number;
 }

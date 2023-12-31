@@ -6,18 +6,6 @@ import {
   fromSerializableObject,
 } from "./lib/puzzleState";
 
-export enum TabMessages {
-  ShowOverlay = "ShowOverlay",
-}
-
-export enum RuntimeMessages {
-  OpenPuzlogTab = "OpenPuzlogTab",
-}
-
-export function SendRuntimeMessage_OpenPuzlogTab() {
-  chrome.runtime.sendMessage({ command: RuntimeMessages.OpenPuzlogTab });
-}
-
 export function navigateToPuzlogInterface() {
   //  Navigate to the puzlog index.
   chrome.tabs.create({
@@ -124,12 +112,12 @@ export async function sendTabMessage<K extends keyof ExtensionMessageNameMap>(
   return response;
 }
 
-export function onRuntimeMessage<K extends keyof ExtensionMessageNameMap>(
+export function onMessage<K extends keyof ExtensionMessageNameMap>(
   messageName: K,
   handler: (
     tabId: number | null,
     message: ExtensionMessageNameMap[K]
-  ) => Promise<void>
+  ) => Promise<object | void>
 ): void {
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     (async () => {

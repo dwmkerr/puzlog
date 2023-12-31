@@ -9,51 +9,24 @@ import {
 } from "./lib/puzzleState";
 import { Stopwatch } from "./stopwatch";
 
-//  New code below.
-// let timerValue = 0;
+//  Typically called by the popup to find out our current puzzle id.
+extensionInterface.onMessage("getTabPuzzleStatus", async () => ({
+  puzzleId: localExtensionState.puzzleState.puzzleId,
+  puzzleStatus: localExtensionState.puzzleState.status,
+}));
 
-//  Note that ports are used for continuous bidirectional communication - think
-//  timers state and stop/start.
-// const port = chrome.runtime.connect({ name: 'content-script' });
-
-// port.onMessage.addListener((msg) => {
-//   if (msg.action === 'update') {
-//     timerValue = msg.timer;
-//     updateUI();
-//   }
-// });
-
-// function updateUI() {
-//   // Update the UI with the current timer value
-//   console.log('Current Timer Value:', timerValue);
-// }
-
-//  Listen for messages, route to the appropriate handlers.
-//  TODO: depreacate it all.
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  (async () => {
-    const source = sender.tab || "extension";
-    const command = request.command || "<unknown>";
-    const log = `recieved command '${command}' from ${source}`;
-    console.log(log);
-    if (command === "getState") {
-      sendResponse(localExtensionState.puzzleState);
-    } else if (command === "reset") {
-      const state = initState(location.href, document.title);
-      await saveState(state);
-      sendResponse(state);
-    } else if (command === extensionInterface.TabMessages.ShowOverlay) {
-      const show = request.show as boolean;
-      if (show) {
-        localExtensionState.extensionOverlay?.show();
-      } else {
-        localExtensionState.extensionOverlay?.hide();
-      }
-    }
-  })();
-
-  // Important! Return true to indicate you want to send a response asynchronously
-  return true;
+//  Typically called by the popup when the user has decided to start working on
+//  a puzzle.
+extensionInterface.onMessage("startTabPuzzle", async () => {
+  // extensionInterface.sendTabMessage("startTabPuzzle", tabId, {
+  //   puzzleId: puzzleId,
+  // });
+  extensionInterface.sendRuntimeMessage("start", {
+    puzzleId: localExtensionState.puzzleState.puzzleId,
+    url: location.href,
+    title: document.title,
+  });
+  localExtensionState.extensionOverlay?.show();
 });
 
 function initState(url: string, title: string): PuzzleState {
@@ -135,22 +108,6 @@ async function loadState(storageKey: string): Promise<PuzzleState | null> {
 //   //  Stop the stopwatch.
 //   localExtensionState.stopwatch.pause();
 // }
-
-async function saveState(currentState: PuzzleState): Promise<void> {
-  //  If our timer state is changing, we can update the icon.
-  if (localExtensionState.puzzleState.timerState !== currentState.timerState) {
-    extensionInterface.setIconTimerState(
-      currentState.timerState,
-      localExtensionState.tabId
-    );
-  }
-
-  //  Update our local state.
-  localExtensionState.puzzleState = currentState;
-
-  //  Save the puzzle in the extension storage.
-  extensionInterface.savePuzzle(currentState);
-}
 
 async function startup(): Promise<PuzzleState> {
   console.log("initialising puzlog...");

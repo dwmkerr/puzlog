@@ -1,7 +1,7 @@
-import { PuzzleState } from "./lib/puzzleState";
-import { msToTime, timeAgo } from "./helpers";
-import { getElementOrFail } from "./lib/document";
-import * as extensionInterface from "./extensionInterface";
+import { PuzzleState } from "../../lib/puzzleState";
+import { msToTime, timeAgo } from "../../helpers";
+import { getElementOrFail } from "../../lib/document";
+import * as extensionInterface from "../../extensionInterface";
 
 // Chrome 'sendMessage' uses the 'any' type, disable the warning.
 // eslint-disable-next-line
@@ -35,13 +35,6 @@ async function reset(): Promise<PuzzleState> {
   return await sendMessage({ command: "reset" });
 }
 
-async function showOverlay(show: boolean): Promise<PuzzleState> {
-  return await sendMessage({
-    command: extensionInterface.TabMessages.ShowOverlay,
-    show,
-  });
-}
-
 interface PopupDOM {
   puzlogTitle: HTMLLinkElement;
   startButton: HTMLButtonElement;
@@ -52,7 +45,6 @@ interface PopupDOM {
   showStateButton: HTMLButtonElement;
   stateCode: HTMLElement;
   timeSinceStart: HTMLElement;
-  showOverlayCheckbox: HTMLInputElement;
 }
 
 function getPopupDOM(): PopupDOM {
@@ -66,9 +58,6 @@ function getPopupDOM(): PopupDOM {
     showStateButton: getElementOrFail("show_state") as HTMLButtonElement,
     stateCode: getElementOrFail("state"),
     timeSinceStart: getElementOrFail("timeSinceStart"),
-    showOverlayCheckbox: getElementOrFail(
-      "checkbox_show_overlay"
-    ) as HTMLInputElement,
   };
 }
 
@@ -99,13 +88,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     popupDOM.stateCode.style.display = "block";
   }); // addItem() should be addItems
   popupDOM.resetButton.addEventListener("click", () => reset()); // addItems() should be addItems
-  popupDOM.puzlogTitle.addEventListener("click", () =>
-    extensionInterface.SendRuntimeMessage_OpenPuzlogTab()
-  );
-
-  popupDOM.showOverlayCheckbox.addEventListener("click", async () => {
-    const checked = popupDOM.showOverlayCheckbox.checked;
-    await showOverlay(checked);
+  popupDOM.puzlogTitle.addEventListener("click", () => {
+    extensionInterface.sendRuntimeMessage("OpenPuzlogTab", { puzzleId: "" });
   });
 
   //  This function updates our UI with state.
