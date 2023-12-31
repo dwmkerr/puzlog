@@ -110,10 +110,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   //  This function updates our UI with state.
   const updateUI = (state: PuzzleState) => {
-    const duration = state.elapsedTime;
     const timerDiv = getElementOrFail("timer");
     timerDiv.style.display = "block";
-    timerDiv.innerText = msToTime(duration);
+    timerDiv.innerText = msToTime(state.elapsedTime);
     popupDOM.stateCode.innerText = JSON.stringify(state, null, 2);
 
     //  If we have a time start, update the 'time since start' div.

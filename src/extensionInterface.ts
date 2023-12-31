@@ -1,3 +1,4 @@
+import { ExtensionMessageNameMap } from "./lib/extensionMessages";
 import {
   PuzzleState,
   TimerState,
@@ -41,10 +42,7 @@ export async function deletePuzzle(storageKey: string): Promise<void> {
   await chrome.storage.local.remove([storageKey]);
 }
 
-export async function savePuzzle(
-  puzzle: PuzzleState,
-  broadcastUpdate: boolean
-): Promise<void> {
+export async function savePuzzle(puzzle: PuzzleState): Promise<void> {
   //  Create a serializable version of the state. Then create the payload to
   //  add to the local storage.
   const serializableState = toSerializableObject(puzzle);
@@ -58,15 +56,6 @@ export async function savePuzzle(
     throw new Error(
       `error setting state to '${puzzle.storageKey}': ${chrome.runtime.lastError.message}`
     );
-  }
-
-  //  If we have been asked to broadcast updates, then send a message to the
-  //  runtime, notifying other parts of the extension that our state is updated.
-  if (broadcastUpdate) {
-    chrome.runtime.sendMessage({
-      command: "stateUpdated",
-      puzzleState: puzzle,
-    });
   }
 }
 
@@ -104,11 +93,58 @@ export function setIconTimerState(timerState: TimerState, tabId: number): void {
 export async function getCurrentTabId(): Promise<number> {
   const [currentTab] = await chrome.tabs.query({
     active: true,
-    currentWindow: true,
+    lastFocusedWindow: true,
   });
   const id = currentTab.id;
   if (id === undefined) {
     throw new Error(`unable to identify current tab`);
   }
   return id;
+}
+
+export async function sendRuntimeMessage<
+  K extends keyof ExtensionMessageNameMap
+>(messageName: K, message: ExtensionMessageNameMap[K]) {
+  const response = await chrome.runtime.sendMessage({
+    ...message,
+    command: messageName,
+  });
+  return response;
+}
+
+export async function sendTabMessage<K extends keyof ExtensionMessageNameMap>(
+  messageName: K,
+  tabId: number,
+  message: ExtensionMessageNameMap[K]
+) {
+  const response = await chrome.tabs.sendMessage(tabId, {
+    ...message,
+    command: messageName,
+  });
+  return response;
+}
+
+export function onRuntimeMessage<K extends keyof ExtensionMessageNameMap>(
+  messageName: K,
+  handler: (
+    tabId: number | null,
+    message: ExtensionMessageNameMap[K]
+  ) => Promise<void>
+): void {
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    (async () => {
+      const tabId = sender.tab?.id || null;
+      const source = tabId ? `Tab ${tabId}` : "Extension";
+      const command = request.command || "<unknown>";
+      const log = `recieved command '${command}' from ${source}`;
+      console.log(log);
+      if (command === messageName) {
+        sendResponse(
+          await handler(tabId, request as ExtensionMessageNameMap[K])
+        );
+      }
+    })();
+    // Important! Return true to indicate you want to send a response asynchronously
+    return true;
+  });
 }

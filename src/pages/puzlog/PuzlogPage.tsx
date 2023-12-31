@@ -53,7 +53,7 @@ const PuzlogPage = () => {
       </p>
       <PuzzleGrid
         puzzles={puzzles}
-        updatePuzzle={async (puzzle) => await savePuzzle(puzzle, true)}
+        updatePuzzle={async (puzzle) => await savePuzzle(puzzle)}
         style={{ width: "100%", flexGrow: 1 }}
       />
     </div>

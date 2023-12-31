@@ -29,6 +29,7 @@ import { Stopwatch } from "./stopwatch";
 // }
 
 //  Listen for messages, route to the appropriate handlers.
+//  TODO: depreacate it all.
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   (async () => {
     const source = sender.tab || "extension";
@@ -37,25 +38,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log(log);
     if (command === "getState") {
       sendResponse(localExtensionState.puzzleState);
-    } else if (command === "start") {
-      const state = localExtensionState.puzzleState;
-      const newState = await startPuzzle(state);
-      await saveState(newState);
-      sendResponse(newState);
-    } else if (command === "stop") {
-      const state = localExtensionState.puzzleState;
-      const newState = await stopPuzzle(state);
-      await saveState(newState);
-      sendResponse(newState);
-    } else if (command === "finish") {
-      //  We can move the 'finish' logic into its own function later when it
-      //  becomes more substantial.
-      const state = localExtensionState.puzzleState;
-      const newState = await stopPuzzle(state);
-      newState.timeFinish = new Date();
-      newState.status = PuzzleStatus.Finished;
-      await saveState(newState);
-      sendResponse(newState);
     } else if (command === "reset") {
       const state = initState(location.href, document.title);
       await saveState(state);
@@ -125,54 +107,34 @@ async function loadState(storageKey: string): Promise<PuzzleState | null> {
   }
 }
 
-async function startPuzzle(currentState: PuzzleState): Promise<PuzzleState> {
-  console.log(`starting puzzle...`);
-  const now = new Date();
+//  legacy start function, with stopwatch code only now...
+// async function startPuzzle(currentState: PuzzleState): Promise<PuzzleState> {
+//   //  If we are already started, we're done.
+//   if (currentState.timerState === TimerState.Started) {
+//     return currentState;
+//   }
+//   localExtensionState.stopwatch.setElapsedTime(
+//     localExtensionState.puzzleState.elapsedTime
+//   );
+//   localExtensionState.stopwatch.start(async (elapsedTime: number) => {
+//     //  Update our on-page timer.
+//     localExtensionState?.extensionOverlay?.update(msToTime(elapsedTime));
+//     //  Broadcast the updated state to the extension.
+//     localExtensionState.puzzleState.elapsedTime = elapsedTime;
+//     await saveState(localExtensionState.puzzleState);
+//   }, 1000);
+// }
 
-  //  If we are already started, we're done.
-  if (currentState.timerState === TimerState.Started) {
-    return currentState;
-  }
-
-  //  TODO we could improve on this by changing the duration and then firing
-  //  a more specific event to the runtime to let the popup (or anything else)
-  //  respond without having to watch the entire state. However, this works for
-  //  now.
-  localExtensionState.stopwatch.setElapsedTime(
-    localExtensionState.puzzleState.elapsedTime
-  );
-  localExtensionState.stopwatch.start(async (elapsedTime: number) => {
-    localExtensionState.puzzleState.elapsedTime = elapsedTime;
-    await saveState(localExtensionState.puzzleState);
-  }, 1000);
-
-  return {
-    ...currentState,
-    status: PuzzleStatus.Started,
-    timeLastAccess: now,
-    timeStart: currentState.timeStart || now, // only update start time if clean
-    timerState: TimerState.Started,
-  };
-}
-
-async function stopPuzzle(currentState: PuzzleState): Promise<PuzzleState> {
-  console.log(`stopping puzzle...`);
-  //  If we are already started, we're done.
-  if (currentState.timerState === TimerState.Stopped) {
-    return currentState;
-  }
-
-  //  Stop the stopwatch.
-  localExtensionState.stopwatch.pause();
-
-  //  Update the state.
-  const now = new Date();
-  return {
-    ...currentState,
-    timeLastAccess: now,
-    timerState: TimerState.Stopped,
-  };
-}
+//  legacy stop function, for reference only.
+// async function stopPuzzle(currentState: PuzzleState): Promise<PuzzleState> {
+//   console.log(`stopping puzzle...`);
+//   //  If we are already started, we're done.
+//   if (currentState.timerState === TimerState.Stopped) {
+//     return currentState;
+//   }
+//   //  Stop the stopwatch.
+//   localExtensionState.stopwatch.pause();
+// }
 
 async function saveState(currentState: PuzzleState): Promise<void> {
   //  If our timer state is changing, we can update the icon.
@@ -186,9 +148,8 @@ async function saveState(currentState: PuzzleState): Promise<void> {
   //  Update our local state.
   localExtensionState.puzzleState = currentState;
 
-  //  Save the puzzle in the extension storage. Broadcast changes.
-  const broadcastUpdate = true;
-  extensionInterface.savePuzzle(currentState, broadcastUpdate);
+  //  Save the puzzle in the extension storage.
+  extensionInterface.savePuzzle(currentState);
 }
 
 async function startup(): Promise<PuzzleState> {
@@ -237,7 +198,10 @@ async function startup(): Promise<PuzzleState> {
   //  here.
 
   //  Create the extension interface. It will remain hidden until we show it.
-  localExtensionState.extensionOverlay = ExtensionOverlay.create(document);
+  localExtensionState.extensionOverlay = ExtensionOverlay.create(
+    document,
+    puzzleId
+  );
 
   log("...initialised");
 

@@ -1,5 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { FaFlagCheckered } from "react-icons/fa";
+import { FaPlay } from "react-icons/fa";
 import * as extensionInterface from "../extensionInterface";
+import { TabStateUpdatedCommand } from "../lib/extensionMessages";
+import { msToTime } from "../helpers";
 
 const iconStyle: React.CSSProperties = {
   width: "24px",
@@ -20,7 +24,35 @@ a:hover {
 }
 `;
 
-const ExtensionToolbar = () => {
+interface ExtensionToolbarProps {
+  puzzleId: string;
+}
+
+const ExtensionToolbar = (props: ExtensionToolbarProps) => {
+  const [timerMilliseconds, setTimerMilliseconds] = useState(0);
+
+  useEffect(() => {
+    extensionInterface.onRuntimeMessage(
+      "tabStateUpdated",
+      async (tabId: number | null, message: TabStateUpdatedCommand) => {
+        //  Bail if it is not our puzzle...
+        if (message.puzzleState.puzzleId !== props.puzzleId) {
+          return;
+        }
+        setTimerMilliseconds(message.puzzleState.elapsedTime);
+      }
+    );
+  }, []);
+  const start = () => {
+    extensionInterface.sendRuntimeMessage("start", {
+      puzzleId: props.puzzleId,
+    });
+  };
+  const finish = () => {
+    extensionInterface.sendRuntimeMessage("finish", {
+      puzzleId: props.puzzleId,
+    });
+  };
   return (
     <div>
       <style>{style}</style>
@@ -42,7 +74,7 @@ const ExtensionToolbar = () => {
           }}
         >
           <div className="timer" style={{ marginRight: "10px" }}>
-            00:00{" "}
+            {msToTime(timerMilliseconds)}
           </div>
         </div>
         <div
@@ -67,6 +99,12 @@ const ExtensionToolbar = () => {
             alignItems: "center",
           }}
         >
+          <div className="icon" style={iconStyle} onClick={start}>
+            <FaPlay />
+          </div>
+          <div className="icon" style={iconStyle} onClick={finish}>
+            <FaFlagCheckered />
+          </div>
           <div className="icon" style={iconStyle}>
             &amp;#128065;
           </div>
