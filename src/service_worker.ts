@@ -16,18 +16,20 @@ extensionInterface.onMessage("OpenPuzlogTab", async () => {
 //  This helper sends the 'state updated' message to the extension and also the
 //  active tab.
 async function stateUpdated(puzzleState: PuzzleState) {
-  await extensionInterface.sendRuntimeMessage("stateUpdated", {
-    puzzleState,
-  });
+  // TODO TODO TODO - this is where the goofiness seems to lie. If we uncomment
+  // both then things bork - maybe try ports?
+  // await extensionInterface.sendRuntimeMessage("stateUpdated", {
+  //   puzzleState,
+  // });
   const [activeTab] = await chrome.tabs.query({
     active: true,
     lastFocusedWindow: true,
   });
-  // if (activeTab.id) {
-  //   await extensionInterface.sendTabMessage("stateUpdated", activeTab.id, {
-  //     puzzleState,
-  //   });
-  // }
+  if (activeTab?.id) {
+    await extensionInterface.sendTabMessage("stateUpdated", activeTab.id, {
+      puzzleState,
+    });
+  }
 }
 
 extensionInterface.onMessage(

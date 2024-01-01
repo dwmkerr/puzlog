@@ -26,10 +26,15 @@ a:hover {
 
 interface ExtensionToolbarProps {
   puzzleId: string;
+  initialElapsedTime: number;
 }
 
-const ExtensionToolbar = ({ puzzleId }: ExtensionToolbarProps) => {
-  const [timerMilliseconds, setTimerMilliseconds] = useState(0);
+const ExtensionToolbar = ({
+  puzzleId,
+  initialElapsedTime,
+}: ExtensionToolbarProps) => {
+  const [timerMilliseconds, setTimerMilliseconds] =
+    useState(initialElapsedTime);
 
   useEffect(() => {
     chrome.runtime.onMessage.addListener((request) => {
@@ -52,12 +57,8 @@ const ExtensionToolbar = ({ puzzleId }: ExtensionToolbarProps) => {
     //   }
     // );
   }, []);
-  const finish = () => {
-    (async () => {
-      await extensionInterface.sendRuntimeMessage("finish", {
-        puzzleId,
-      });
-    })();
+  const finish = async () => {
+    await extensionInterface.sendRuntimeMessage("finish", { puzzleId });
   };
   return (
     <div>

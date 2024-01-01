@@ -136,9 +136,9 @@ export function onMessage<K extends keyof ExtensionMessageNameMap>(
     const tabId = sender.tab?.id || null;
     const source = tabId ? `Tab ${tabId}` : "Extension";
     const command = request.command || "<unknown>";
-    const log = `recieved command '${command}' from ${source}`;
-    console.log(log);
     if (command === messageName) {
+      const log = `recieved command '${command}' from ${source}`;
+      console.log(log);
       handler(tabId, request as ExtensionMessageNameMap[K])
         .then((response) => {
           sendResponse(response);

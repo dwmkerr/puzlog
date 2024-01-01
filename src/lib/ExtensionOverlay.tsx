@@ -11,7 +11,11 @@ export class ExtensionOverlay {
     this.iframe = iframe;
   }
 
-  static create(document: Document, puzzleId: string): ExtensionOverlay {
+  static create(
+    document: Document,
+    puzzleId: string,
+    initialElapsedTime: number
+  ): ExtensionOverlay {
     //  If this document already has an extension overlay frame, fail.
     if (document.getElementById(this.ID_IFRAME)) {
       throw new Error(
@@ -58,7 +62,12 @@ export class ExtensionOverlay {
     const shadowRoot = shadowContainer.attachShadow({ mode: "closed" });
 
     const root = createRoot(shadowRoot); // createRoot(container!) if you use TypeScript
-    root.render(<ExtensionToolbar puzzleId={puzzleId} />);
+    root.render(
+      <ExtensionToolbar
+        puzzleId={puzzleId}
+        initialElapsedTime={initialElapsedTime}
+      />
+    );
 
     iframeDocument.body.appendChild(shadowContainer);
 

@@ -1,7 +1,7 @@
 import * as extensionInterface from "./extensionInterface";
 import { ExtensionOverlay } from "./lib/ExtensionOverlay";
 import { puzzleIdFromUrl } from "./helpers";
-import { Stopwatch } from "./stopwatch";
+import { Stopwatch } from "./lib/stopwatch";
 
 //  Typically called by the popup to find out our current puzzle id.
 extensionInterface.onMessage("getTabPuzzleStatus", async () => ({
@@ -19,23 +19,24 @@ extensionInterface.onMessage("startTabPuzzle", async () => {
     title: localExtensionState.title,
   });
 
-  //  Now start the timer and show the overlay.
-  startTimerAndShowOverlay();
+  //  Now start the timer and show the overlay. Initial time is 0 secs.
+  startTimerAndShowOverlay(0);
 });
 
-function startTimerAndShowOverlay() {
+function startTimerAndShowOverlay(initialElapsedTime: number) {
   //  Update our local status.
   localExtensionState.started = true;
 
   //  Start the stopwatch. On each tick, refresh the timer on the screen.
+  localExtensionState.stopwatch.setElapsedTime(initialElapsedTime);
   localExtensionState.stopwatch.start(async (elapsedTime: number) => {
     //  Update the elapsed time.
-    // extensionInterface.sendRuntimeMessage("UpdatePuzzle", {
-    //   puzzleId: localExtensionState.puzzleId,
-    //   updatedValues: {
-    //     elapsedTime: elapsedTime,
-    //   },
-    // });
+    extensionInterface.sendRuntimeMessage("UpdatePuzzle", {
+      puzzleId: localExtensionState.puzzleId,
+      updatedValues: {
+        elapsedTime: elapsedTime,
+      },
+    });
   }, 1000);
 
   localExtensionState.extensionOverlay?.show();
@@ -44,22 +45,25 @@ function startTimerAndShowOverlay() {
 async function startup() {
   console.log("initialising puzlog...");
 
-  //  Create the extension interface. It will remain hidden until we show it.
-  localExtensionState.extensionOverlay = ExtensionOverlay.create(
-    document,
-    localExtensionState.puzzleId
-  );
-
   //  Try and load the puzzle from storage. If it's not present, it hasn't been
   //  started yet.
   const puzzle = await extensionInterface.loadPuzzle(
     localExtensionState.puzzleId
   );
 
+  //  Create the extension interface. It will remain hidden until we show it.
+  localExtensionState.extensionOverlay = ExtensionOverlay.create(
+    document,
+    localExtensionState.puzzleId,
+    //  The overlay shows the current elapsed time (if there is one).
+    puzzle?.elapsedTime || 0
+  );
+
   //  If the puzzle has been loaded, we can start the stopwatch.
   if (puzzle) {
-    //  Now start the timer and show the overlay.
-    startTimerAndShowOverlay();
+    //  Now start the timer and show the overlay. Start from the last elapsed
+    //  time.
+    startTimerAndShowOverlay(puzzle.elapsedTime);
   }
 
   //  We'll now wait for visibility changes (e.g. chrome minimised, tab hidden

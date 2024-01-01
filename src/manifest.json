@@ -13,7 +13,7 @@
   "content_scripts": [
     {
       "js": ["content.js"],
-      "matches": ["https://www.theguardian.com/*", "http://localhost/*"]
+      "matches": ["https://www.theguardian.com/*"]
     }
   ],
   "icons": {

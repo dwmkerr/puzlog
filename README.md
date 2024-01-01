@@ -228,6 +228,8 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 - [x] feat: rating component, rating in data model
 - [x] feat: notes field
 - [x] wip: fix styes in shadow root component
+- [x] bug: reopen page show timer state
+- [ ] bug: reciving issues - try ports
 - [ ] wip: show timer increment
 - [ ] wip: reopen puzzle page show state
 - [ ] wip: puzzle id in puzlog page link
