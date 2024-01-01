@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { PuzzleState } from "../../lib/puzzleState";
-import { loadPuzzles, savePuzzle } from "../../extensionInterface";
+import {
+  loadPuzzles,
+  savePuzzle,
+  deletePuzzle,
+} from "../../extensionInterface";
 import PuzzleGrid from "./PuzzleGrid";
+import { storageKeyFromPuzzleId } from "../../helpers";
 
 const PuzlogPage = () => {
   // State to store the array of puzzles
@@ -54,6 +59,9 @@ const PuzlogPage = () => {
       <PuzzleGrid
         puzzles={puzzles}
         updatePuzzle={async (puzzle) => await savePuzzle(puzzle)}
+        deletePuzzle={async (puzzleId) =>
+          await deletePuzzle(storageKeyFromPuzzleId(puzzleId))
+        }
         style={{ width: "100%", flexGrow: 1 }}
       />
     </div>

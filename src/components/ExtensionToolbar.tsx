@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaFlagCheckered } from "react-icons/fa";
-import { FaPlay } from "react-icons/fa";
+import { FaFlagCheckered, FaPlay } from "react-icons/fa";
 import * as extensionInterface from "../extensionInterface";
 // import { StateUpdatedCommand } from "../lib/extensionMessages";
 import { msToTime } from "../helpers";

@@ -3,17 +3,21 @@ import { AgGridReact } from "ag-grid-react"; // React Grid Logic
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css"; // Core CSS
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Theme
+import { FaTrash } from "react-icons/fa";
 import { PuzzleState, PuzzleStatus } from "../../lib/puzzleState";
 import StatusIcon from "./StatusIcon";
 import StarRating from "../../components/StarRating";
 import { msToTime } from "../../helpers";
 import theme from "../../theme";
+import IconButton from "../../components/IconButton";
 
 type UpdatePuzzleFunc = (puzzle: PuzzleState) => Promise<void>;
+type DeletePuzzleFunc = (puzzleId: string) => Promise<void>;
 
 interface PuzzleGridProps extends React.HTMLProps<HTMLDivElement> {
   puzzles: PuzzleState[];
   updatePuzzle: UpdatePuzzleFunc;
+  deletePuzzle: DeletePuzzleFunc;
 }
 
 interface PuzzleRowData {
@@ -29,7 +33,12 @@ interface PuzzleRowData {
   puzzle: PuzzleState;
 }
 
-const PuzzleGrid = ({ puzzles, updatePuzzle, ...props }: PuzzleGridProps) => {
+const PuzzleGrid = ({
+  puzzles,
+  updatePuzzle,
+  deletePuzzle,
+  ...props
+}: PuzzleGridProps) => {
   //  Turn the puzzles ino a set of row data.
   const rowData = puzzles.map((puzzle) => ({
     title: puzzle.title,
@@ -114,6 +123,22 @@ const PuzzleGrid = ({ puzzles, updatePuzzle, ...props }: PuzzleGridProps) => {
       />
     );
   };
+  const ActionsRenderer = (props: ICellRendererParams<PuzzleRowData>) => {
+    const onDelete = async () => {
+      //  props.data will only be undefined for infinite grids etc.
+      if (props.data) {
+        await deletePuzzle(props.data.puzzle.puzzleId);
+        props.api.applyTransaction({
+          remove: [props.data],
+        });
+      }
+    };
+    return (
+      <IconButton onClick={onDelete}>
+        <FaTrash />
+      </IconButton>
+    );
+  };
 
   const [colDefs] = useState<ColDef[]>([
     // {
@@ -169,6 +194,10 @@ const PuzzleGrid = ({ puzzles, updatePuzzle, ...props }: PuzzleGridProps) => {
       field: "notes",
       filter: true,
       editable: true,
+    },
+    {
+      headerName: "",
+      cellRenderer: ActionsRenderer,
     },
   ]);
 
