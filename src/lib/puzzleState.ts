@@ -5,11 +5,6 @@ export enum PuzzleStatus {
   Unknown,
 }
 
-export enum TimerState {
-  Stopped,
-  Started,
-}
-
 export interface PuzzleState {
   puzzleId: string;
   storageKey: string;
@@ -21,7 +16,6 @@ export interface PuzzleState {
   timeStart: Date;
   timeFinish: Date | null;
   elapsedTime: number;
-  timerState: TimerState;
   hintsOrMistakes: number | null;
   rating: number | null;
   notes: string | null;
@@ -41,7 +35,6 @@ export function toSerializableObject(
     timeStart: state.timeStart.toISOString(),
     timeFinish: state.timeFinish ? state.timeFinish.toISOString() : null,
     elapsedTime: state.elapsedTime,
-    timerState: state.timerState,
     hintsOrMistakes: state.hintsOrMistakes,
     rating: state.rating,
     notes: state.notes,
@@ -83,7 +76,6 @@ export function fromSerializableObject(
     timeStart: parseDateField("timeStart"),
     timeFinish: object["timeFinish"] ? parseDateField("timeFinish") : null,
     elapsedTime: object["elapsedTime"] as number,
-    timerState: (object["timerState"] as TimerState) || TimerState.Stopped,
     hintsOrMistakes: (object["hintsOrMistakes"] as number) || null,
     rating: (object["rating"] as number) || null,
     notes: (object["notes"] as string) || "",

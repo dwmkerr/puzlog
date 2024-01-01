@@ -26,10 +26,14 @@ const MiniPopup = () => {
     }
   };
 
+  const goToPuzlog = () => {
+    extensionInterface.navigateToPuzlogInterface();
+  };
+
   return (
     <div>
       <div style={{ fontSize: "1.2em", marginBottom: "0.5em" }}>
-        <a id="puzlog_title" href="#">
+        <a id="puzlog_title" onClick={goToPuzlog}>
           Puzlog
         </a>
       </div>

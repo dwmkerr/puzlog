@@ -228,9 +228,14 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 - [x] feat: rating component, rating in data model
 - [x] feat: notes field
 - [x] wip: fix styes in shadow root component
+- [ ] wip: show timer increment
+- [ ] wip: reopen puzzle page show state
+- [ ] wip: puzzle id in puzlog page link
 - [ ] feature: simple timer (from start time) in extension toolbar
 - [ ] feat: move logic from content to background - note that we get a promise failure if we try and change values from the puzlog page - does it expect a content script running?
 - [ ] refactor: no stopwatch for now - just total time, stopwatch can come later
+      when adding stopwatch time this'll then be a separate storage key to avoid
+      the timer blatting puzzle state.
 - [x] bug: icons should always be visible in grid
 - [ ] feat: simple on-page timer/start/stop
 - [ ] bug: timer state seems to be lost when changing tabs
@@ -260,10 +265,16 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 
 **Later**
 
+- [ ] refactor: consider how to avoid race conditions e.g. the content.ts page
+      triggers a chance but the puzlog page also changes the same element -
+      maybe the main extension object needs to watch the puzzle local storage
+      for changes and the UIs always just respond to that
+- [ ] feat: popup shows the scraped puzzle data (setter, series, etc), which is
+      stored in its own sub-object in the puzzle
 - [ ] refactor: use react for popup page
 - [ ] feat: cheated clues set on in-page overlay
 - [ ] feat: better anagram helper
-- [ ] feat(option): elapsed time vs clock time
+- [ ] feat(option): elapsed time vs clock time.
 - [ ] feat(option): grey overlay on site when timer not started (to force timer)
 - [ ] feat(!): cross browser support with web extension polyfill
 - [ ] refactor: move bulk of logic into service worker

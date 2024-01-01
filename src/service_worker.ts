@@ -3,29 +3,32 @@ import { storageKeyFromPuzzleId } from "./helpers";
 import {
   FinishPuzzleCommand,
   StartPuzzleCommand,
-  StateUpdatedCommand,
+  UpdatePuzzleCommand,
 } from "./lib/extensionMessages";
-import { PuzzleStatus, TimerState } from "./lib/puzzleState";
-
-//  TODO retire ASAP
-extensionInterface.onMessage(
-  "stateUpdated",
-  async (tabId, message: StateUpdatedCommand) => {
-    //  If we have a tab id - forward it. I'm sure we can retire this soon.
-    if (tabId) {
-      extensionInterface.sendTabMessage("tabStateUpdated", tabId, {
-        tabId: tabId,
-        ...message,
-      });
-    }
-  }
-);
+import { PuzzleState, PuzzleStatus } from "./lib/puzzleState";
 
 extensionInterface.onMessage("OpenPuzlogTab", async () => {
   chrome.tabs.create({
     url: chrome.runtime.getURL("puzlog.html"),
   });
 });
+
+//  This helper sends the 'state updated' message to the extension and also the
+//  active tab.
+async function stateUpdated(puzzleState: PuzzleState) {
+  await extensionInterface.sendRuntimeMessage("stateUpdated", {
+    puzzleState,
+  });
+  const [activeTab] = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  });
+  // if (activeTab.id) {
+  //   await extensionInterface.sendTabMessage("stateUpdated", activeTab.id, {
+  //     puzzleState,
+  //   });
+  // }
+}
 
 extensionInterface.onMessage(
   "start",
@@ -44,23 +47,14 @@ extensionInterface.onMessage(
       timeStart: now,
       timeFinish: null,
       elapsedTime: 0,
-      timerState: TimerState.Stopped,
       hintsOrMistakes: 0,
       rating: null,
       notes: "",
     };
 
     //  Save back to storage, broadcast updated state to the extension and the tab.
-    extensionInterface.savePuzzle(puzzle);
-    extensionInterface.sendRuntimeMessage("stateUpdated", {
-      puzzleState: puzzle,
-    });
-    if (tabId) {
-      extensionInterface.sendTabMessage("tabStateUpdated", tabId, {
-        tabId: tabId,
-        puzzleState: puzzle,
-      });
-    }
+    await extensionInterface.savePuzzle(puzzle);
+    await stateUpdated(puzzle);
   }
 );
 
@@ -68,8 +62,7 @@ extensionInterface.onMessage(
   "finish",
   async (tabId, message: FinishPuzzleCommand) => {
     //  Load the puzzle by id.
-    const puzzles = await extensionInterface.loadPuzzles();
-    const puzzle = puzzles.find((p) => p.puzzleId === message.puzzleId);
+    const puzzle = await extensionInterface.loadPuzzle(message.puzzleId);
     if (!puzzle) {
       throw new Error(
         `puzlog: unable to find puzzle with id '${message.puzzleId}'`
@@ -81,21 +74,35 @@ extensionInterface.onMessage(
     const updatedPuzzle = {
       ...puzzle,
       timeLastAccess: now,
-      timerState: TimerState.Stopped,
       timeFinish: now,
       status: PuzzleStatus.Finished,
     };
 
     //  Save back to storage, broadcast updated state to the extension and the tab.
-    extensionInterface.savePuzzle(updatedPuzzle);
-    extensionInterface.sendRuntimeMessage("stateUpdated", {
-      puzzleState: updatedPuzzle,
-    });
-    if (tabId) {
-      extensionInterface.sendRuntimeMessage("tabStateUpdated", {
-        tabId: tabId,
-        puzzleState: updatedPuzzle,
-      });
+    await extensionInterface.savePuzzle(updatedPuzzle);
+    await stateUpdated(updatedPuzzle);
+  }
+);
+
+extensionInterface.onMessage(
+  "UpdatePuzzle",
+  async (tabId, message: UpdatePuzzleCommand) => {
+    //  Load the puzzle by id.
+    const puzzle = await extensionInterface.loadPuzzle(message.puzzleId);
+    if (!puzzle) {
+      throw new Error(
+        `puzlog: unable to find puzzle with id '${message.puzzleId}'`
+      );
     }
+
+    //  Update the state.
+    const updatedPuzzle = {
+      ...puzzle,
+      ...message.updatedValues,
+    };
+
+    //  Save back to storage, broadcast updated state to the extension and the tab.
+    await extensionInterface.savePuzzle(updatedPuzzle);
+    await stateUpdated(updatedPuzzle);
   }
 );

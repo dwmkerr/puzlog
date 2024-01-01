@@ -8,10 +8,6 @@ export interface TabCommand {
   tabId: number;
 }
 
-export interface TabStateUpdatedCommand extends TabCommand {
-  puzzleState: PuzzleState;
-}
-
 export interface StartPuzzleCommand {
   puzzleId: string;
   url: string;
@@ -26,12 +22,17 @@ export interface OpenPuzlogTabCommand {
   puzzleId: string;
 }
 
+export interface UpdatePuzzleCommand {
+  puzzleId: string;
+  updatedValues: Partial<PuzzleState>;
+}
+
 export type ExtensionMessageNameMap = {
   ["start"]: StartPuzzleCommand;
   ["finish"]: FinishPuzzleCommand;
   ["stateUpdated"]: StateUpdatedCommand;
-  ["tabStateUpdated"]: TabStateUpdatedCommand;
   ["getTabPuzzleStatus"]: object;
   ["startTabPuzzle"]: object;
   ["OpenPuzlogTab"]: OpenPuzlogTabCommand;
+  ["UpdatePuzzle"]: UpdatePuzzleCommand;
 };

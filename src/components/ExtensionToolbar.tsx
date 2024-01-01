@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaFlagCheckered } from "react-icons/fa";
 import { FaPlay } from "react-icons/fa";
 import * as extensionInterface from "../extensionInterface";
-import { TabStateUpdatedCommand } from "../lib/extensionMessages";
+// import { StateUpdatedCommand } from "../lib/extensionMessages";
 import { msToTime } from "../helpers";
 
 const iconStyle: React.CSSProperties = {
@@ -32,21 +32,32 @@ const ExtensionToolbar = ({ puzzleId }: ExtensionToolbarProps) => {
   const [timerMilliseconds, setTimerMilliseconds] = useState(0);
 
   useEffect(() => {
-    extensionInterface.onMessage(
-      "tabStateUpdated",
-      async (tabId: number | null, message: TabStateUpdatedCommand) => {
-        //  Bail if it is not our puzzle...
-        if (message.puzzleState.puzzleId !== puzzleId) {
-          return;
-        }
-        setTimerMilliseconds(message.puzzleState.elapsedTime);
+    chrome.runtime.onMessage.addListener((request) => {
+      if (
+        request.command === "stateUpdated" &&
+        request?.puzzleState?.puzzleId === puzzleId
+      ) {
+        setTimerMilliseconds(request.puzzleState.elapsedTime);
       }
-    );
+    });
+
+    // extensionInterface.onMessage(
+    //   "stateUpdated",
+    //   async (tabId: number | null, message: StateUpdatedCommand) => {
+    //     //  Bail if it is not our puzzle...
+    //     if (message.puzzleState.puzzleId !== puzzleId) {
+    //       return;
+    //     }
+    //     setTimerMilliseconds(message.puzzleState.elapsedTime);
+    //   }
+    // );
   }, []);
   const finish = () => {
-    extensionInterface.sendRuntimeMessage("finish", {
-      puzzleId,
-    });
+    (async () => {
+      await extensionInterface.sendRuntimeMessage("finish", {
+        puzzleId,
+      });
+    })();
   };
   return (
     <div>

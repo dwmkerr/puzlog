@@ -5,15 +5,29 @@ export class Stopwatch {
   private startTime: number | null = null;
   private elapsedTime: number = 0;
   private tickHandler: TickHandler | null = null;
+  private tickInterval: number | null = null;
 
   start(handler: TickHandler, tickInterval: number = 1000) {
     this.tickHandler = handler;
+    this.tickInterval = tickInterval;
     if (this.intervalId !== null) {
       return; // Already started
     }
 
     this.startTime = Date.now() - this.elapsedTime; // Adjust start time based on elapsed time
     this.intervalId = window.setInterval(() => this.tick(), tickInterval);
+  }
+
+  resume() {
+    if (this.intervalId !== null) {
+      return; // Already running
+    }
+    if (this.tickHandler === null || this.tickInterval === null) {
+      throw new Error("Cannot resume stopwatch - it has not been started");
+    }
+
+    this.startTime = Date.now() - this.elapsedTime; // Adjust start time based on elapsed time
+    this.intervalId = window.setInterval(() => this.tick(), this.tickInterval);
   }
 
   pause() {

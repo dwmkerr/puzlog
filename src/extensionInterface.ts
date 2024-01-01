@@ -1,7 +1,7 @@
 import { ExtensionMessageNameMap } from "./lib/extensionMessages";
+import { storageKeyFromPuzzleId } from "./helpers";
 import {
   PuzzleState,
-  TimerState,
   toSerializableObject,
   fromSerializableObject,
 } from "./lib/puzzleState";
@@ -26,6 +26,19 @@ export async function loadPuzzles(): Promise<PuzzleState[]> {
   return puzzles;
 }
 
+export async function loadPuzzle(
+  puzzleId: string
+): Promise<PuzzleState | null> {
+  const storageKey = storageKeyFromPuzzleId(puzzleId);
+  const storage = await chrome.storage.local.get(storageKey);
+  const storageObject = storage[storageKey];
+  if (!storageObject) {
+    return null;
+  }
+  const storedPuzzleState = fromSerializableObject(storageObject);
+  return storedPuzzleState;
+}
+
 export async function deletePuzzle(storageKey: string): Promise<void> {
   await chrome.storage.local.remove([storageKey]);
 }
@@ -47,36 +60,36 @@ export async function savePuzzle(puzzle: PuzzleState): Promise<void> {
   }
 }
 
-export function setIconTimerState(timerState: TimerState, tabId: number): void {
-  console.log(`bailing on changing icon for tab ${tabId}...`);
-  return;
-  switch (timerState) {
-    case TimerState.Stopped:
-      // chrome.browserAction.setBadgeBackgroundColor({ color: "#0000FF" });
-      // chrome.browserAction.setBadgeText({ text: "Play" });
-      chrome.action.setIcon({
-        path: {
-          "16": "images/icon16-stopped.png",
-          "32": "images/icon32-stopped.png",
-          "128": "images/icon128-stopped.png",
-        },
-        //        tabId,
-      });
-    case TimerState.Started:
-      // chrome.browserAction.setBadgeText({ text: "Stop" });
-      chrome.action.setIcon({
-        path: {
-          "16": "images/icon16-started.png",
-          "32": "images/icon32-started.png",
-          "128": "images/icon128-started.png",
-        },
-        // tabId,
-      });
-    // default:
-    // chrome.browserAction.setBadgeBackgroundColor({ color: "#0000FF" });
-    // chrome.browserAction.setBadgeText({ text: "" });
-  }
-}
+// export function setIconTimerState(timerState: TimerState, tabId: number): void {
+//   console.log(`bailing on changing icon for tab ${tabId}...`);
+//   return;
+//   switch (timerState) {
+//     case TimerState.Stopped:
+//       // chrome.browserAction.setBadgeBackgroundColor({ color: "#0000FF" });
+//       // chrome.browserAction.setBadgeText({ text: "Play" });
+//       chrome.action.setIcon({
+//         path: {
+//           "16": "images/icon16-stopped.png",
+//           "32": "images/icon32-stopped.png",
+//           "128": "images/icon128-stopped.png",
+//         },
+//         //        tabId,
+//       });
+//     case TimerState.Started:
+//       // chrome.browserAction.setBadgeText({ text: "Stop" });
+//       chrome.action.setIcon({
+//         path: {
+//           "16": "images/icon16-started.png",
+//           "32": "images/icon32-started.png",
+//           "128": "images/icon128-started.png",
+//         },
+//         // tabId,
+//       });
+//     // default:
+//     // chrome.browserAction.setBadgeBackgroundColor({ color: "#0000FF" });
+//     // chrome.browserAction.setBadgeText({ text: "" });
+//   }
+// }
 
 export async function getCurrentTabId(): Promise<number> {
   const [currentTab] = await chrome.tabs.query({
@@ -120,19 +133,23 @@ export function onMessage<K extends keyof ExtensionMessageNameMap>(
   ) => Promise<object | void>
 ): void {
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    (async () => {
-      const tabId = sender.tab?.id || null;
-      const source = tabId ? `Tab ${tabId}` : "Extension";
-      const command = request.command || "<unknown>";
-      const log = `recieved command '${command}' from ${source}`;
-      console.log(log);
-      if (command === messageName) {
-        sendResponse(
-          await handler(tabId, request as ExtensionMessageNameMap[K])
-        );
-      }
-    })();
-    // Important! Return true to indicate you want to send a response asynchronously
-    return true;
+    const tabId = sender.tab?.id || null;
+    const source = tabId ? `Tab ${tabId}` : "Extension";
+    const command = request.command || "<unknown>";
+    const log = `recieved command '${command}' from ${source}`;
+    console.log(log);
+    if (command === messageName) {
+      handler(tabId, request as ExtensionMessageNameMap[K])
+        .then((response) => {
+          sendResponse(response);
+        })
+        .catch((err) => {
+          console.error("Failed to send response", tabId, source, command);
+          throw err;
+        });
+      // Important! Return true to indicate you want to send a response asynchronously
+      return true;
+    }
+    return false; // nothing to send...
   });
 }
