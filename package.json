@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "webpack --mode=development --watch",
+    "start:auth_emulator": "FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 webpack --mode=development --watch",
     "build": "webpack --mode=production",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
@@ -64,8 +65,14 @@
   },
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@fontsource/inter": "^5.0.16",
+    "@mui/icons-material": "^5.15.3",
+    "@mui/joy": "^5.0.0-beta.21",
     "ag-grid-community": "^31.0.1",
     "ag-grid-react": "^31.0.1",
+    "firebase": "^10.7.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.12.0",

@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import ExtensionToolbar from "../components/ExtensionToolbar";
+import { PuzzleStatus } from "./puzzleState";
 
 export class ExtensionOverlay {
   private static readonly ID_IFRAME = "puzlog-extension-frame";
@@ -66,6 +67,8 @@ export class ExtensionOverlay {
       <ExtensionToolbar
         puzzleId={puzzleId}
         initialElapsedTime={initialElapsedTime}
+        initialTitle={document.title}
+        initialStatus={PuzzleStatus.Unknown}
       />
     );
 

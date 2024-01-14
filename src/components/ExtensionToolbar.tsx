@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { FaFlagCheckered, FaPlay } from "react-icons/fa";
+import { FaFlagCheckered, FaPlay, FaExternalLinkAlt } from "react-icons/fa";
 import * as extensionInterface from "../extensionInterface";
 // import { StateUpdatedCommand } from "../lib/extensionMessages";
 import { msToTime } from "../helpers";
-
-const iconStyle: React.CSSProperties = {
-  width: "24px",
-  height: "24px",
-  marginLeft: "10px",
-  cursor: "pointer",
-};
+import IconButton from "./IconButton";
+import { PuzzleStatus } from "../lib/puzzleState";
+import StatusIcon from "./StatusIcon";
+import { CrosswordMetadata } from "../lib/crossword-metadata";
 
 const style = `
 a {
@@ -26,14 +23,30 @@ a:hover {
 interface ExtensionToolbarProps {
   puzzleId: string;
   initialElapsedTime: number;
+  initialTitle: string;
+  initialStatus: PuzzleStatus;
+}
+
+function formatTitle(pageTitle: string, crosswordMetadata: CrosswordMetadata) {
+  if (crosswordMetadata?.title && crosswordMetadata?.setter) {
+    return `${crosswordMetadata.title} - ${crosswordMetadata.setter}`;
+  } else if (crosswordMetadata?.title) {
+    return crosswordMetadata.title;
+  } else {
+    return pageTitle;
+  }
 }
 
 const ExtensionToolbar = ({
   puzzleId,
   initialElapsedTime,
+  initialTitle,
+  initialStatus,
 }: ExtensionToolbarProps) => {
   const [timerMilliseconds, setTimerMilliseconds] =
     useState(initialElapsedTime);
+  const [title, setTitle] = useState(initialTitle);
+  const [status, setStatus] = useState(initialStatus);
 
   useEffect(() => {
     chrome.runtime.onMessage.addListener((request) => {
@@ -42,6 +55,10 @@ const ExtensionToolbar = ({
         request?.puzzleState?.puzzleId === puzzleId
       ) {
         setTimerMilliseconds(request.puzzleState.elapsedTime);
+        setTitle(
+          formatTitle(request.puzzleState.title, request.puzzleState.metadata)
+        );
+        setStatus(request.puzzleState.status);
       }
     });
 
@@ -59,8 +76,18 @@ const ExtensionToolbar = ({
   const finish = async () => {
     await extensionInterface.sendRuntimeMessage("finish", { puzzleId });
   };
+  const openPuzlogPage = async () => {
+    await extensionInterface.sendRuntimeMessage("OpenPuzlogTab", {
+      puzzleId,
+    });
+  };
   return (
-    <div>
+    <div
+      style={{
+        borderBottom: "grey 1px solid",
+        boxShadow: "0 2px 4px -1px rgba(0,0,0,0.8)",
+      }}
+    >
       <style>{style}</style>
       <div
         style={{
@@ -68,7 +95,7 @@ const ExtensionToolbar = ({
           alignItems: "center",
           height: "40px",
           backgroundColor: "white",
-          color: "black",
+          color: "rgba(4, 30, 73, 0.7)", // nice dark grey
           padding: "0 10px",
         }}
       >
@@ -87,17 +114,16 @@ const ExtensionToolbar = ({
           style={{
             flex: 1,
             textAlign: "center",
+            alignItems: "center",
+            display: "flex",
           }}
         >
-          <a
-            onClick={() => {
-              extensionInterface.sendRuntimeMessage("OpenPuzlogTab", {
-                puzzleId,
-              });
-            }}
-          >
-            Puzlog
-          </a>
+          <StatusIcon
+            status={status}
+            size={16}
+            style={{ minWidth: "16px", minHeight: "16px", paddingRight: "8px" }}
+          />
+          <a onClick={openPuzlogPage}>{title}</a>
         </div>
         <div
           style={{
@@ -107,24 +133,15 @@ const ExtensionToolbar = ({
             alignItems: "center",
           }}
         >
-          <div className="icon" style={iconStyle}>
+          <IconButton title="Open Puzlog">
+            <FaExternalLinkAlt onClick={openPuzlogPage} />
+          </IconButton>
+          <IconButton title="Start Puzzle Timer">
             <FaPlay />
-          </div>
-          <div className="icon" style={iconStyle} onClick={finish}>
+          </IconButton>
+          <IconButton onClick={finish} title="Finish Puzzle">
             <FaFlagCheckered />
-          </div>
-          <div className="icon" style={iconStyle}>
-            &amp;#128065;
-          </div>
-          <div className="icon" style={iconStyle}>
-            &amp;#128279;
-          </div>
-          <div className="icon" style={iconStyle}>
-            &amp;#9654;
-          </div>
-          <div className="icon" style={iconStyle}>
-            &amp;#9724;
-          </div>
+          </IconButton>
         </div>
       </div>
     </div>

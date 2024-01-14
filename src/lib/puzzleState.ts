@@ -1,3 +1,5 @@
+import { CrosswordMetadata } from "./crossword-metadata";
+
 export enum PuzzleStatus {
   NotStarted,
   Started,
@@ -18,12 +20,13 @@ export interface PuzzleState {
   elapsedTime: number;
   hintsOrMistakes: number | null;
   rating: number | null;
+  metadata: CrosswordMetadata;
   notes: string | null;
 }
 
 export function toSerializableObject(
   state: PuzzleState
-): Record<string, number | string | null> {
+): Record<string, object | number | string | null> {
   return {
     puzzleId: state.puzzleId,
     storageKey: state.storageKey,
@@ -37,12 +40,13 @@ export function toSerializableObject(
     elapsedTime: state.elapsedTime,
     hintsOrMistakes: state.hintsOrMistakes,
     rating: state.rating,
+    metadata: state.metadata,
     notes: state.notes,
   };
 }
 
 export function fromSerializableObject(
-  object: Record<string, number | string | null>
+  object: Record<string, object | number | string | null>
 ): PuzzleState {
   function parseDateField(fieldName: string): Date {
     const dateString = object[fieldName] as string;
@@ -78,6 +82,7 @@ export function fromSerializableObject(
     elapsedTime: object["elapsedTime"] as number,
     hintsOrMistakes: (object["hintsOrMistakes"] as number) || null,
     rating: (object["rating"] as number) || null,
+    metadata: (object["metadata"] as CrosswordMetadata) || null,
     notes: (object["notes"] as string) || "",
   };
 }

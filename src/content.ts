@@ -2,11 +2,21 @@ import * as extensionInterface from "./extensionInterface";
 import { ExtensionOverlay } from "./lib/ExtensionOverlay";
 import { puzzleIdFromUrl } from "./helpers";
 import { Stopwatch } from "./lib/stopwatch";
+import { PuzzleRepository } from "./lib/PuzzleRepository";
+import {
+  CrosswordMetadata,
+  scrapeString,
+  scrapers,
+} from "./lib/crossword-metadata";
+
+//  Instantiate a puzzle repository.
+const puzzleRepository = new PuzzleRepository(chrome.storage.local);
 
 //  Typically called by the popup to find out our current puzzle id.
 extensionInterface.onMessage("getTabPuzzleStatus", async () => ({
   puzzleId: localExtensionState.puzzleId,
   started: localExtensionState.started,
+  crosswordMetadata: localExtensionState.crosswordMetadata,
 }));
 
 //  Typically called by the popup when the user has decided to start working on
@@ -21,6 +31,11 @@ extensionInterface.onMessage("startTabPuzzle", async () => {
 
   //  Now start the timer and show the overlay. Initial time is 0 secs.
   startTimerAndShowOverlay(0);
+});
+
+//  When the puzzle is finished, we can stop the stopwatch.
+extensionInterface.onMessage("startTabPuzzle", async () => {
+  localExtensionState.stopwatch.pause();
 });
 
 function startTimerAndShowOverlay(initialElapsedTime: number) {
@@ -42,12 +57,34 @@ function startTimerAndShowOverlay(initialElapsedTime: number) {
   localExtensionState.extensionOverlay?.show();
 }
 
+function scrapeCrosswordMetadata(
+  href: string,
+  document: Document
+): CrosswordMetadata | null {
+  //  If the puzzle hasn't been loaded, we can check its metadata.
+  const scraper = scrapers.find((scraper) => {
+    console.log(`puzlog: testing scraper ${scraper.seriesName}`);
+    const match = scraper.hrefTest.test(location.href);
+    console.log(`puzlog: match ${match}`);
+    return match;
+  });
+
+  if (!scraper) {
+    return null;
+  }
+  return {
+    series: scraper.seriesName,
+    title: scrapeString(document, scraper.title) || "",
+    setter: scrapeString(document, scraper.setter) || "",
+  };
+}
+
 async function startup() {
   console.log("initialising puzlog...");
 
   //  Try and load the puzzle from storage. If it's not present, it hasn't been
   //  started yet.
-  const puzzle = await extensionInterface.loadPuzzle(
+  const puzzle = await puzzleRepository.loadPuzzle(
     localExtensionState.puzzleId
   );
 
@@ -59,12 +96,12 @@ async function startup() {
     puzzle?.elapsedTime || 0
   );
 
-  //  If the puzzle has been loaded, we can start the stopwatch.
-  if (puzzle) {
-    //  Now start the timer and show the overlay. Start from the last elapsed
-    //  time.
-    startTimerAndShowOverlay(puzzle.elapsedTime);
-  }
+  //  Scrape the crossword metadata.
+  localExtensionState.crosswordMetadata = scrapeCrosswordMetadata(
+    location.href,
+    document
+  );
+  console.log("puzlog: read metadata", localExtensionState.crosswordMetadata);
 
   //  We'll now wait for visibility changes (e.g. chrome minimised, tab hidden
   //  and so on). If the timer has been started, we'll pause it when the tab
@@ -98,6 +135,7 @@ const localExtensionState = {
   started: false,
   stopwatch: new Stopwatch(),
   extensionOverlay: null as ExtensionOverlay | null,
+  crosswordMetadata: null as CrosswordMetadata | null,
 };
 
 function log(message: string) {
@@ -106,5 +144,23 @@ function log(message: string) {
 
 //  Start the extension.
 (async () => {
+  //  Get the meta tag that tracks out content script status and set it to
+  //  'loading'. This is essential so that things like the background script
+  //  can know whether the tab has a loaded content script.
+  const statusMetaName = "puzlog-content-script-status";
+  let contentScriptStatusTag = document.querySelector(
+    `meta[name="${statusMetaName}"]`
+  );
+  if (!contentScriptStatusTag) {
+    contentScriptStatusTag = document.createElement("meta");
+    contentScriptStatusTag.setAttribute("name", statusMetaName);
+    document.head.appendChild(contentScriptStatusTag);
+  }
+  contentScriptStatusTag.setAttribute("content", "loading");
+
+  //  Start the content script code, preparing the DOM etc.
   await startup();
+
+  //  Update the status to 'loaded' - we're good to go.
+  contentScriptStatusTag.setAttribute("content", "loaded");
 })();

@@ -5,7 +5,7 @@ import "ag-grid-community/styles/ag-grid.css"; // Core CSS
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Theme
 import { FaTrash } from "react-icons/fa";
 import { PuzzleState, PuzzleStatus } from "../../lib/puzzleState";
-import StatusIcon from "./StatusIcon";
+import StatusIcon from "../../components/StatusIcon";
 import StarRating from "../../components/StarRating";
 import { msToTime } from "../../helpers";
 import theme from "../../theme";
@@ -224,7 +224,7 @@ const PuzzleGrid = ({
   };
 
   return (
-    <div className="ag-theme-quartz" {...props}>
+    <div className="ag-theme-quartz" style={{ fontSize: "150%" }} {...props}>
       <AgGridReact
         rowData={rowData}
         columnDefs={colDefs}

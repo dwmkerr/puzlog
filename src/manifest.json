@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Puzlog",
   "description": "TODO",
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["scripting", "storage", "activeTab", "identity"],
   "action": {
     "default_title": "Click to view a popup",
     "default_popup": "popup.html"
@@ -13,13 +13,19 @@
   "content_scripts": [
     {
       "js": ["content.js"],
-      "matches": ["https://www.theguardian.com/*"]
+      "matches": ["http://*/*", "https://*/*"]
     }
   ],
+  "host_permissions": ["<all_urls>"],
   "icons": {
     "16": "images/icon16.png",
     "32": "images/icon32.png",
     "48": "images/icon48.png",
     "128": "images/icon128.png"
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw62qTvgpQT8OMPoW0kdsB1kB9kGVOhSXZbogFZh70x9dt4dpHF0JYC+CJGwQhUiQrO3CcsClhGo8bfd9hDQS35kZGYA7RpVcEGNa5R0TyWTMJv7qezwbPVurUArdNlwXLntd4u+R58KhUQa9YY08FuPNLDdeW8hP970F1AVOQ202dCqnXXvyThwnww9BYJjGvW+8T7/rV/jQqdogmeEoi/PFgn4Hw5tvP3UOaZAusXdb+mwmi9gZB3KG/6Jb5yrtium8996hAfxylS/Y/bPS8Dq9HwtXLI4KCdVh0xqWxtViHJo70Ipd9EeoV7IHFf+SdUjNjPkXcIlzszS2Rb4VrwIDAQAB",
+  "oauth2": {
+    "client_id": "1076573815185-c9g828ovecvddh11ug816v5nm2cubso4.apps.googleusercontent.com",
+    "scopes": ["https://www.googleapis.com/auth/userinfo.email"]
   }
 }

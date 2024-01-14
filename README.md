@@ -3,6 +3,11 @@
 [![main](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml/badge.svg)](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml)
 [![codecov](https://codecov.io/gh/dwmkerr/puzlog/branch/main/graph/badge.svg?token=6Wj5EwCVqf)](https://codecov.io/gh/dwmkerr/puzlog)
 
+Quick Links:
+[Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole/3d014fc8-cc6f-4bb6-869a-557705310eaf/kiohhamgmipbmcbnbenbncgjnfdbcdgn)
+[Google Cloud Console](https://console.cloud.google.com/apis/credentials/consent?project=puzlog)
+[Firebase Console](https://console.firebase.google.com/project/puzlog)
+
 Work in progress. An extension to log online puzzle attempts.
 
 ![Demo Recording TODO](./docs/demo-recording.gif)
@@ -24,9 +29,7 @@ Chrome Web Store: [Install TODO](https://chrome.google.com/webstore/detail/chatg
   - [Debugging](#debugging)
   - [Reloading the Extension](#reloading-the-extension)
   - [Verifying Pull Requests](#verifying-pull-requests)
-- [Versioning](#versioning)
-- [Releasing](#releasing)
-  - [Extension Screenshots](#extension-screenshots)
+  - [Firebase](#firebase)
 - [Task List](#task-list)
 
 <!-- vim-markdown-toc -->
@@ -128,6 +131,7 @@ You can use the `./scripts/generate-icons-from-128.sh` script to generate icons 
 ./scripts/generate-icons-from-128.sh src/images/icon128.png
 ./scripts/generate-icons-from-128.sh src/images/icon128-started.png
 ./scripts/generate-icons-from-128.sh src/images/icon128-stopped.png
+./scripts/generate-icons-from-128.sh src/images/icon128-finished.png
 ```
 
 ### Formatting and Code Quality Rules
@@ -172,6 +176,29 @@ make release
 
 These commands will be executed for pull requests.
 
+### Firebase
+
+Use the [Firebase Local Emulator Suite](https://firebase.google.com/docs/emulator-suite) to help when working with Firebase.
+
+Setup looks like this:
+
+````bash
+
+# Install firebase CLI tools, then login.
+curl -sL firebase.tools | bash
+firebase login
+
+# Initialise the firebase project (not needed for most users, only if you are
+# forking and building your own project from scratch).
+#
+# firebase init
+#
+# Choose: Firestore, Emulators. Puzlog project. Default options seem to be fine.
+
+# Start the emulator, optionally open the web interface.
+firebase emulators:start
+open http://localhost:4000
+
 ## Versioning
 
 The version of the extension is defined in the [`package.json`](./package.json) file.
@@ -182,11 +209,21 @@ If you need to manually trigger a release, run:
 
 ```bash
 git commit --allow-empty -m "chore: release 2.0.0" -m "Release-As: 2.0.0"
-```
+````
 
 ## Releasing
 
 When uploading a new version, follow the steps below.
+
+### Manifest Permissions
+
+Notes about the permissions needed and why are here:
+
+**Scripting**
+
+Used as we call [`chrome.scripting.executeScript`](https://developer.chrome.com/docs/extensions/reference/api/scripting#method-executeScript) to check the status of our extension even if the communication has been broken (which happens when we reload the extension in developer mode). In developer mode we can then reload pages which have our content script running.
+
+It is possible we could put this behind some kind of option, e.g. "reload pages on extension update" and then only use this in developer mode, meaning in production we could remove the permission.
 
 ### Extension Screenshots
 
@@ -225,31 +262,32 @@ A quick-and-dirty list of improvements and next steps:
 
 Items with a `!` could be applied to the ChatGPT diagrams extension.
 
-- [x] feat: rating component, rating in data model
-- [x] feat: notes field
-- [x] wip: fix styes in shadow root component
-- [x] bug: reopen page show timer state
-- [ ] bug: reciving issues - try ports
+Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should offer a tooltip saying 'sign in to sync' - this is the nudge to the user to auth. When synced show a cloud/tick icon
+
+- [x] feat: show status icon in puzzle page
+- [wip] refactor: 'series' config which contains code to check if a crossword is part of series and then parse crossword metadata
+  handle not found, externalise to json config, add all guardian xword types, add series url, setter url
+- [ ] feat: show title / setter / series in puzzle page
+      show something sensible if not found
+- [ ] feat: extension icon overlay - 'suggest/info' / started / completed
+- [ ] refactor: remove old icons library
+- [ ] feat: option to reload crossword tabs when extension changes (see TODO in service worker)
+- [ ] feat: finish button takes you to puzlog with the crossword selected
+- [ ] bug: receiving issues - try ports
 - [ ] wip: show timer increment
-- [ ] wip: reopen puzzle page show state
 - [ ] wip: puzzle id in puzlog page link
-- [ ] feature: simple timer (from start time) in extension toolbar
+- [ ] feat: allow resume puzzle
 - [ ] feat: move logic from content to background - note that we get a promise failure if we try and change values from the puzlog page - does it expect a content script running?
 - [ ] refactor: no stopwatch for now - just total time, stopwatch can come later
       when adding stopwatch time this'll then be a separate storage key to avoid
       the timer blatting puzzle state.
-- [x] bug: icons should always be visible in grid
-- [ ] feat: simple on-page timer/start/stop
-- [ ] bug: timer state seems to be lost when changing tabs
-- [ ] feat: timer stop on change tab
-- [ ] bug: doesn't work across multiple tabs
-- [ ] feat: in progress icon for puzlog page
 - [x] feat: finished status and icon
 - [x] feat: cheated clues
 - [x] bug: cannot sort or filter by 'title'
 - [x] feat: sort by date started
 - [x] bug(!): it seems all scripts are executed twice (loaded twice, even with `{ once: true }` in DOM Content Loaded
 - [ ] check: see if a basic status indicator in the tab icon would be possible
+- [ ] optional text next to button icons
 - [ ] epic: finish xword
 - [ ] epic: export json
 - [ ] epic: save to cloud

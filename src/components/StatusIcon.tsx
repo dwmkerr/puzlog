@@ -1,6 +1,6 @@
 import React from "react";
-import { PuzzleStatus } from "../../lib/puzzleState";
-import theme from "../../theme";
+import { PuzzleStatus } from "../lib/puzzleState";
+import theme from "../theme";
 
 interface StatusIconProps extends React.ComponentPropsWithoutRef<"svg"> {
   status: PuzzleStatus;

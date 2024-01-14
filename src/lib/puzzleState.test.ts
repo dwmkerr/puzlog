@@ -20,6 +20,11 @@ describe("puzzleState", () => {
       elapsedTime: 600, // 10 minutes in seconds
       hintsOrMistakes: 2,
       rating: null,
+      metadata: {
+        title: "Cryptic 29222",
+        setter: null,
+        series: "Guardian Cryptic",
+      },
       notes: "Hard 🥵 <\"';", // note complex characters...
     };
 
@@ -43,6 +48,11 @@ describe("puzzleState", () => {
       elapsedTime: 600, // 10 minutes in seconds
       hintsOrMistakes: 2,
       rating: 2,
+      metadata: {
+        title: "Cryptic 29222",
+        setter: null,
+        series: "Guardian Cryptic",
+      },
       notes: "Fun, not too hard",
     };
 
@@ -74,6 +84,7 @@ describe("puzzleState", () => {
       // hintsOrMistakes: null, // should be '0'.
       // rating: null, // should be 'null'.
       // notes: null, // should be "".
+      // metadata: null // should be null
     };
 
     //  Fix the dates, then check we get a Unknown PuzzleStatus.
@@ -81,5 +92,6 @@ describe("puzzleState", () => {
     expect(deserializedObject.status).toEqual(PuzzleStatus.Unknown);
     expect(deserializedObject.hintsOrMistakes).toEqual(null);
     expect(deserializedObject.notes).toEqual("");
+    expect(deserializedObject.metadata).toEqual(null);
   });
 });
