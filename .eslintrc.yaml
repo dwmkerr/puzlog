@@ -1,9 +1,10 @@
 extends:
-  - "prettier"
   - "plugin:@typescript-eslint/recommended"
-plugins:
   - "prettier"
+plugins:
   - "@typescript-eslint"
+  - "html"
+  - "prettier"
 env:
   browser: true
   node: true
@@ -13,3 +14,5 @@ parserOptions:
   sourceType: module
 rules:
   prettier/prettier: ["error"]
+  # I quite like having explicit type defintiions so disable this rule.
+  "@typescript-eslint/no-inferrable-types": "off"

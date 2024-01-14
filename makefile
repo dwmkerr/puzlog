@@ -18,9 +18,9 @@ test: # test the code
 release: # build the release package
 	npm run build
 	rm -rf ./release && mkdir -p ./release
-	cd ./dist && zip ../release/chatgpt-diagrams-extension.zip . -r
+	cd ./dist && zip ../release/puzlog.zip . -r
 	ls ./release
 
 .PHONY: serve-samples
-serve-samples: # serve the sample ChatGPT pages.
+serve-samples: # serve the sample pages.
 	(cd samples/ && python -m http.server 3000)

@@ -34,7 +34,7 @@ jobs:
       - name: Verify Release
         run: |
           make release
-          if [ -f ./release/chatgpt-diagrams-extension.zip ]; then
+          if [ -f ./release/puzlog.zip ]; then
             echo "release exists..."
           else
             echo "cannot find release..."
@@ -45,5 +45,5 @@ jobs:
       - name: Upload Extension Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: chatgpt-diagrams-browser-extension
-          path: ./release/chatgpt-diagrams-extension.zip
+          name: puzlog
+          path: ./release/puzlog.zip
