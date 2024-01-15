@@ -30,10 +30,9 @@ export interface UpdatePuzzleCommand {
 }
 
 export interface TabPuzzleData {
-  tabId: number;
   puzzleId: string;
   status: PuzzleStatus;
-  crosswordMetadata: CrosswordMetadata;
+  crosswordMetadata: CrosswordMetadata | null;
 }
 
 export type ExtensionMessageNameMap = {
@@ -52,6 +51,15 @@ export enum ContentScriptStatus {
   Loaded,
   OutOfDate,
   Unknown,
+}
+
+export abstract class ServiceWorkerInterface {
+  public static async finishPuzzle(puzzleId: string): Promise<PuzzleState> {
+    const result = await extensionInterface.sendRuntimeMessage("finish", {
+      puzzleId,
+    });
+    return result as PuzzleState;
+  }
 }
 
 export abstract class ContentScriptInterface {

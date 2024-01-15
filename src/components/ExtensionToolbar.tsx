@@ -26,7 +26,10 @@ interface ExtensionToolbarProps {
   puzzle: PuzzleState | null;
 }
 
-function formatTitle(pageTitle: string, crosswordMetadata: CrosswordMetadata) {
+function formatTitle(
+  pageTitle: string,
+  crosswordMetadata: CrosswordMetadata | null
+) {
   if (crosswordMetadata?.title && crosswordMetadata?.setter) {
     return `${crosswordMetadata.title} - ${crosswordMetadata.setter}`;
   } else if (crosswordMetadata?.title) {
@@ -44,7 +47,9 @@ const ExtensionToolbar = ({
   const [timerMilliseconds, setTimerMilliseconds] = useState(
     puzzle?.elapsedTime || 0
   );
-  const [title, setTitle] = useState(formatTitle(pageTitle, puzzle?.metadata));
+  const [title, setTitle] = useState(
+    formatTitle(pageTitle, puzzle?.metadata || null)
+  );
   const [status, setStatus] = useState(puzzle?.status || PuzzleStatus.Unknown);
 
   useEffect(() => {

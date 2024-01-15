@@ -161,7 +161,7 @@ const PuzzleGrid = ({
     },
     {
       field: "setter",
-      width: 100,
+      width: 140,
       filter: true,
       editable: false,
     },

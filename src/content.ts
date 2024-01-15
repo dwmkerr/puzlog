@@ -8,16 +8,21 @@ import {
   scrapeString,
   scrapers,
 } from "./lib/crossword-metadata";
+import { PuzzleStatus } from "./lib/puzzleState";
+import { TabPuzzleData } from "./lib/extensionMessages";
 
 //  Instantiate a puzzle repository.
 const puzzleRepository = new PuzzleRepository(chrome.storage.local);
 
 //  Typically called by the popup to find out our current puzzle id.
-extensionInterface.onMessage("getTabPuzzleStatus", async () => ({
-  puzzleId: localExtensionState.puzzleId,
-  started: localExtensionState.started,
-  crosswordMetadata: localExtensionState.crosswordMetadata,
-}));
+extensionInterface.onMessage(
+  "getTabPuzzleStatus",
+  async (): Promise<TabPuzzleData> => ({
+    puzzleId: localExtensionState.puzzleId,
+    status: localExtensionState.puzzleStatus,
+    crosswordMetadata: localExtensionState.crosswordMetadata,
+  })
+);
 
 //  Typically called by the popup when the user has decided to start working on
 //  a puzzle.
@@ -39,9 +44,6 @@ extensionInterface.onMessage("startTabPuzzle", async () => {
 });
 
 function startTimerAndShowOverlay(initialElapsedTime: number) {
-  //  Update our local status.
-  localExtensionState.started = true;
-
   //  Start the stopwatch. On each tick, refresh the timer on the screen.
   localExtensionState.stopwatch.setElapsedTime(initialElapsedTime);
   localExtensionState.stopwatch.start(async (elapsedTime: number) => {
@@ -87,6 +89,7 @@ async function startup() {
   const puzzle = await puzzleRepository.loadPuzzle(
     localExtensionState.puzzleId
   );
+  localExtensionState.puzzleStatus = puzzle?.status || PuzzleStatus.NotStarted;
 
   //  Scrape the crossword metadata.
   localExtensionState.crosswordMetadata = scrapeCrosswordMetadata(
@@ -114,8 +117,6 @@ async function startup() {
     startTimerAndShowOverlay(puzzle.elapsedTime);
   }
 
-  console.log("puzlog: read metadata", localExtensionState.crosswordMetadata);
-
   //  We'll now wait for visibility changes (e.g. chrome minimised, tab hidden
   //  and so on). If the timer has been started, we'll pause it when the tab
   //  becomes invisible. We could make it an option to automatically restart
@@ -124,12 +125,12 @@ async function startup() {
     log(`visibilitychanged - ${document.visibilityState}`);
     if (document.visibilityState === "visible") {
       //  If we have a started crossword, resume the stopwatch.
-      if (localExtensionState.started) {
+      if (localExtensionState.puzzleStatus === PuzzleStatus.Started) {
         localExtensionState.stopwatch.resume();
       }
     } else {
       //  If we have a started crossword, pause the stopwatch.
-      if (localExtensionState.started) {
+      if (localExtensionState.puzzleStatus === PuzzleStatus.Started) {
         localExtensionState.stopwatch.pause();
       }
     }
@@ -145,7 +146,7 @@ const localExtensionState = {
   url: location.href,
   title: document.title,
   puzzleId: puzzleIdFromUrl(location.href),
-  started: false,
+  puzzleStatus: PuzzleStatus.Unknown,
   stopwatch: new Stopwatch(),
   extensionOverlay: null as ExtensionOverlay | null,
   crosswordMetadata: null as CrosswordMetadata | null,

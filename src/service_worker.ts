@@ -98,6 +98,7 @@ extensionInterface.onMessage(
     //  Save back to storage, broadcast updated state to the extension and the tab.
     await puzzleRepository.save(updatedPuzzle);
     await stateUpdated(updatedPuzzle);
+    return updatedPuzzle;
   }
 );
 
@@ -169,10 +170,12 @@ async function updateIcon(tabId: number) {
 
   //  We have a loaded content script so can safely get puzzle status.
   const tabStatus = await ContentScriptInterface.getTabPuzzleStatus(tabId);
-  const puzzle = await puzzleRepository.loadPuzzle(tabStatus.puzzleId);
 
   //  Based on the status, set the icon.
-  switch (puzzle?.status) {
+  switch (tabStatus.status) {
+    case PuzzleStatus.NotStarted:
+      setActionIcon(tabStatus.crosswordMetadata ? "-start" : "-start-unknown");
+      break;
     case PuzzleStatus.Started:
       setActionIcon("-started");
       break;

@@ -14,7 +14,9 @@ export async function getCurrentTabId(): Promise<number> {
   });
   const id = currentTab.id;
   if (id === undefined) {
-    throw new Error(`unable to identify current tab`);
+    throw new Error(
+      `unable to identify current tab id - may be a permission issue or this function is being called from a content script?`
+    );
   }
   return id;
 }

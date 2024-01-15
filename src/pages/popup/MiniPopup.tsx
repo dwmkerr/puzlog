@@ -6,18 +6,23 @@ import Card from "@mui/joy/Card";
 import CardContent from "@mui/joy/CardContent";
 import CardActions from "@mui/joy/CardActions";
 import HomeOutlined from "@mui/icons-material/HomeOutlined";
+import LinearProgress from "@mui/joy/LinearProgress";
+import Link from "@mui/joy/Link";
 import InfoOutlined from "@mui/icons-material/InfoOutlined";
 import WarningIcon from "@mui/icons-material/Warning";
+import PlayCircleOutline from "@mui/icons-material/PlayCircleOutline";
 import IconButton from "@mui/joy/IconButton";
 import Typography from "@mui/joy/Typography";
 
 import {
   ContentScriptInterface,
   ContentScriptStatus,
+  ServiceWorkerInterface,
   TabPuzzleData,
 } from "../../lib/extensionMessages";
 import { CrosswordMetadata } from "../../lib/crossword-metadata";
 import * as extensionInterface from "../../extensionInterface";
+import { PuzzleStatus } from "../../lib/puzzleState";
 
 const ErrorAlert = ({ error }: { error: Error }) => {
   return (
@@ -52,14 +57,13 @@ const CrosswordDataAlert = ({
 );
 
 export default function MiniPopup() {
-  const [contentScriptStatus, setContentScriptStatus] =
-    useState<ContentScriptStatus>(ContentScriptStatus.Unknown);
   const [tabPuzzleData, setTabPuzzleData] = useState<TabPuzzleData | null>(
     null
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [enableStart, setEnableStart] = useState(false);
+  const [enableFinish, setEnableFinish] = useState(false);
 
   useEffect(() => {
     // Define your async function
@@ -85,7 +89,6 @@ export default function MiniPopup() {
         //  in the 'Loading' status we could show a spinner or skeleton.
         const contentStatus =
           await ContentScriptInterface.getContentScriptStatus(tabId);
-        setContentScriptStatus(contentStatus);
         if (contentStatus !== ContentScriptStatus.Loaded) {
           setTabPuzzleData(null);
           return;
@@ -93,13 +96,22 @@ export default function MiniPopup() {
 
         //  The content script is running so it's safe for us to get the puzzle
         //  data.
-        const tabPuzzleData = (await extensionInterface.sendTabMessage(
-          "getTabPuzzleStatus",
-          tabId,
-          null
-        )) as TabPuzzleData;
+        const tabPuzzleData = await ContentScriptInterface.getTabPuzzleStatus(
+          tabId
+        );
         setTabPuzzleData(tabPuzzleData);
-        setEnableStart(true);
+
+        switch (tabPuzzleData.status) {
+          case PuzzleStatus.NotStarted:
+            setEnableStart(true);
+            break;
+          case PuzzleStatus.Started:
+            setEnableFinish(true);
+            break;
+          case PuzzleStatus.Finished:
+            //  TODO set enable 'restart'
+            break;
+        }
       } catch (err) {
         setError(err as Error);
       } finally {
@@ -116,9 +128,15 @@ export default function MiniPopup() {
   };
   const start = async () => {
     if (tabPuzzleData?.puzzleId) {
-      extensionInterface.sendTabMessage("startTabPuzzle", tabPuzzleData.tabId, {
+      const tabId = await extensionInterface.getCurrentTabId();
+      extensionInterface.sendTabMessage("startTabPuzzle", tabId, {
         puzzleId: tabPuzzleData.puzzleId,
       });
+    }
+  };
+  const finish = async () => {
+    if (tabPuzzleData?.puzzleId) {
+      ServiceWorkerInterface.finishPuzzle(tabPuzzleData?.puzzleId);
     }
   };
 
@@ -135,17 +153,33 @@ export default function MiniPopup() {
           Puzlog lets you track your progress on online puzzles such as
           crosswords.
         </Typography>
+        <IconButton
+          aria-label="Puzlog Home"
+          variant="plain"
+          color="neutral"
+          size="sm"
+          sx={{ position: "absolute", top: "0.875rem", right: "0.5rem" }}
+          onClick={home}
+        >
+          <HomeOutlined />
+        </IconButton>
+        {loading && <LinearProgress />}
         {enableStart && (
           <Typography level="body-sm">
-            Just press the <a onClick={start}>Start</a> button to begin!
+            Just press the <Link onClick={start}>Start</Link> button to begin!
           </Typography>
         )}
-        {error && <ErrorAlert error={error} />}
-        {tabPuzzleData?.crosswordMetadata && (
+        {enableStart && tabPuzzleData?.crosswordMetadata && (
           <CrosswordDataAlert
             crosswordMetadata={tabPuzzleData.crosswordMetadata}
           />
         )}
+        {enableFinish && (
+          <Typography level="body-sm">
+            Press <Link onClick={finish}>Finish</Link> to complete the puzzle!
+          </Typography>
+        )}
+        {error && <ErrorAlert error={error} />}
       </CardContent>
       <CardActions buttonFlex="0 1 120px">
         <IconButton
@@ -156,17 +190,27 @@ export default function MiniPopup() {
         >
           <HomeOutlined />
         </IconButton>
-        <Button variant="outlined" color="neutral">
-          View
-        </Button>
-        <Button
-          variant="solid"
-          color="primary"
-          disabled={!enableStart}
-          onClick={start}
-        >
-          Start
-        </Button>
+        {enableStart && (
+          <Button
+            variant="solid"
+            color="primary"
+            disabled={!enableStart}
+            startDecorator={<PlayCircleOutline />}
+            onClick={start}
+          >
+            Start
+          </Button>
+        )}
+        {enableFinish && (
+          <Button
+            variant="solid"
+            color="primary"
+            disabled={!enableFinish}
+            onClick={finish}
+          >
+            Finish
+          </Button>
+        )}
       </CardActions>
     </Card>
   );
