@@ -5,6 +5,7 @@ import { Stopwatch } from "./lib/stopwatch";
 import { PuzzleRepository } from "./lib/PuzzleRepository";
 import {
   CrosswordMetadata,
+  enrichMetadata,
   scrapeCrosswordMetadata,
 } from "./lib/crossword-metadata";
 import { PuzzleState, PuzzleStatus } from "./lib/puzzleState";
@@ -92,10 +93,13 @@ async function startup() {
   );
 
   //  It is possible that our metadata we have just scraped is not set in the
-  //  crossword, if so set it now. This'll happen if we re-open a crossword
-  //  that didn't have a metadata scraper before.
-  if (puzzle && !puzzle.metadata && localExtensionState.crosswordMetadata) {
-    puzzle.metadata = localExtensionState.crosswordMetadata;
+  //  crossword, or only partially set. If so set it now. This'll happen if we
+  //  didn't scrape everything we can before.
+  if (puzzle && localExtensionState.crosswordMetadata) {
+    puzzle.metadata = enrichMetadata(
+      puzzle.metadata,
+      localExtensionState.crosswordMetadata
+    );
     await puzzleRepository.save(puzzle);
   }
 

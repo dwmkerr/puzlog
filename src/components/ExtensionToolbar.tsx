@@ -8,18 +8,7 @@ import { PuzzleState, PuzzleStatus } from "../lib/puzzleState";
 import StatusIcon from "./StatusIcon";
 import { CrosswordMetadata } from "../lib/crossword-metadata";
 import { PuzzleRepository } from "../lib/PuzzleRepository";
-
-// const style = `
-// a {
-//   color: #337ab7;
-//   text-decoration: none;
-// }
-// a:hover {
-//   color: #22527b;
-//   text-decoration: underline;
-//   cursor: "pointer";
-// }
-// `;
+import { ServiceWorkerInterface } from "../lib/extensionMessages";
 
 interface ExtensionToolbarProps extends React.ComponentPropsWithoutRef<"div"> {
   puzzleId: string;
@@ -57,6 +46,8 @@ const ExtensionToolbar = ({
     puzzle?.status || PuzzleStatus.Unknown
   );
 
+  //  Handle changes to the puzzle which come from external sources (most
+  //  commonly, the popup page) so that the puzzle state is updated.
   useEffect(() => {
     const unsubscribe = puzzleRepository.subscribeToChanges(
       puzzleId,
@@ -72,8 +63,18 @@ const ExtensionToolbar = ({
     //  Return the cleanup function.
     return unsubscribe;
   }, []);
+
+  //  Update the service worker when our status changes - so that it can update
+  //  the action icon for the page.
+  useEffect(() => {
+    ServiceWorkerInterface.updatePuzzleStatusIcon(status);
+  }, [status]);
+
   const finish = async () => {
-    await extensionInterface.sendRuntimeMessage("finish", { puzzleId });
+    await extensionInterface.sendRuntimeMessage("finish", {
+      tabId: null, // the runtime will provide this as we come from a tab page.
+      puzzleId,
+    });
   };
   const openPuzlogPage = async () => {
     await extensionInterface.sendRuntimeMessage("OpenPuzlogTab", {

@@ -1,13 +1,5 @@
 # todo
 
-series is key now - first column. Series also indicates if we read metadata (for later features)
-fix shadow
-this page is killed by the overlay: https://mui.com/joy-ui/react-css-baseline/ therefore only create if there is a puzzle
-fix show/hide
-remove old icons lib
-// TODO: auto set the proper ttitle
-refactor: move stopwatch into puzzle toolbar
-
 # puzlog
 
 [![main](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml/badge.svg)](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml)
@@ -144,6 +136,7 @@ You can use the `./scripts/generate-icons-from-128.sh` script to generate icons 
 ./scripts/generate-icons-from-128.sh src/images/icon128-started.png
 ./scripts/generate-icons-from-128.sh src/images/icon128-stopped.png
 ./scripts/generate-icons-from-128.sh src/images/icon128-finished.png
+./scripts/generate-icons-from-128.sh src/images/icon128-unknown.png
 ```
 
 ### Formatting and Code Quality Rules
@@ -276,7 +269,10 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 
 Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should offer a tooltip saying 'sign in to sync' - this is the nudge to the user to auth. When synced show a cloud/tick icon
 
+- [x] refactor: remove old icons lib
+- [ ] refactor: move stopwatch into puzzle toolbar
 - [x] feat: show status icon in puzzle page
+- [x] bug: set status icon doesn't work consistently, try hitting start/finish/resume from a combo of the popup and toolbar and the bug is apparent. Notes are in the TODO in the code in service_worker
 - [wip] refactor: 'series' config which contains code to check if a crossword is part of series and then parse crossword metadata
   handle not found, externalise to json config, add all guardian xword types, add series url, setter url
 - [ ] feat: show title / setter / series in puzzle page

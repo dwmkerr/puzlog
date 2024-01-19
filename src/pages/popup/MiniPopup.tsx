@@ -136,12 +136,14 @@ export default function MiniPopup() {
   };
   const finish = async () => {
     if (tabPuzzleData?.puzzleId) {
-      ServiceWorkerInterface.finishPuzzle(tabPuzzleData?.puzzleId);
+      const tabId = await extensionInterface.getCurrentTabId();
+      ServiceWorkerInterface.finishPuzzle(tabId, tabPuzzleData?.puzzleId);
     }
   };
   const resume = async () => {
     if (tabPuzzleData?.puzzleId) {
-      ServiceWorkerInterface.resumePuzzle(tabPuzzleData?.puzzleId);
+      const tabId = await extensionInterface.getCurrentTabId();
+      ServiceWorkerInterface.resumePuzzle(tabId, tabPuzzleData?.puzzleId);
     }
   };
 

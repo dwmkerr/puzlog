@@ -11,10 +11,12 @@ export interface TabCommand {
 }
 
 export interface FinishPuzzleCommand {
+  tabId: number | null;
   puzzleId: string;
 }
 
 export interface ResumePuzzleCommand {
+  tabId: number | null;
   puzzleId: string;
 }
 
@@ -28,6 +30,10 @@ export interface TabPuzzleData {
   crosswordMetadata: CrosswordMetadata | null;
 }
 
+export interface UpdatePuzzleStatusIconCommand {
+  puzzleStatus: PuzzleStatus;
+}
+
 export type ExtensionMessageNameMap = {
   ["finish"]: FinishPuzzleCommand;
   ["resume"]: ResumePuzzleCommand;
@@ -35,6 +41,7 @@ export type ExtensionMessageNameMap = {
   ["getTabPuzzleStatus"]: null;
   ["startTabPuzzle"]: object;
   ["OpenPuzlogTab"]: OpenPuzlogTabCommand;
+  ["UpdatePuzzleStatusIcon"]: UpdatePuzzleStatusIconCommand;
 };
 
 export enum ContentScriptStatus {
@@ -46,16 +53,35 @@ export enum ContentScriptStatus {
 }
 
 export abstract class ServiceWorkerInterface {
-  public static async finishPuzzle(puzzleId: string): Promise<void> {
+  public static async finishPuzzle(
+    tabId: number,
+    puzzleId: string
+  ): Promise<void> {
     await extensionInterface.sendRuntimeMessage("finish", {
+      tabId,
       puzzleId,
     });
   }
 
-  public static async resumePuzzle(puzzleId: string): Promise<void> {
+  public static async resumePuzzle(
+    tabId: number,
+    puzzleId: string
+  ): Promise<void> {
     await extensionInterface.sendRuntimeMessage("resume", {
+      tabId,
       puzzleId,
     });
+  }
+
+  //  Called from the content script when the puzzle status changes so that the
+  //  extension action icon can be kept up to date.
+  public static async updatePuzzleStatusIcon(
+    puzzleStatus: PuzzleStatus
+  ): Promise<void> {
+    return await extensionInterface.sendRuntimeMessage(
+      "UpdatePuzzleStatusIcon",
+      { puzzleStatus }
+    );
   }
 }
 

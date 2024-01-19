@@ -103,3 +103,16 @@ export function scrapeCrosswordMetadata(
     datePublished: publishedDate,
   };
 }
+
+export function enrichMetadata(
+  initial: CrosswordMetadata,
+  updated: CrosswordMetadata
+): CrosswordMetadata {
+  const enriched: CrosswordMetadata = {
+    series: initial.series || updated.series,
+    title: initial.title || updated.title,
+    setter: initial.setter || updated.setter,
+    datePublished: initial.datePublished || updated.datePublished,
+  };
+  return enriched;
+}

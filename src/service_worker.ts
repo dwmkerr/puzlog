@@ -5,6 +5,8 @@ import {
   ContentScriptInterface,
   ContentScriptStatus,
   FinishPuzzleCommand,
+  ResumePuzzleCommand,
+  UpdatePuzzleStatusIconCommand,
 } from "./lib/extensionMessages";
 import { PuzzleStatus } from "./lib/puzzleState";
 
@@ -36,7 +38,7 @@ extensionInterface.onMessage(
 
 extensionInterface.onMessage(
   "resume",
-  async (tabId, message: FinishPuzzleCommand) => {
+  async (tabId, message: ResumePuzzleCommand) => {
     //  Update the puzzle into a started state.
     const now = new Date();
     await puzzleRepository.update(message.puzzleId, {
@@ -44,6 +46,19 @@ extensionInterface.onMessage(
       timeFinish: null,
       status: PuzzleStatus[PuzzleStatus.Started],
     });
+  }
+);
+
+extensionInterface.onMessage(
+  "UpdatePuzzleStatusIcon",
+  async (tabId, message: UpdatePuzzleStatusIconCommand) => {
+    if (tabId === null) {
+      console.warn(
+        "puzlog: 'UpdatePuzzleStatusIcon' sent without tab id, this means part of the extension is sending a message incorrectly"
+      );
+      return;
+    }
+    updateActionIconPuzzleStatus(tabId, message.puzzleStatus);
   }
 );
 
@@ -68,46 +83,77 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   await updateIcon(tabId);
 });
 
-async function updateIcon(tabId: number) {
-  //  Helper to quickly set the icons...
-  const setActionIcon = (variant: string) => {
-    chrome.action.setIcon({
-      path: {
-        "16": `images/icon16${variant}.png`,
-        "32": `images/icon32${variant}.png`,
-        "128": `images/icon128${variant}.png`,
-      },
-      tabId,
-    });
-  };
+//  Set the varient of the action icon.
+//  Note that the variant names are restricted based on the actual icon images
+//  available in the ./src/images folder.
+type ActionIconVariantNames =
+  | ""
+  | "-start"
+  | "-start-unknown"
+  | "-started"
+  | "-stopped"
+  | "-finished"
+  | "-unknown";
+function setActionIcon(tabId: number, variant: ActionIconVariantNames) {
+  chrome.action.setIcon({
+    path: {
+      "16": `images/icon16${variant}.png`,
+      "32": `images/icon32${variant}.png`,
+      "128": `images/icon128${variant}.png`,
+    },
+    tabId,
+  });
+}
 
+async function updateIcon(tabId: number) {
   //  We will only update the icon on loaded pages. Anything else gets the
   //  vanilla icon.
   const contentScriptStatus =
     await ContentScriptInterface.getContentScriptStatus(tabId);
   if (contentScriptStatus !== ContentScriptStatus.Loaded) {
-    setActionIcon("");
+    setActionIcon(tabId, "");
     return;
   }
 
   //  We have a loaded content script so can safely get puzzle status.
   const tabStatus = await ContentScriptInterface.getTabPuzzleStatus(tabId);
 
-  //  Based on the status, set the icon.
-  switch (tabStatus.status) {
+  //  If the crossword hasn't been started, the icon will differentiate between
+  //  whether there is crossword metadata found or not.
+  if (
+    tabStatus.status === PuzzleStatus.NotStarted &&
+    tabStatus.crosswordMetadata
+  ) {
+    setActionIcon(
+      tabId,
+      tabStatus.crosswordMetadata ? "-start" : "-start-unknown"
+    );
+  } else {
+    updateActionIconPuzzleStatus(tabId, tabStatus.status);
+  }
+}
+
+function updateActionIconPuzzleStatus(
+  tabId: number,
+  puzzleStatus: PuzzleStatus
+) {
+  //  This function can only handle changes to a puzzle, such as starting
+  //  or stopping - it cannot be be used to set the 'NotStarted' status
+  //  as that icon has two variants - one for if there is series metadata
+  //  found and another if there is not.
+  switch (puzzleStatus) {
     case PuzzleStatus.NotStarted:
-      setActionIcon(tabStatus.crosswordMetadata ? "-start" : "-start-unknown");
+      //  Note this is a deliberate no-op.
       break;
     case PuzzleStatus.Started:
-      setActionIcon("-started");
+      setActionIcon(tabId, "-started");
       break;
     case PuzzleStatus.Finished:
-      setActionIcon("-finished");
+      setActionIcon(tabId, "-finished");
       break;
     case PuzzleStatus.Unknown:
-    case PuzzleStatus.NotStarted:
     default:
-      setActionIcon("");
+      setActionIcon(tabId, "-unknown");
       break;
   }
 }
