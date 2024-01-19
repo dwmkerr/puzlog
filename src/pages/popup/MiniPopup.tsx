@@ -23,6 +23,7 @@ import {
 import { CrosswordMetadata } from "../../lib/crossword-metadata";
 import * as extensionInterface from "../../extensionInterface";
 import { PuzzleStatus } from "../../lib/puzzleState";
+import { isExtensionAccessibleTab } from "../../lib/helpers";
 
 const ErrorAlert = ({ error }: { error: Error }) => {
   return (
@@ -53,6 +54,8 @@ const CrosswordDataAlert = ({
     Title: {crosswordMetadata?.title}
     <br />
     Setter: {crosswordMetadata?.setter}
+    <br />
+    Published: {crosswordMetadata?.datePublished?.toDateString()}
   </Alert>
 );
 
@@ -64,6 +67,7 @@ export default function MiniPopup() {
   const [error, setError] = useState<Error | null>(null);
   const [enableStart, setEnableStart] = useState(false);
   const [enableFinish, setEnableFinish] = useState(false);
+  const [enableResume, setEnableResume] = useState(false);
 
   useEffect(() => {
     // Define your async function
@@ -80,7 +84,7 @@ export default function MiniPopup() {
           );
         }
         //  If the curent tab is an internal tab, we'll stop now.
-        if (tab.url === undefined || tab.url?.startsWith("chrome://")) {
+        if (!isExtensionAccessibleTab(tab?.url)) {
           return;
         }
 
@@ -109,7 +113,7 @@ export default function MiniPopup() {
             setEnableFinish(true);
             break;
           case PuzzleStatus.Finished:
-            //  TODO set enable 'restart'
+            setEnableResume(true);
             break;
         }
       } catch (err) {
@@ -137,6 +141,11 @@ export default function MiniPopup() {
   const finish = async () => {
     if (tabPuzzleData?.puzzleId) {
       ServiceWorkerInterface.finishPuzzle(tabPuzzleData?.puzzleId);
+    }
+  };
+  const resume = async () => {
+    if (tabPuzzleData?.puzzleId) {
+      ServiceWorkerInterface.resumePuzzle(tabPuzzleData?.puzzleId);
     }
   };
 
@@ -179,6 +188,17 @@ export default function MiniPopup() {
             Press <Link onClick={finish}>Finish</Link> to complete the puzzle!
           </Typography>
         )}
+        {enableResume && (
+          <div>
+            <Typography level="body-sm">
+              Well done, you've finished this Crossword!
+            </Typography>
+            <Typography level="body-sm">
+              If you finished too soo, hit <Link onClick={resume}>Resume</Link>{" "}
+              to continue your progress.
+            </Typography>
+          </div>
+        )}
         {error && <ErrorAlert error={error} />}
       </CardContent>
       <CardActions buttonFlex="0 1 120px">
@@ -209,6 +229,16 @@ export default function MiniPopup() {
             onClick={finish}
           >
             Finish
+          </Button>
+        )}
+        {enableResume && (
+          <Button
+            variant="solid"
+            color="primary"
+            disabled={!enableResume}
+            onClick={resume}
+          >
+            Resume
           </Button>
         )}
       </CardActions>

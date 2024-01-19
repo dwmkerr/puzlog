@@ -1,21 +1,19 @@
 import * as extensionInterface from "./extensionInterface";
-import { storageKeyFromPuzzleId } from "./helpers";
+import { isExtensionAccessibleTab } from "./lib/helpers";
 import { PuzzleRepository } from "./lib/PuzzleRepository";
 import {
   ContentScriptInterface,
   ContentScriptStatus,
   FinishPuzzleCommand,
-  StartPuzzleCommand,
-  UpdatePuzzleCommand,
 } from "./lib/extensionMessages";
-import { PuzzleState, PuzzleStatus } from "./lib/puzzleState";
+import { PuzzleStatus } from "./lib/puzzleState";
 
 //  TODO: at this point we could actually scan each tab and see if it has a
 //  loaded puzlog content script and then reload it, based on options for the
 //  extension.
 
 //  Instantiate a puzzle repository.
-const puzzleRepository = new PuzzleRepository(chrome.storage.local);
+const puzzleRepository = new PuzzleRepository();
 
 extensionInterface.onMessage("OpenPuzlogTab", async () => {
   chrome.tabs.create({
@@ -23,105 +21,29 @@ extensionInterface.onMessage("OpenPuzlogTab", async () => {
   });
 });
 
-//  This helper sends the 'state updated' message to the extension and also the
-//  active tab.
-async function stateUpdated(puzzleState: PuzzleState) {
-  // TODO TODO TODO - this is where the goofiness seems to lie. If we uncomment
-  // both then things bork - maybe try ports?
-  // await extensionInterface.sendRuntimeMessage("stateUpdated", {
-  //   puzzleState,
-  // });
-  const [activeTab] = await chrome.tabs.query({
-    active: true,
-    lastFocusedWindow: true,
-  });
-  if (activeTab?.id) {
-    await extensionInterface.sendTabMessage("stateUpdated", activeTab.id, {
-      puzzleState,
-    });
-  }
-}
-
-extensionInterface.onMessage(
-  "start",
-  async (tabId, message: StartPuzzleCommand) => {
-    //  Craate the initial puzzle structure.
-    const storageKey = storageKeyFromPuzzleId(message.puzzleId);
-    const now = new Date();
-    const puzzle = {
-      puzzleId: message.puzzleId,
-      url: message.url,
-      title: message.title,
-      storageKey,
-      status: PuzzleStatus.Started,
-      timeLoad: now,
-      timeLastAccess: now,
-      timeStart: now,
-      timeFinish: null,
-      elapsedTime: 0,
-      hintsOrMistakes: 0,
-      rating: null,
-      notes: "",
-      metadata: {
-        title: null,
-        setter: null,
-        series: null,
-      },
-    };
-
-    //  Save back to storage, broadcast updated state to the extension and the tab.
-    await puzzleRepository.save(puzzle);
-    await stateUpdated(puzzle);
-  }
-);
-
 extensionInterface.onMessage(
   "finish",
   async (tabId, message: FinishPuzzleCommand) => {
-    //  Load the puzzle by id.
-    const puzzle = await puzzleRepository.loadPuzzle(message.puzzleId);
-    if (!puzzle) {
-      throw new Error(
-        `puzlog: unable to find puzzle with id '${message.puzzleId}'`
-      );
-    }
-
     //  Update the puzzle into a finished state.
     const now = new Date();
-    const updatedPuzzle = {
-      ...puzzle,
-      timeLastAccess: now,
-      timeFinish: now,
-      status: PuzzleStatus.Finished,
-    };
-
-    //  Save back to storage, broadcast updated state to the extension and the tab.
-    await puzzleRepository.save(updatedPuzzle);
-    await stateUpdated(updatedPuzzle);
-    return updatedPuzzle;
+    await puzzleRepository.update(message.puzzleId, {
+      timeLastAccess: now.toISOString(),
+      timeFinish: now.toISOString(),
+      status: PuzzleStatus[PuzzleStatus.Finished],
+    });
   }
 );
 
 extensionInterface.onMessage(
-  "UpdatePuzzle",
-  async (tabId, message: UpdatePuzzleCommand) => {
-    //  Load the puzzle by id.
-    const puzzle = await puzzleRepository.loadPuzzle(message.puzzleId);
-    if (!puzzle) {
-      throw new Error(
-        `puzlog: unable to find puzzle with id '${message.puzzleId}'`
-      );
-    }
-
-    //  Update the state.
-    const updatedPuzzle = {
-      ...puzzle,
-      ...message.updatedValues,
-    };
-
-    //  Save back to storage, broadcast updated state to the extension and the tab.
-    await puzzleRepository.save(updatedPuzzle);
-    await stateUpdated(updatedPuzzle);
+  "resume",
+  async (tabId, message: FinishPuzzleCommand) => {
+    //  Update the puzzle into a started state.
+    const now = new Date();
+    await puzzleRepository.update(message.puzzleId, {
+      timeLastAccess: now.toISOString(),
+      timeFinish: null,
+      status: PuzzleStatus[PuzzleStatus.Started],
+    });
   }
 );
 
@@ -131,7 +53,7 @@ extensionInterface.onMessage(
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   const tab = await chrome.tabs.get(tabId);
   //  Don't try and interact with internal / chrome tabs.
-  if (tab.url === undefined || tab.url?.startsWith("chrome://")) {
+  if (!isExtensionAccessibleTab(tab.url)) {
     return;
   }
   await updateIcon(tabId);
@@ -140,7 +62,7 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 //listen for current tab to be changed
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   //  Don't try and interact with internal / chrome tabs.
-  if (tab.url === undefined || tab.url?.startsWith("chrome://")) {
+  if (!isExtensionAccessibleTab(tab.url)) {
     return;
   }
   await updateIcon(tabId);

@@ -1,3 +1,13 @@
+# todo
+
+series is key now - first column. Series also indicates if we read metadata (for later features)
+fix shadow
+this page is killed by the overlay: https://mui.com/joy-ui/react-css-baseline/ therefore only create if there is a puzzle
+fix show/hide
+remove old icons lib
+// TODO: auto set the proper ttitle
+refactor: move stopwatch into puzzle toolbar
+
 # puzlog
 
 [![main](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml/badge.svg)](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml)
@@ -129,6 +139,8 @@ You can use the `./scripts/generate-icons-from-128.sh` script to generate icons 
 
 ```bash
 ./scripts/generate-icons-from-128.sh src/images/icon128.png
+./scripts/generate-icons-from-128.sh src/images/icon128-start.png
+./scripts/generate-icons-from-128.sh src/images/icon128-start-unknown.png
 ./scripts/generate-icons-from-128.sh src/images/icon128-started.png
 ./scripts/generate-icons-from-128.sh src/images/icon128-stopped.png
 ./scripts/generate-icons-from-128.sh src/images/icon128-finished.png

@@ -5,8 +5,9 @@ export enum QueryType {
 
 export interface CrosswordMetadata {
   series: string | null;
-  setter: string | null;
   title: string | null;
+  setter: string | null;
+  datePublished: Date | null;
 }
 
 export interface ElementScraper {
@@ -18,7 +19,7 @@ export interface PuzzleScraper {
   seriesName: string;
   hrefTest: RegExp;
   title: ElementScraper;
-  // datePublished: ElementScraper;
+  datePublishedTimestamp: ElementScraper;
   setter: ElementScraper;
   // setterUrl: ElementScraper;
 }
@@ -49,6 +50,11 @@ export const scrapers: PuzzleScraper[] = [
       xpath:
         '//article[@id="crossword"]//a[@data-link-name="crossword-creator"]',
     },
+    datePublishedTimestamp: {
+      type: QueryType.InnerText,
+      xpath:
+        '//article[@id="crossword"]//time[@itemprop="datePublished"]/@data-timestamp',
+    },
   },
   {
     seriesName: "Guardian Cryptic",
@@ -62,5 +68,38 @@ export const scrapers: PuzzleScraper[] = [
       xpath:
         '//article[@id="crossword"]//a[@data-link-name="crossword-creator"]',
     },
+    datePublishedTimestamp: {
+      type: QueryType.InnerText,
+      xpath:
+        '//article[@id="crossword"]//time[@itemprop="datePublished"]/@data-timestamp',
+    },
   },
 ];
+
+export function scrapeCrosswordMetadata(
+  href: string,
+  document: Document
+): CrosswordMetadata {
+  //  If the puzzle hasn't been loaded, we can check its metadata.
+  const scraper = scrapers.find((scraper) => {
+    const match = scraper.hrefTest.test(href);
+    return match;
+  });
+
+  if (!scraper) {
+    return { setter: null, title: null, series: null, datePublished: null };
+  }
+
+  //  Get the published timestamp.
+  const publishedTimestamp =
+    scrapeString(document, scraper.datePublishedTimestamp) || "";
+  const publishedDate = publishedTimestamp
+    ? new Date(parseInt(publishedTimestamp))
+    : null;
+  return {
+    series: scraper.seriesName,
+    title: scrapeString(document, scraper.title) || "",
+    setter: scrapeString(document, scraper.setter) || "",
+    datePublished: publishedDate,
+  };
+}

@@ -1,6 +1,11 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
-import { signInWithCredential, GoogleAuthProvider } from "firebase/auth";
+import { FirebaseApp, initializeApp } from "firebase/app";
+import { Auth, getAuth } from "firebase/auth";
+// import { signInWithCredential, GoogleAuthProvider } from "firebase/auth";
+import {
+  getFirestore,
+  connectFirestoreEmulator,
+  Firestore,
+} from "firebase/firestore";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -14,27 +19,42 @@ const firebaseConfig = {
   measurementId: "G-BZYWGBHV98",
 };
 
-export function init() {
-  const app = initializeApp(firebaseConfig);
+// export async function loginWithGoogleOAuth2(token: string) {
+//   try {
+//     const { auth } = init();
+//     const credential = GoogleAuthProvider.credential(null, token);
+//     const result = await signInWithCredential(auth, credential);
+//     return result.user;
+//   } catch (error) {
+//     console.error("Login error:", error);
+//     return null;
+//   }
+// }
 
-  //  Setup auth and the emulator.
-  const auth = getAuth();
-  // connectAuthEmulator(auth, "http://127.0.0.1:9099");
+export class PuzlogFirebase {
+  private static instance: PuzlogFirebase;
+  public app: FirebaseApp;
+  public auth: Auth;
+  public db: Firestore;
 
-  return {
-    app,
-    auth,
-  };
-}
+  private constructor(app: FirebaseApp, auth: Auth, db: Firestore) {
+    this.app = app;
+    this.auth = auth;
+    this.db = db;
+  }
 
-export async function loginWithGoogleOAuth2(token: string) {
-  try {
-    const { auth } = init();
-    const credential = GoogleAuthProvider.credential(null, token);
-    const result = await signInWithCredential(auth, credential);
-    return result.user;
-  } catch (error) {
-    console.error("Login error:", error);
-    return null;
+  public static get(): PuzlogFirebase {
+    if (!PuzlogFirebase.instance) {
+      const app = initializeApp(firebaseConfig);
+
+      //  Setup auth and the emulator.
+      const auth = getAuth();
+      const db = getFirestore();
+      connectFirestoreEmulator(db, "127.0.0.1", 8080);
+
+      PuzlogFirebase.instance = new PuzlogFirebase(app, auth, db);
+    }
+
+    return PuzlogFirebase.instance;
   }
 }

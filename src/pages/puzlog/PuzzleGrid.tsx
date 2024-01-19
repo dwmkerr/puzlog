@@ -1,15 +1,15 @@
 import React, { useState, CSSProperties } from "react";
+import { IconButton } from "@mui/joy";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { AgGridReact } from "ag-grid-react"; // React Grid Logic
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css"; // Core CSS
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Theme
-import { FaTrash } from "react-icons/fa";
 import { PuzzleState, PuzzleStatus } from "../../lib/puzzleState";
 import StatusIcon from "../../components/StatusIcon";
 import StarRating from "../../components/StarRating";
-import { msToTime } from "../../helpers";
+import { msToTime } from "../../lib/helpers";
 import theme from "../../theme";
-import IconButton from "../../components/IconButton";
 
 type UpdatePuzzleFunc = (puzzle: PuzzleState) => Promise<void>;
 type DeletePuzzleFunc = (puzzleId: string) => Promise<void>;
@@ -42,8 +42,11 @@ const PuzzleGrid = ({
 }: PuzzleGridProps) => {
   //  Turn the puzzles ino a set of row data.
   const rowData = puzzles.map((puzzle) => ({
+    id: puzzle?.id,
     title: puzzle?.metadata?.title || puzzle.title,
+    series: puzzle?.metadata?.series || "",
     setter: puzzle?.metadata?.setter || "",
+    datePublished: puzzle?.metadata?.datePublished || "",
     url: puzzle.url,
     status: puzzle.status,
     hintsOrMistakes: puzzle.hintsOrMistakes,
@@ -129,15 +132,19 @@ const PuzzleGrid = ({
     const onDelete = async () => {
       //  props.data will only be undefined for infinite grids etc.
       if (props.data) {
-        await deletePuzzle(props.data.puzzle.puzzleId);
+        await deletePuzzle(props.data.puzzle.id);
         props.api.applyTransaction({
           remove: [props.data],
         });
       }
     };
     return (
-      <IconButton onClick={onDelete}>
-        <FaTrash />
+      <IconButton
+        sx={{ "--IconButton-size": "24px" }}
+        variant="outlined"
+        onClick={onDelete}
+      >
+        <DeleteIcon />
       </IconButton>
     );
   };
@@ -161,6 +168,19 @@ const PuzzleGrid = ({
     },
     {
       field: "setter",
+      width: 140,
+      filter: true,
+      editable: false,
+    },
+    {
+      field: "series",
+      width: 140,
+      filter: true,
+      editable: false,
+    },
+    {
+      field: "datePublished",
+      headerName: "Published",
       width: 140,
       filter: true,
       editable: false,

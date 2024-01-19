@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import Button from "@mui/joy/Button";
 import Box from "@mui/joy/Box";
 import Sync from "@mui/icons-material/Sync";
-import Google from "@mui/icons-material/Sync";
+// import Google from "@mui/icons-material/Sync";
 import Download from "@mui/icons-material/Download";
 import Upload from "@mui/icons-material/Upload";
 import { PuzzleState } from "../../lib/puzzleState";
-import { ExtensionUser, PuzzleRepository } from "../../lib/PuzzleRepository";
+import { PuzzleRepository } from "../../lib/PuzzleRepository";
 import PuzzleGrid from "./PuzzleGrid";
-import { storageKeyFromPuzzleId } from "../../helpers";
+import FileUploadButton from "../../components/FileUploadButton";
 
 interface PuzlogPageProps {
   puzzleRepository: PuzzleRepository;
@@ -17,7 +17,7 @@ interface PuzlogPageProps {
 const PuzlogPage = ({ puzzleRepository }: PuzlogPageProps) => {
   // State to store the array of puzzles
   const [puzzles, setPuzzles] = useState<PuzzleState[]>([]);
-  const [user, setUser] = useState<ExtensionUser | null>(null);
+  // const [user, setUser] = useState<ExtensionUser | null>(null);
 
   useEffect(() => {
     // Define your async function
@@ -35,13 +35,14 @@ const PuzlogPage = ({ puzzleRepository }: PuzlogPageProps) => {
     getPuzzles();
   }, []); // Empty dependency array ensures this effect runs only once on mount
 
-  useEffect(() => {
-    const getUser = async () => {
-      const user = await puzzleRepository.getExtensionUser();
-      setUser(user);
-    };
-    getUser();
-  }, []);
+  // TODO bring back the user...
+  // useEffect(() => {
+  //   const getUser = async () => {
+  //     const user = await puzzleRepository.getExtensionUser();
+  //     setUser(user);
+  //   };
+  //   getUser();
+  // }, []);
 
   const downloadPuzzles = async (puzzles: PuzzleState[], filename: string) => {
     // Create a Blob from the JSON data
@@ -60,14 +61,14 @@ const PuzlogPage = ({ puzzleRepository }: PuzlogPageProps) => {
   };
 
   const backup = () => downloadPuzzles(puzzles, "puzzles.json");
-  const restore = async () => {
-    const content = "[]"; // todo load from file
-    await puzzleRepository.restore(content);
+  const restore = async (fileContents: string) => {
+    await puzzleRepository.restore(fileContents);
   };
-  const login = async () => {
-    const user = await puzzleRepository.loginWithGooglePopup();
-    setUser(user);
-  };
+  // TODO bring it back
+  // const login = async () => {
+  //   const user = await puzzleRepository.loginWithGooglePopup();
+  //   setUser(user);
+  // };
 
   return (
     <div
@@ -95,18 +96,16 @@ const PuzlogPage = ({ puzzleRepository }: PuzlogPageProps) => {
         >
           Download
         </Button>
-        <Button
+        <FileUploadButton
           startDecorator={<Upload />}
           variant="outlined"
           size="sm"
-          onClick={restore}
-        >
-          Restore
-        </Button>
+          onFileUploadComplete={restore}
+        />
         <Button startDecorator={<Sync />} variant="outlined" size="sm">
           Sync
         </Button>
-        {user ? (
+        {/*user ? (
           <Button
             startDecorator={<Google />}
             variant="outlined"
@@ -117,14 +116,14 @@ const PuzlogPage = ({ puzzleRepository }: PuzlogPageProps) => {
           </Button>
         ) : (
           <p>{JSON.stringify(user)}</p>
-        )}
+          )*/}
       </Box>
 
       <PuzzleGrid
         puzzles={puzzles}
         updatePuzzle={async (puzzle) => await puzzleRepository.save(puzzle)}
         deletePuzzle={async (puzzleId) =>
-          await puzzleRepository.delete(storageKeyFromPuzzleId(puzzleId))
+          await puzzleRepository.delete(puzzleId)
         }
         style={{ width: "100%", flexGrow: 1 }}
       />

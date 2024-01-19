@@ -1,5 +1,5 @@
 import { PuzzleState } from "../../lib/puzzleState";
-import { msToTime, timeAgo } from "../../helpers";
+import { msToTime, timeAgo } from "../../lib/helpers";
 import { getElementOrFail } from "../../lib/document";
 import * as extensionInterface from "../../extensionInterface";
 

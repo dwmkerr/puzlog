@@ -5,7 +5,8 @@ import PuzlogPage from "./PuzlogPage";
 import { PuzzleRepository } from "../../lib/PuzzleRepository";
 
 //  Instantiate a puzzle repository.
-const puzzleRepository = new PuzzleRepository(chrome.storage.local);
+//  const puzzleRepository = new ChromeStoragePuzzleRepository(chrome.storage.local);
+const puzzleRepository = new PuzzleRepository();
 
 const container = document.getElementById("root");
 if (!container) {

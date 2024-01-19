@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { FaFlagCheckered, FaPlay, FaExternalLinkAlt } from "react-icons/fa";
+import HomeOutlined from "@mui/icons-material/HomeOutlined";
+import IconButton from "@mui/joy/IconButton";
+import SportsScoreIcon from "@mui/icons-material/SportsScore";
 import * as extensionInterface from "../extensionInterface";
-// import { StateUpdatedCommand } from "../lib/extensionMessages";
-import { msToTime } from "../helpers";
-import IconButton from "./IconButton";
+import { msToTime } from "../lib/helpers";
 import { PuzzleState, PuzzleStatus } from "../lib/puzzleState";
 import StatusIcon from "./StatusIcon";
 import { CrosswordMetadata } from "../lib/crossword-metadata";
+import { PuzzleRepository } from "../lib/PuzzleRepository";
 
-const style = `
-a {
-  color: #337ab7;
-  text-decoration: none;
-}
-a:hover {
-  color: #22527b;
-  text-decoration: underline;
-  cursor: "pointer";
-}
-`;
+// const style = `
+// a {
+//   color: #337ab7;
+//   text-decoration: none;
+// }
+// a:hover {
+//   color: #22527b;
+//   text-decoration: underline;
+//   cursor: "pointer";
+// }
+// `;
 
-interface ExtensionToolbarProps {
+interface ExtensionToolbarProps extends React.ComponentPropsWithoutRef<"div"> {
   puzzleId: string;
   pageTitle: string;
   puzzle: PuzzleState | null;
@@ -43,39 +44,33 @@ const ExtensionToolbar = ({
   puzzleId,
   pageTitle,
   puzzle,
+  ...props
 }: ExtensionToolbarProps) => {
+  const puzzleRepository = new PuzzleRepository();
   const [timerMilliseconds, setTimerMilliseconds] = useState(
     puzzle?.elapsedTime || 0
   );
   const [title, setTitle] = useState(
     formatTitle(pageTitle, puzzle?.metadata || null)
   );
-  const [status, setStatus] = useState(puzzle?.status || PuzzleStatus.Unknown);
+  const [status, setStatus] = useState<PuzzleStatus>(
+    puzzle?.status || PuzzleStatus.Unknown
+  );
 
   useEffect(() => {
-    chrome.runtime.onMessage.addListener((request) => {
-      if (
-        request.command === "stateUpdated" &&
-        request?.puzzleState?.puzzleId === puzzleId
-      ) {
-        setTimerMilliseconds(request.puzzleState.elapsedTime);
-        setTitle(
-          formatTitle(request.puzzleState.title, request.puzzleState.metadata)
-        );
-        setStatus(request.puzzleState.status);
+    const unsubscribe = puzzleRepository.subscribeToChanges(
+      puzzleId,
+      (changedPuzzle) => {
+        setTimerMilliseconds(changedPuzzle.elapsedTime);
+        //  TODO: we might not really need to ever update the title, just set it
+        //  right from the metadata on puzzle create...
+        setTitle(formatTitle(changedPuzzle.title, changedPuzzle.metadata));
+        setStatus(changedPuzzle.status);
       }
-    });
+    );
 
-    // extensionInterface.onMessage(
-    //   "stateUpdated",
-    //   async (tabId: number | null, message: StateUpdatedCommand) => {
-    //     //  Bail if it is not our puzzle...
-    //     if (message.puzzleState.puzzleId !== puzzleId) {
-    //       return;
-    //     }
-    //     setTimerMilliseconds(message.puzzleState.elapsedTime);
-    //   }
-    // );
+    //  Return the cleanup function.
+    return unsubscribe;
   }, []);
   const finish = async () => {
     await extensionInterface.sendRuntimeMessage("finish", { puzzleId });
@@ -91,8 +86,9 @@ const ExtensionToolbar = ({
         borderBottom: "grey 1px solid",
         boxShadow: "0 2px 4px -1px rgba(0,0,0,0.8)",
       }}
+      {...props}
     >
-      <style>{style}</style>
+      {/* <style>{style}</style> */}
       <div
         style={{
           display: "flex",
@@ -135,16 +131,23 @@ const ExtensionToolbar = ({
             display: "flex",
             justifyContent: "flex-end",
             alignItems: "center",
+            height: "36px",
           }}
         >
-          <IconButton title="Open Puzlog">
-            <FaExternalLinkAlt onClick={openPuzlogPage} />
+          <IconButton
+            onClick={openPuzlogPage}
+            aria-label="Open Puzlog"
+            variant="plain"
+            size="sm"
+          >
+            <HomeOutlined />
           </IconButton>
-          <IconButton title="Start Puzzle Timer">
-            <FaPlay />
-          </IconButton>
-          <IconButton onClick={finish} title="Finish Puzzle">
-            <FaFlagCheckered />
+          <IconButton
+            onClick={finish}
+            aria-label="Finish Puzzle"
+            variant="plain"
+          >
+            <SportsScoreIcon />
           </IconButton>
         </div>
       </div>

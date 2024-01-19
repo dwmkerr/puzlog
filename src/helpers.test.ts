@@ -3,7 +3,7 @@ import {
   storageKeyFromPuzzleId,
   timeAgo,
   msToTime,
-} from "./helpers";
+} from "./lib/helpers";
 
 describe("helpers", () => {
   describe("msToTime Function", () => {

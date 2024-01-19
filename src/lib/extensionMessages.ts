@@ -10,23 +10,16 @@ export interface TabCommand {
   tabId: number;
 }
 
-export interface StartPuzzleCommand {
+export interface FinishPuzzleCommand {
   puzzleId: string;
-  url: string;
-  title: string;
 }
 
-export interface FinishPuzzleCommand {
+export interface ResumePuzzleCommand {
   puzzleId: string;
 }
 
 export interface OpenPuzlogTabCommand {
   puzzleId: string;
-}
-
-export interface UpdatePuzzleCommand {
-  puzzleId: string;
-  updatedValues: Partial<PuzzleState>;
 }
 
 export interface TabPuzzleData {
@@ -36,13 +29,12 @@ export interface TabPuzzleData {
 }
 
 export type ExtensionMessageNameMap = {
-  ["start"]: StartPuzzleCommand;
   ["finish"]: FinishPuzzleCommand;
+  ["resume"]: ResumePuzzleCommand;
   ["stateUpdated"]: StateUpdatedCommand;
   ["getTabPuzzleStatus"]: null;
   ["startTabPuzzle"]: object;
   ["OpenPuzlogTab"]: OpenPuzlogTabCommand;
-  ["UpdatePuzzle"]: UpdatePuzzleCommand;
 };
 
 export enum ContentScriptStatus {
@@ -54,11 +46,16 @@ export enum ContentScriptStatus {
 }
 
 export abstract class ServiceWorkerInterface {
-  public static async finishPuzzle(puzzleId: string): Promise<PuzzleState> {
-    const result = await extensionInterface.sendRuntimeMessage("finish", {
+  public static async finishPuzzle(puzzleId: string): Promise<void> {
+    await extensionInterface.sendRuntimeMessage("finish", {
       puzzleId,
     });
-    return result as PuzzleState;
+  }
+
+  public static async resumePuzzle(puzzleId: string): Promise<void> {
+    await extensionInterface.sendRuntimeMessage("resume", {
+      puzzleId,
+    });
   }
 }
 

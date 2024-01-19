@@ -1,6 +1,6 @@
 import * as extensionInterface from "./extensionInterface";
-import { ExtensionOverlay } from "./lib/ExtensionOverlay";
-import { puzzleIdFromUrl } from "./helpers";
+import { ExtensionOverlay } from "./apps/ExtensionOverlay";
+import { puzzleIdFromUrl } from "./lib/helpers";
 import { Stopwatch } from "./lib/stopwatch";
 import { PuzzleRepository } from "./lib/PuzzleRepository";
 import {
@@ -8,11 +8,11 @@ import {
   scrapeString,
   scrapers,
 } from "./lib/crossword-metadata";
-import { PuzzleStatus } from "./lib/puzzleState";
+import { PuzzleState, PuzzleStatus } from "./lib/puzzleState";
 import { TabPuzzleData } from "./lib/extensionMessages";
 
 //  Instantiate a puzzle repository.
-const puzzleRepository = new PuzzleRepository(chrome.storage.local);
+const puzzleRepository = new PuzzleRepository();
 
 //  Typically called by the popup to find out our current puzzle id.
 extensionInterface.onMessage(
@@ -27,15 +27,27 @@ extensionInterface.onMessage(
 //  Typically called by the popup when the user has decided to start working on
 //  a puzzle.
 extensionInterface.onMessage("startTabPuzzle", async () => {
-  //  Start the puzzle - this'll track it in local storage etc.
-  extensionInterface.sendRuntimeMessage("start", {
-    puzzleId: localExtensionState.puzzleId,
+  //  This is where we create the initial puzzle object.
+  const now = new Date();
+  const puzzle: Omit<PuzzleState, "id"> = {
     url: localExtensionState.url,
+    //  TODO: auto set the proper ttitle
     title: localExtensionState.title,
-  });
+    status: PuzzleStatus.Started,
+    timeLoad: now,
+    timeLastAccess: now,
+    timeStart: now,
+    timeFinish: null,
+    elapsedTime: 0,
+    hintsOrMistakes: 0,
+    rating: null,
+    notes: "",
+    metadata: localExtensionState.crosswordMetadata,
+  };
 
-  //  Now start the timer and show the overlay. Initial time is 0 secs.
-  startTimerAndShowOverlay(0);
+  //  Save the newly created puzzle, show the overlay.
+  const savedPuzzle = await puzzleRepository.create(puzzle);
+  showTimerAndOverlay(savedPuzzle);
 });
 
 //  When the puzzle is finished, we can stop the stopwatch.
@@ -43,41 +55,46 @@ extensionInterface.onMessage("startTabPuzzle", async () => {
   localExtensionState.stopwatch.pause();
 });
 
-function startTimerAndShowOverlay(initialElapsedTime: number) {
-  //  Start the stopwatch. On each tick, refresh the timer on the screen.
-  localExtensionState.stopwatch.setElapsedTime(initialElapsedTime);
-  localExtensionState.stopwatch.start(async (elapsedTime: number) => {
-    //  Update the elapsed time.
-    extensionInterface.sendRuntimeMessage("UpdatePuzzle", {
-      puzzleId: localExtensionState.puzzleId,
-      updatedValues: {
-        elapsedTime: elapsedTime,
-      },
-    });
-  }, 1000);
+function showTimerAndOverlay(puzzle: PuzzleState) {
+  //  Create the extension interface. It will remain hidden until we show it.
+  localExtensionState.extensionOverlay = ExtensionOverlay.create(
+    document,
+    puzzle.id,
+    puzzle
+  );
 
-  localExtensionState.extensionOverlay?.show();
+  //  Set the stopwatch time. If the puzzle is started, start the stopwatch.
+  localExtensionState.stopwatch.setElapsedTime(puzzle.elapsedTime);
+  if (puzzle.status === PuzzleStatus.Started) {
+    localExtensionState.stopwatch.start(async (elapsedTime: number) => {
+      //  Update the elapsed time.
+      puzzleRepository.update(puzzle.id, {
+        elapsedTime: elapsedTime,
+      });
+    }, 1000);
+  }
 }
 
 function scrapeCrosswordMetadata(
   href: string,
   document: Document
-): CrosswordMetadata | null {
+): CrosswordMetadata {
   //  If the puzzle hasn't been loaded, we can check its metadata.
   const scraper = scrapers.find((scraper) => {
     console.log(`puzlog: testing scraper ${scraper.seriesName}`);
-    const match = scraper.hrefTest.test(location.href);
+    const match = scraper.hrefTest.test(href);
     console.log(`puzlog: match ${match}`);
     return match;
   });
 
   if (!scraper) {
-    return null;
+    return { setter: null, title: null, series: null, datePublished: null };
   }
   return {
     series: scraper.seriesName,
     title: scrapeString(document, scraper.title) || "",
     setter: scrapeString(document, scraper.setter) || "",
+    datePublished: new Date(), // TODO scrapeString(document, scraper.setter) || "",
   };
 }
 
@@ -86,9 +103,10 @@ async function startup() {
 
   //  Try and load the puzzle from storage. If it's not present, it hasn't been
   //  started yet.
-  const puzzle = await puzzleRepository.loadPuzzle(
-    localExtensionState.puzzleId
+  const puzzle = await puzzleRepository.queryPuzzleByUrl(
+    puzzleIdFromUrl(location.href)
   );
+  localExtensionState.puzzleId = puzzle?.id || "";
   localExtensionState.puzzleStatus = puzzle?.status || PuzzleStatus.NotStarted;
 
   //  Scrape the crossword metadata.
@@ -105,16 +123,9 @@ async function startup() {
     await puzzleRepository.save(puzzle);
   }
 
-  //  Create the extension interface. It will remain hidden until we show it.
-  localExtensionState.extensionOverlay = ExtensionOverlay.create(
-    document,
-    localExtensionState.puzzleId,
-    puzzle
-  );
-
   //  If the puzzle has been loaded, we can show the overlay and start the timer.
   if (puzzle) {
-    startTimerAndShowOverlay(puzzle.elapsedTime);
+    showTimerAndOverlay(puzzle);
   }
 
   //  We'll now wait for visibility changes (e.g. chrome minimised, tab hidden
@@ -145,11 +156,11 @@ async function startup() {
 const localExtensionState = {
   url: location.href,
   title: document.title,
-  puzzleId: puzzleIdFromUrl(location.href),
+  puzzleId: "",
   puzzleStatus: PuzzleStatus.Unknown,
   stopwatch: new Stopwatch(),
   extensionOverlay: null as ExtensionOverlay | null,
-  crosswordMetadata: null as CrosswordMetadata | null,
+  crosswordMetadata: {} as CrosswordMetadata,
 };
 
 function log(message: string) {

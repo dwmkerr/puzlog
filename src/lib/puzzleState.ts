@@ -8,8 +8,7 @@ export enum PuzzleStatus {
 }
 
 export interface PuzzleState {
-  puzzleId: string;
-  storageKey: string;
+  id: string;
   url: string;
   title: string;
   status: PuzzleStatus;
@@ -24,12 +23,30 @@ export interface PuzzleState {
   notes: string | null;
 }
 
-export function toSerializableObject(
-  state: PuzzleState
-): Record<string, object | number | string | null> {
+export interface SerializablePuzzle {
+  id: string;
+  url: string;
+  title: string;
+  status: string;
+  timeLoad: string;
+  timeLastAccess: string;
+  timeStart: string;
+  timeFinish: string | null;
+  elapsedTime: number;
+  hintsOrMistakes: number | null;
+  rating: number | null;
+  metadata: {
+    series: string | null;
+    title: string | null;
+    setter: string | null;
+    datePublished: string | null;
+  };
+  notes: string | null;
+}
+
+export function toSerializableObject(state: PuzzleState): SerializablePuzzle {
   return {
-    puzzleId: state.puzzleId,
-    storageKey: state.storageKey,
+    id: state.id,
     url: state.url,
     title: state.title,
     status: PuzzleStatus[state.status],
@@ -40,20 +57,34 @@ export function toSerializableObject(
     elapsedTime: state.elapsedTime,
     hintsOrMistakes: state.hintsOrMistakes,
     rating: state.rating,
-    metadata: state.metadata,
+    metadata: {
+      series: state.metadata.series,
+      title: state.metadata.title,
+      setter: state.metadata.setter,
+      datePublished: state.metadata.datePublished?.toISOString() || null,
+    },
     notes: state.notes,
   };
 }
 
+//  When we deserialize we are a little less strict - some fields are allowed
+//  to be missing. This is because the crossword model is growing over time and
+//  historic records may not have all of the newer fields.
+//  For this clever 'AtLeast' type see:
+//  https://stackoverflow.com/questions/48230773/how-to-create-a-partial-like-that-requires-a-single-property-to-be-set
+type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
+export type MinimumSerializablePuzzle = AtLeast<
+  SerializablePuzzle,
+  "id" | "url" | "title"
+>;
 export function fromSerializableObject(
-  object: Record<string, object | number | string | null>
+  object: MinimumSerializablePuzzle
 ): PuzzleState {
-  function parseDateField(fieldName: string): Date {
-    const dateString = object[fieldName] as string;
+  function parseDateString(dateString: string): Date {
     const parsedDate = new Date(dateString);
 
     if (isNaN(parsedDate.getTime())) {
-      throw new Error(`date field '${fieldName}' is invalid: ${dateString}`);
+      throw new Error(`date string invalid: ${dateString}`);
     }
 
     return parsedDate;
@@ -70,19 +101,29 @@ export function fromSerializableObject(
   //  added to the extension since the puzzle was initially logged). This is
   //  also covered in the unit tests.
   return {
-    puzzleId: object["puzzleId"] as string,
-    storageKey: object["storageKey"] as string,
-    url: object["url"] as string,
-    title: object["title"] as string,
-    status: parsePuzzleStatus(object["status"] as string),
-    timeLoad: parseDateField("timeLoad"),
-    timeLastAccess: parseDateField("timeLastAccess"),
-    timeStart: parseDateField("timeStart"),
-    timeFinish: object["timeFinish"] ? parseDateField("timeFinish") : null,
-    elapsedTime: object["elapsedTime"] as number,
-    hintsOrMistakes: (object["hintsOrMistakes"] as number) || null,
-    rating: (object["rating"] as number) || null,
-    metadata: (object["metadata"] as CrosswordMetadata) || null,
-    notes: (object["notes"] as string) || "",
+    id: object.id,
+    url: object.url,
+    title: object.title,
+    status: parsePuzzleStatus(object.status || ""),
+    timeLoad: object.timeLoad ? parseDateString(object.timeLoad) : new Date(),
+    timeLastAccess: object.timeLastAccess
+      ? parseDateString(object.timeLastAccess)
+      : new Date(),
+    timeStart: object.timeStart
+      ? parseDateString(object.timeStart)
+      : new Date(),
+    timeFinish: object.timeFinish ? parseDateString(object.timeFinish) : null,
+    elapsedTime: object.elapsedTime || 0,
+    hintsOrMistakes: object.hintsOrMistakes || 0,
+    rating: object.rating || 0,
+    metadata: {
+      series: object.metadata?.series || null,
+      title: object.metadata?.title || null,
+      setter: object.metadata?.setter || null,
+      datePublished: object.metadata?.datePublished
+        ? parseDateString(object.metadata.datePublished)
+        : null,
+    },
+    notes: object.notes || "",
   };
 }
