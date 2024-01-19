@@ -6,6 +6,8 @@ import Card from "@mui/joy/Card";
 import CardContent from "@mui/joy/CardContent";
 import CardActions from "@mui/joy/CardActions";
 import HomeOutlined from "@mui/icons-material/HomeOutlined";
+import SportsScoreIcon from "@mui/icons-material/SportsScore";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import LinearProgress from "@mui/joy/LinearProgress";
 import Link from "@mui/joy/Link";
 import InfoOutlined from "@mui/icons-material/InfoOutlined";
@@ -18,12 +20,12 @@ import {
   ContentScriptInterface,
   ContentScriptStatus,
   ServiceWorkerInterface,
-  TabPuzzleData,
 } from "../../lib/extensionMessages";
 import { CrosswordMetadata } from "../../lib/crossword-metadata";
 import * as extensionInterface from "../../extensionInterface";
 import { PuzzleStatus } from "../../lib/puzzleState";
 import { isExtensionAccessibleTab } from "../../lib/helpers";
+import { PuzzleRepository } from "../../lib/PuzzleRepository";
 
 const ErrorAlert = ({ error }: { error: Error }) => {
   return (
@@ -60,14 +62,12 @@ const CrosswordDataAlert = ({
 );
 
 export default function MiniPopup() {
-  const [tabPuzzleData, setTabPuzzleData] = useState<TabPuzzleData | null>(
-    null
-  );
+  const [crosswordMetadata, setCrosswordMetadata] =
+    useState<CrosswordMetadata | null>(null);
+  const [puzzleId, setPuzzleId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [enableStart, setEnableStart] = useState(false);
-  const [enableFinish, setEnableFinish] = useState(false);
-  const [enableResume, setEnableResume] = useState(false);
+  const [puzzleStatus, setPuzzleStatus] = useState(PuzzleStatus.Unknown);
 
   useEffect(() => {
     // Define your async function
@@ -94,7 +94,6 @@ export default function MiniPopup() {
         const contentStatus =
           await ContentScriptInterface.getContentScriptStatus(tabId);
         if (contentStatus !== ContentScriptStatus.Loaded) {
-          setTabPuzzleData(null);
           return;
         }
 
@@ -103,18 +102,13 @@ export default function MiniPopup() {
         const tabPuzzleData = await ContentScriptInterface.getTabPuzzleStatus(
           tabId
         );
-        setTabPuzzleData(tabPuzzleData);
 
-        switch (tabPuzzleData.status) {
-          case PuzzleStatus.NotStarted:
-            setEnableStart(true);
-            break;
-          case PuzzleStatus.Started:
-            setEnableFinish(true);
-            break;
-          case PuzzleStatus.Finished:
-            setEnableResume(true);
-            break;
+        //  If we have a puzzle, set its status and id. From now on the next
+        //  useEffect will watch for status changes.
+        if (tabPuzzleData) {
+          setCrosswordMetadata(tabPuzzleData.crosswordMetadata);
+          setPuzzleStatus(tabPuzzleData.status);
+          setPuzzleId(tabPuzzleData.puzzleId);
         }
       } catch (err) {
         setError(err as Error);
@@ -127,23 +121,49 @@ export default function MiniPopup() {
     getTabPuzzleStatus();
   }, []); // Empty dependency array ensures this effect runs only once on mount
 
+  //  If the puzzle id has been set, we can watch the puzzle for changes.
+  useEffect(() => {
+    //  If we don't have a puzzle id, then no changes to watch for.
+    if (puzzleId === null) {
+      return;
+    }
+
+    //  We have a puzzle id, so we can watch for changes. These could be
+    //  triggered by this popup or by the puzzle toolbar (or even other parts of
+    //  the app).
+    const puzzleRepository = new PuzzleRepository();
+    const unsubscribe = puzzleRepository.subscribeToChanges(
+      puzzleId,
+      (changedPuzzle) => {
+        setPuzzleStatus(changedPuzzle.status);
+      }
+    );
+
+    //  Return the cleanup function.
+    return unsubscribe;
+  }, [puzzleId]);
+
   const home = () => {
-    extensionInterface.navigateToPuzlogInterface();
+    extensionInterface.navigateToPuzlogInterface(puzzleId);
   };
+  const homeWithPuzzleFocused = () => {
+    extensionInterface.navigateToPuzlogInterface(puzzleId);
+  };
+
   const start = async () => {
     const tabId = await extensionInterface.getCurrentTabId();
     await ContentScriptInterface.start(tabId);
   };
   const finish = async () => {
-    if (tabPuzzleData?.puzzleId) {
+    if (puzzleId) {
       const tabId = await extensionInterface.getCurrentTabId();
-      ServiceWorkerInterface.finishPuzzle(tabId, tabPuzzleData?.puzzleId);
+      ServiceWorkerInterface.finishPuzzle(tabId, puzzleId);
     }
   };
   const resume = async () => {
-    if (tabPuzzleData?.puzzleId) {
+    if (puzzleId) {
       const tabId = await extensionInterface.getCurrentTabId();
-      ServiceWorkerInterface.resumePuzzle(tabId, tabPuzzleData?.puzzleId);
+      ServiceWorkerInterface.resumePuzzle(tabId, puzzleId);
     }
   };
 
@@ -171,28 +191,26 @@ export default function MiniPopup() {
           <HomeOutlined />
         </IconButton>
         {loading && <LinearProgress />}
-        {enableStart && (
+        {puzzleStatus === PuzzleStatus.NotStarted && (
           <Typography level="body-sm">
             Just press the <Link onClick={start}>Start</Link> button to begin!
           </Typography>
         )}
-        {enableStart && tabPuzzleData?.crosswordMetadata && (
-          <CrosswordDataAlert
-            crosswordMetadata={tabPuzzleData.crosswordMetadata}
-          />
+        {puzzleStatus === PuzzleStatus.NotStarted && crosswordMetadata && (
+          <CrosswordDataAlert crosswordMetadata={crosswordMetadata} />
         )}
-        {enableFinish && (
+        {puzzleStatus === PuzzleStatus.Started && (
           <Typography level="body-sm">
             Press <Link onClick={finish}>Finish</Link> to complete the puzzle!
           </Typography>
         )}
-        {enableResume && (
+        {puzzleStatus === PuzzleStatus.Finished && (
           <div>
             <Typography level="body-sm">
               Well done, you've finished this Crossword!
             </Typography>
             <Typography level="body-sm">
-              If you finished too soo, hit <Link onClick={resume}>Resume</Link>{" "}
+              If you finished too soon, hit <Link onClick={resume}>Resume</Link>{" "}
               to continue your progress.
             </Typography>
           </div>
@@ -208,35 +226,44 @@ export default function MiniPopup() {
         >
           <HomeOutlined />
         </IconButton>
-        {enableStart && (
+        {puzzleStatus === PuzzleStatus.NotStarted && (
           <Button
             variant="solid"
             color="primary"
-            disabled={!enableStart}
             startDecorator={<PlayCircleOutline />}
             onClick={start}
           >
             Start
           </Button>
         )}
-        {enableFinish && (
+        {puzzleStatus === PuzzleStatus.Started && (
           <Button
             variant="solid"
             color="primary"
-            disabled={!enableFinish}
+            startDecorator={<SportsScoreIcon />}
             onClick={finish}
           >
             Finish
           </Button>
         )}
-        {enableResume && (
+        {puzzleStatus === PuzzleStatus.Finished && (
           <Button
-            variant="solid"
+            variant="outlined"
             color="primary"
-            disabled={!enableResume}
+            startDecorator={<PlayCircleOutline />}
             onClick={resume}
           >
             Resume
+          </Button>
+        )}
+        {puzzleStatus === PuzzleStatus.Finished && (
+          <Button
+            variant="solid"
+            color="primary"
+            startDecorator={<CheckCircleOutlineIcon />}
+            onClick={homeWithPuzzleFocused}
+          >
+            Results
           </Button>
         )}
       </CardActions>

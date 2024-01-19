@@ -12,20 +12,34 @@ import FileUploadButton from "../../components/FileUploadButton";
 
 interface PuzlogPageProps {
   puzzleRepository: PuzzleRepository;
+  selectedPuzzleId: string | null;
 }
 
-const PuzlogPage = ({ puzzleRepository }: PuzlogPageProps) => {
+const PuzlogPage = ({
+  puzzleRepository,
+  selectedPuzzleId,
+}: PuzlogPageProps) => {
   // State to store the array of puzzles
   const [puzzles, setPuzzles] = useState<PuzzleState[]>([]);
+  const [puzzleTitleFilter, setPuzzleTitleFilter] = useState<string | null>(
+    null
+  );
   // const [user, setUser] = useState<ExtensionUser | null>(null);
 
   useEffect(() => {
     // Define your async function
     const getPuzzles = async () => {
       try {
-        // Perform your async operation to get puzzles
+        //  Get the puzzles. If we have a selected puzzle id, we can also
+        //  get the title of the puzzle to filter to.
         const puzzles = await puzzleRepository.load();
         setPuzzles(puzzles);
+        if (selectedPuzzleId) {
+          const selectedPuzzle = puzzles.find((p) => p.id === selectedPuzzleId);
+          setPuzzleTitleFilter(
+            selectedPuzzle?.metadata?.title || selectedPuzzle?.title || null
+          );
+        }
       } catch (error) {
         console.error("puzlog: error getting puzzles", error);
       }
@@ -121,6 +135,7 @@ const PuzlogPage = ({ puzzleRepository }: PuzlogPageProps) => {
 
       <PuzzleGrid
         puzzles={puzzles}
+        initialPuzzleTitleFilter={puzzleTitleFilter}
         updatePuzzle={async (puzzle) => await puzzleRepository.save(puzzle)}
         deletePuzzle={async (puzzleId) =>
           await puzzleRepository.delete(puzzleId)

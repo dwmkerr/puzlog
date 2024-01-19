@@ -1,9 +1,10 @@
 import { ExtensionMessageNameMap } from "./lib/extensionMessages";
 
-export function navigateToPuzlogInterface() {
+export function navigateToPuzlogInterface(puzzleId: string | null) {
+  const url = puzzleId ? `puzlog.html?id=${puzzleId}` : `puzlog.html`;
   //  Navigate to the puzlog index.
   chrome.tabs.create({
-    url: chrome.runtime.getURL("puzlog.html"),
+    url: chrome.runtime.getURL(url),
   });
 }
 

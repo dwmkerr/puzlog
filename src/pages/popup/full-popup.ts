@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await finish();
 
     //  Navigate to the puzlog index.
-    extensionInterface.navigateToPuzlogInterface();
+    extensionInterface.navigateToPuzlogInterface(null);
   }); // addItems() should be addItems
   popupDOM.showStateButton.addEventListener("click", async () => {
     popupDOM.stateCode.style.display = "block";

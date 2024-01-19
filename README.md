@@ -271,6 +271,7 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 
 - [x] refactor: remove old icons lib
 - [ ] refactor: move stopwatch into puzzle toolbar
+- [ ] feat: update popup when puzzle state changes
 - [x] feat: show status icon in puzzle page
 - [x] bug: set status icon doesn't work consistently, try hitting start/finish/resume from a combo of the popup and toolbar and the bug is apparent. Notes are in the TODO in the code in service_worker
 - [wip] refactor: 'series' config which contains code to check if a crossword is part of series and then parse crossword metadata

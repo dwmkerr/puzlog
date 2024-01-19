@@ -2,7 +2,11 @@ import React, { useState, CSSProperties } from "react";
 import { IconButton } from "@mui/joy";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { AgGridReact } from "ag-grid-react"; // React Grid Logic
-import { ColDef, ICellRendererParams } from "ag-grid-community";
+import {
+  ColDef,
+  FirstDataRenderedEvent,
+  ICellRendererParams,
+} from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css"; // Core CSS
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Theme
 import { PuzzleState, PuzzleStatus } from "../../lib/puzzleState";
@@ -16,6 +20,7 @@ type DeletePuzzleFunc = (puzzleId: string) => Promise<void>;
 
 interface PuzzleGridProps extends React.HTMLProps<HTMLDivElement> {
   puzzles: PuzzleState[];
+  initialPuzzleTitleFilter: string | null;
   updatePuzzle: UpdatePuzzleFunc;
   deletePuzzle: DeletePuzzleFunc;
 }
@@ -36,6 +41,7 @@ interface PuzzleRowData {
 
 const PuzzleGrid = ({
   puzzles,
+  initialPuzzleTitleFilter,
   updatePuzzle,
   deletePuzzle,
   ...props
@@ -251,12 +257,30 @@ const PuzzleGrid = ({
     await updatePuzzle(updatedPuzzle);
   };
 
+  //  Called on first render, can be used to set filters etc.
+  const onFirstDataRendered = async (
+    params: FirstDataRenderedEvent<PuzzleRowData>
+  ) => {
+    //  If we have an initial title filter, set it.
+    if (initialPuzzleTitleFilter) {
+      params.api.setFilterModel({
+        title: {
+          filter: initialPuzzleTitleFilter,
+          type: "equals",
+          filterType: "text",
+        },
+      });
+      params.api.onFilterChanged();
+    }
+  };
+
   return (
     <div className="ag-theme-quartz" style={{ fontSize: "150%" }} {...props}>
       <AgGridReact
         rowData={rowData}
         columnDefs={colDefs}
         onCellValueChanged={onCellValueChanged}
+        onFirstDataRendered={onFirstDataRendered}
       />
     </div>
   );

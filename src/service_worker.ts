@@ -5,6 +5,7 @@ import {
   ContentScriptInterface,
   ContentScriptStatus,
   FinishPuzzleCommand,
+  OpenPuzlogTabCommand,
   ResumePuzzleCommand,
   UpdatePuzzleStatusIconCommand,
 } from "./lib/extensionMessages";
@@ -17,11 +18,12 @@ import { PuzzleStatus } from "./lib/puzzleState";
 //  Instantiate a puzzle repository.
 const puzzleRepository = new PuzzleRepository();
 
-extensionInterface.onMessage("OpenPuzlogTab", async () => {
-  chrome.tabs.create({
-    url: chrome.runtime.getURL("puzlog.html"),
-  });
-});
+extensionInterface.onMessage(
+  "OpenPuzlogTab",
+  async (tabId, message: OpenPuzlogTabCommand) => {
+    extensionInterface.navigateToPuzlogInterface(message.puzzleId);
+  }
+);
 
 extensionInterface.onMessage(
   "finish",
