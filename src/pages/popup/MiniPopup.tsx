@@ -131,12 +131,8 @@ export default function MiniPopup() {
     extensionInterface.navigateToPuzlogInterface();
   };
   const start = async () => {
-    if (tabPuzzleData?.puzzleId) {
-      const tabId = await extensionInterface.getCurrentTabId();
-      extensionInterface.sendTabMessage("startTabPuzzle", tabId, {
-        puzzleId: tabPuzzleData.puzzleId,
-      });
-    }
+    const tabId = await extensionInterface.getCurrentTabId();
+    await ContentScriptInterface.start(tabId);
   };
   const finish = async () => {
     if (tabPuzzleData?.puzzleId) {

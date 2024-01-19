@@ -5,8 +5,7 @@ import { Stopwatch } from "./lib/stopwatch";
 import { PuzzleRepository } from "./lib/PuzzleRepository";
 import {
   CrosswordMetadata,
-  scrapeString,
-  scrapers,
+  scrapeCrosswordMetadata,
 } from "./lib/crossword-metadata";
 import { PuzzleState, PuzzleStatus } from "./lib/puzzleState";
 import { TabPuzzleData } from "./lib/extensionMessages";
@@ -73,29 +72,6 @@ function showTimerAndOverlay(puzzle: PuzzleState) {
       });
     }, 1000);
   }
-}
-
-function scrapeCrosswordMetadata(
-  href: string,
-  document: Document
-): CrosswordMetadata {
-  //  If the puzzle hasn't been loaded, we can check its metadata.
-  const scraper = scrapers.find((scraper) => {
-    console.log(`puzlog: testing scraper ${scraper.seriesName}`);
-    const match = scraper.hrefTest.test(href);
-    console.log(`puzlog: match ${match}`);
-    return match;
-  });
-
-  if (!scraper) {
-    return { setter: null, title: null, series: null, datePublished: null };
-  }
-  return {
-    series: scraper.seriesName,
-    title: scrapeString(document, scraper.title) || "",
-    setter: scrapeString(document, scraper.setter) || "",
-    datePublished: new Date(), // TODO scrapeString(document, scraper.setter) || "",
-  };
 }
 
 async function startup() {

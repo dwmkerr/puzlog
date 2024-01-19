@@ -68,7 +68,22 @@ export abstract class ContentScriptInterface {
       tabId,
       null
     );
-    return result as TabPuzzleData;
+
+    //  The result has been serialized for transport so we need to deserialize
+    //  if for things like the date to work.
+    const tabPuzzleData: TabPuzzleData = {
+      puzzleId: result.puzzleId || null,
+      status: result.status as PuzzleStatus,
+      crosswordMetadata: {
+        series: result?.crosswordMetadata?.series || "",
+        title: result?.crosswordMetadata?.title || "",
+        setter: result?.crosswordMetadata?.setter || "",
+        datePublished: result?.crosswordMetadata?.datePublished
+          ? new Date(result.crosswordMetadata.datePublished as string)
+          : null,
+      },
+    };
+    return tabPuzzleData;
   }
 
   public static async getContentScriptStatus(
@@ -99,5 +114,9 @@ export abstract class ContentScriptInterface {
     return ContentScriptStatus[
       status.result as keyof typeof ContentScriptStatus
     ];
+  }
+
+  public static async start(tabId: number): Promise<void> {
+    await extensionInterface.sendTabMessage("startTabPuzzle", tabId, {});
   }
 }
