@@ -1,5 +1,3 @@
-# todo
-
 # puzlog
 
 [![main](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml/badge.svg)](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml)
@@ -306,6 +304,10 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 
 - [ ] refactor: create a 'puzzleId' based on a number rather than a URL - easier for links etc, however hold off on this as it might make sharing harder
 - [ ] highlight selected
+
+**Easy / Nice to Have**
+
+- [ ] Use 'quick filter' instead of title filter for puzzle grid (easier to read when navigating to a selected puzzle)
 
 **Cleanup**
 

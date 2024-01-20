@@ -9,6 +9,7 @@ import StatusIcon from "./StatusIcon";
 import { CrosswordMetadata } from "../lib/crossword-metadata";
 import { PuzzleRepository } from "../lib/PuzzleRepository";
 import { ServiceWorkerInterface } from "../lib/extensionMessages";
+import { Link, Typography } from "@mui/joy";
 
 interface ExtensionToolbarProps extends React.ComponentPropsWithoutRef<"div"> {
   puzzleId: string;
@@ -108,7 +109,9 @@ const ExtensionToolbar = ({
           }}
         >
           <div className="timer" style={{ marginRight: "10px" }}>
-            {msToTime(timerMilliseconds)}
+            <Typography level="title-md">
+              {msToTime(timerMilliseconds)}
+            </Typography>
           </div>
         </div>
         <div
@@ -121,10 +124,12 @@ const ExtensionToolbar = ({
         >
           <StatusIcon
             status={status}
-            size={16}
-            style={{ minWidth: "16px", minHeight: "16px", paddingRight: "8px" }}
+            size={24}
+            style={{ minWidth: "24px", minHeight: "24px", paddingRight: "8px" }}
           />
-          <a onClick={openPuzlogPage}>{title}</a>
+          <Typography level="title-md">
+            <Link onClick={openPuzlogPage}>{title}</Link>
+          </Typography>
         </div>
         <div
           style={{

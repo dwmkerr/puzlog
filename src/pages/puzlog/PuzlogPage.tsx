@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Button from "@mui/joy/Button";
+import Input from "@mui/joy/Input";
 import Box from "@mui/joy/Box";
 import Sync from "@mui/icons-material/Sync";
+import SearchIcon from "@mui/icons-material/Search";
 // import Google from "@mui/icons-material/Sync";
 import Download from "@mui/icons-material/Download";
 import Upload from "@mui/icons-material/Upload";
@@ -21,9 +23,7 @@ const PuzlogPage = ({
 }: PuzlogPageProps) => {
   // State to store the array of puzzles
   const [puzzles, setPuzzles] = useState<PuzzleState[]>([]);
-  const [puzzleTitleFilter, setPuzzleTitleFilter] = useState<string | null>(
-    null
-  );
+  const [searchText, setSearchText] = useState("");
   // const [user, setUser] = useState<ExtensionUser | null>(null);
 
   useEffect(() => {
@@ -36,8 +36,8 @@ const PuzlogPage = ({
         setPuzzles(puzzles);
         if (selectedPuzzleId) {
           const selectedPuzzle = puzzles.find((p) => p.id === selectedPuzzleId);
-          setPuzzleTitleFilter(
-            selectedPuzzle?.metadata?.title || selectedPuzzle?.title || null
+          setSearchText(
+            selectedPuzzle?.metadata?.title || selectedPuzzle?.title || ""
           );
         }
       } catch (error) {
@@ -132,14 +132,31 @@ const PuzlogPage = ({
           <p>{JSON.stringify(user)}</p>
           )*/}
       </Box>
-
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          flexWrap: "wrap",
+          paddingBottom: "20px",
+        }}
+      >
+        <Input
+          startDecorator={<SearchIcon />}
+          placeholder="Search"
+          value={searchText}
+          autoFocus
+          sx={{ width: 480 }}
+          size="sm"
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+      </Box>
       <PuzzleGrid
         puzzles={puzzles}
-        initialPuzzleTitleFilter={puzzleTitleFilter}
         updatePuzzle={async (puzzle) => await puzzleRepository.save(puzzle)}
         deletePuzzle={async (puzzleId) =>
           await puzzleRepository.delete(puzzleId)
         }
+        quickFilterText={searchText}
         style={{ width: "100%", flexGrow: 1 }}
       />
     </div>

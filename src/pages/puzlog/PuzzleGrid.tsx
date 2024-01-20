@@ -2,11 +2,7 @@ import React, { useState, CSSProperties } from "react";
 import { IconButton } from "@mui/joy";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { AgGridReact } from "ag-grid-react"; // React Grid Logic
-import {
-  ColDef,
-  FirstDataRenderedEvent,
-  ICellRendererParams,
-} from "ag-grid-community";
+import { ColDef, ICellRendererParams } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css"; // Core CSS
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Theme
 import { PuzzleState, PuzzleStatus } from "../../lib/puzzleState";
@@ -20,7 +16,7 @@ type DeletePuzzleFunc = (puzzleId: string) => Promise<void>;
 
 interface PuzzleGridProps extends React.HTMLProps<HTMLDivElement> {
   puzzles: PuzzleState[];
-  initialPuzzleTitleFilter: string | null;
+  quickFilterText: string;
   updatePuzzle: UpdatePuzzleFunc;
   deletePuzzle: DeletePuzzleFunc;
 }
@@ -41,7 +37,7 @@ interface PuzzleRowData {
 
 const PuzzleGrid = ({
   puzzles,
-  initialPuzzleTitleFilter,
+  quickFilterText,
   updatePuzzle,
   deletePuzzle,
   ...props
@@ -192,6 +188,11 @@ const PuzzleGrid = ({
       editable: false,
     },
     {
+      field: "elapsedTime",
+      headerName: "Time",
+      filter: true,
+    },
+    {
       field: "hintsOrMistakes",
       filter: true,
       editable: true,
@@ -207,11 +208,13 @@ const PuzzleGrid = ({
       filter: true,
       //  Default to sort by most recent first...
       sort: "desc",
+      hide: true,
     },
     {
       field: "timeFinish",
       headerName: "Finish Time",
       filter: true,
+      hide: true,
     },
     {
       headerName: "Total Time",
@@ -222,8 +225,8 @@ const PuzzleGrid = ({
           ? msToTime(d2ms(data.timeFinish) - d2ms(data.timeStart))
           : "";
       },
+      hide: true,
     },
-    { field: "elapsedTime", filter: true },
     {
       field: "notes",
       filter: true,
@@ -257,22 +260,25 @@ const PuzzleGrid = ({
     await updatePuzzle(updatedPuzzle);
   };
 
+  //  For reference, link this back in with the prop:
+  //          onFirstDataRendered={onFirstDataRendered}
+  //
   //  Called on first render, can be used to set filters etc.
-  const onFirstDataRendered = async (
-    params: FirstDataRenderedEvent<PuzzleRowData>
-  ) => {
-    //  If we have an initial title filter, set it.
-    if (initialPuzzleTitleFilter) {
-      params.api.setFilterModel({
-        title: {
-          filter: initialPuzzleTitleFilter,
-          type: "equals",
-          filterType: "text",
-        },
-      });
-      params.api.onFilterChanged();
-    }
-  };
+  // const onFirstDataRendered = async (
+  //   params: FirstDataRenderedEvent<PuzzleRowData>
+  // ) => {
+  //   //  If we have an initial title filter, set it.
+  //   if (initialPuzzleTitleFilter) {
+  //     params.api.setFilterModel({
+  //       title: {
+  //         filter: initialPuzzleTitleFilter,
+  //         type: "equals",
+  //         filterType: "text",
+  //       },
+  //     });
+  //     params.api.onFilterChanged();
+  //   }
+  // };
 
   return (
     <div className="ag-theme-quartz" style={{ fontSize: "150%" }} {...props}>
@@ -280,7 +286,7 @@ const PuzzleGrid = ({
         rowData={rowData}
         columnDefs={colDefs}
         onCellValueChanged={onCellValueChanged}
-        onFirstDataRendered={onFirstDataRendered}
+        quickFilterText={quickFilterText}
       />
     </div>
   );
