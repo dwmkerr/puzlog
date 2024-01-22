@@ -1,3 +1,5 @@
+menu button too big
+
 # puzlog
 
 [![main](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml/badge.svg)](https://github.com/dwmkerr/puzlog/actions/workflows/main.yaml)

@@ -4,13 +4,11 @@ import Input from "@mui/joy/Input";
 import Box from "@mui/joy/Box";
 import Sync from "@mui/icons-material/Sync";
 import SearchIcon from "@mui/icons-material/Search";
-// import Google from "@mui/icons-material/Sync";
-import Download from "@mui/icons-material/Download";
-import Upload from "@mui/icons-material/Upload";
 import { PuzzleState } from "../../lib/puzzleState";
 import { PuzzleRepository } from "../../lib/PuzzleRepository";
 import PuzzleGrid from "./PuzzleGrid";
-import FileUploadButton from "../../components/FileUploadButton";
+import Header from "../../components/Header";
+import { Typography } from "@mui/joy";
 
 interface PuzlogPageProps {
   puzzleRepository: PuzzleRepository;
@@ -87,39 +85,35 @@ const PuzlogPage = ({
   return (
     <div
       style={{
-        padding: "1em",
         display: "flex",
         flexDirection: "column",
         flexGrow: 1,
       }}
     >
-      <h1>Puzlog</h1>
+      <Header onBackup={backup} onRestoreComplete={restore} />
       <Box
         sx={{
+          p: 2 /* padding of 2 */,
           display: "flex",
-          gap: 2,
-          flexWrap: "wrap",
-          paddingBottom: "20px",
+          flexDirection: "column",
+          flexGrow: 1,
         }}
       >
-        <Button
-          startDecorator={<Download />}
-          variant="outlined"
-          size="sm"
-          onClick={backup}
+        <Typography level="h3" component="h1">
+          Puzzles
+        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            flexWrap: "wrap",
+            paddingBottom: "20px",
+          }}
         >
-          Download
-        </Button>
-        <FileUploadButton
-          startDecorator={<Upload />}
-          variant="outlined"
-          size="sm"
-          onFileUploadComplete={restore}
-        />
-        <Button startDecorator={<Sync />} variant="outlined" size="sm">
-          Sync
-        </Button>
-        {/*user ? (
+          <Button startDecorator={<Sync />} variant="outlined" size="sm">
+            Sync
+          </Button>
+          {/*user ? (
           <Button
             startDecorator={<Google />}
             variant="outlined"
@@ -131,34 +125,35 @@ const PuzlogPage = ({
         ) : (
           <p>{JSON.stringify(user)}</p>
           )*/}
-      </Box>
-      <Box
-        sx={{
-          display: "flex",
-          gap: 2,
-          flexWrap: "wrap",
-          paddingBottom: "20px",
-        }}
-      >
-        <Input
-          startDecorator={<SearchIcon />}
-          placeholder="Search"
-          value={searchText}
-          autoFocus
-          sx={{ width: 480 }}
-          size="sm"
-          onChange={(e) => setSearchText(e.target.value)}
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            flexWrap: "wrap",
+            paddingBottom: "20px",
+          }}
+        >
+          <Input
+            startDecorator={<SearchIcon />}
+            placeholder="Search"
+            value={searchText}
+            autoFocus
+            sx={{ width: 480 }}
+            size="sm"
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+        </Box>
+        <PuzzleGrid
+          puzzles={puzzles}
+          updatePuzzle={async (puzzle) => await puzzleRepository.save(puzzle)}
+          deletePuzzle={async (puzzleId) =>
+            await puzzleRepository.delete(puzzleId)
+          }
+          quickFilterText={searchText}
+          style={{ width: "100%", flexGrow: 1 }}
         />
       </Box>
-      <PuzzleGrid
-        puzzles={puzzles}
-        updatePuzzle={async (puzzle) => await puzzleRepository.save(puzzle)}
-        deletePuzzle={async (puzzleId) =>
-          await puzzleRepository.delete(puzzleId)
-        }
-        quickFilterText={searchText}
-        style={{ width: "100%", flexGrow: 1 }}
-      />
     </div>
   );
 };
