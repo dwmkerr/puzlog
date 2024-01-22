@@ -194,6 +194,7 @@ const PuzzleGrid = ({
     },
     {
       field: "hintsOrMistakes",
+      headerName: "Clues Helped",
       filter: true,
       editable: true,
     },
