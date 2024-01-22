@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Button from "@mui/joy/Button";
-import Input from "@mui/joy/Input";
 import Box from "@mui/joy/Box";
-import Sync from "@mui/icons-material/Sync";
-import SearchIcon from "@mui/icons-material/Search";
 import { PuzzleState } from "../../lib/puzzleState";
 import { PuzzleRepository } from "../../lib/PuzzleRepository";
 import PuzzleGrid from "./PuzzleGrid";
@@ -90,7 +86,12 @@ const PuzlogPage = ({
         flexGrow: 1,
       }}
     >
-      <Header onBackup={backup} onRestoreComplete={restore} />
+      <Header
+        onBackup={backup}
+        onRestoreComplete={restore}
+        searchText={searchText}
+        onSearchTextChanged={setSearchText}
+      />
       <Box
         sx={{
           p: 2 /* padding of 2 */,
@@ -102,48 +103,6 @@ const PuzlogPage = ({
         <Typography level="h3" component="h1">
           Puzzles
         </Typography>
-        <Box
-          sx={{
-            display: "flex",
-            gap: 2,
-            flexWrap: "wrap",
-            paddingBottom: "20px",
-          }}
-        >
-          <Button startDecorator={<Sync />} variant="outlined" size="sm">
-            Sync
-          </Button>
-          {/*user ? (
-          <Button
-            startDecorator={<Google />}
-            variant="outlined"
-            size="sm"
-            onClick={login}
-          >
-            Login
-          </Button>
-        ) : (
-          <p>{JSON.stringify(user)}</p>
-          )*/}
-        </Box>
-        <Box
-          sx={{
-            display: "flex",
-            gap: 2,
-            flexWrap: "wrap",
-            paddingBottom: "20px",
-          }}
-        >
-          <Input
-            startDecorator={<SearchIcon />}
-            placeholder="Search"
-            value={searchText}
-            autoFocus
-            sx={{ width: 480 }}
-            size="sm"
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-        </Box>
         <PuzzleGrid
           puzzles={puzzles}
           updatePuzzle={async (puzzle) => await puzzleRepository.save(puzzle)}

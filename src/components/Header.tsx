@@ -12,13 +12,13 @@ import MenuButton from "@mui/joy/MenuButton";
 import MenuItem from "@mui/joy/MenuItem";
 import ListDivider from "@mui/joy/ListDivider";
 
+import ClearIcon from "@mui/icons-material/Clear";
 import UploadIcon from "@mui/icons-material/Upload";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import DownloadIcon from "@mui/icons-material/Download";
 import ChecklistIcon from "@mui/icons-material/Checklist";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import FileUploadButton from "./FileUploadButton";
@@ -131,7 +131,10 @@ function UserMenuDropDown() {
   );
 }
 
-type HeaderProps = MainMenuDropDownProps;
+type HeaderProps = MainMenuDropDownProps & {
+  searchText: string;
+  onSearchTextChanged: (searchText: string) => void;
+};
 
 export default function Header(props: HeaderProps) {
   return (
@@ -191,19 +194,24 @@ export default function Header(props: HeaderProps) {
           }}
         >
           <Input
+            autoFocus
             size="sm"
             variant="outlined"
-            placeholder="Search anything…"
+            placeholder="Search puzzles..."
+            value={props.searchText}
+            onChange={(e) => {
+              props.onSearchTextChanged(e.target.value);
+            }}
             startDecorator={<SearchRoundedIcon color="primary" />}
             endDecorator={
               <IconButton
-                variant="outlined"
-                color="neutral"
-                sx={{ bgcolor: "background.level1" }}
+                variant="plain"
+                size="sm"
+                onClick={() => {
+                  props.onSearchTextChanged("");
+                }}
               >
-                <Typography level="title-sm" textColor="text.icon">
-                  ⌘ K
-                </Typography>
+                <ClearIcon />
               </IconButton>
             }
             sx={{
@@ -212,6 +220,7 @@ export default function Header(props: HeaderProps) {
                 xs: "none",
                 sm: "flex",
               },
+              width: "480px",
             }}
           />
           <IconButton
