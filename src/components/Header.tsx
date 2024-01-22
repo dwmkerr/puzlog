@@ -13,13 +13,11 @@ import MenuItem from "@mui/joy/MenuItem";
 import ListDivider from "@mui/joy/ListDivider";
 
 import UploadIcon from "@mui/icons-material/Upload";
-import SyncIcon from "@mui/icons-material/Sync";
+import GitHubIcon from "@mui/icons-material/GitHub";
 import DownloadIcon from "@mui/icons-material/Download";
 import ChecklistIcon from "@mui/icons-material/Checklist";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import BookRoundedIcon from "@mui/icons-material/BookRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import HelpRoundedIcon from "@mui/icons-material/HelpRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
@@ -40,7 +38,7 @@ function MainMenuDropDown(props: MainMenuDropDownProps) {
         sx={{
           maxWidth: "32px",
           maxHeight: "32px",
-          borderRadius: "32px",
+          borderRadius: "50%",
         }}
       >
         <ChecklistIcon />
@@ -66,6 +64,68 @@ function MainMenuDropDown(props: MainMenuDropDownProps) {
           size="sm"
           onFileUploadComplete={props.onRestoreComplete}
         />
+      </Menu>
+    </Dropdown>
+  );
+}
+
+function UserMenuDropDown() {
+  return (
+    <Dropdown>
+      <MenuButton
+        variant="plain"
+        size="sm"
+        sx={{
+          maxWidth: "32px",
+          maxHeight: "32px",
+          borderRadius: "9999999px",
+        }}
+      >
+        <Avatar sx={{ maxWidth: "32px", maxHeight: "32px" }} />
+      </MenuButton>
+      <Menu
+        placement="bottom-end"
+        size="sm"
+        sx={{
+          zIndex: "99999",
+          p: 1,
+          gap: 1,
+          "--ListItem-radius": "var(--joy-radius-sm)",
+        }}
+      >
+        <MenuItem disabled={true}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <Avatar
+              sx={{
+                maxWidth: "32px",
+                maxHeight: "32px",
+                borderRadius: "50%",
+              }}
+            />
+            <Box sx={{ ml: 1.5 }}>
+              <Typography level="title-sm" textColor="text.primary">
+                Unknown User
+              </Typography>
+              <Typography level="body-xs" textColor="text.tertiary">
+                X puzzles complete
+              </Typography>
+            </Box>
+          </Box>
+        </MenuItem>
+        <ListDivider />
+        <MenuItem disabled={true}>
+          <SettingsRoundedIcon />
+          Settings
+        </MenuItem>
+        <MenuItem disabled={true}>
+          <LogoutRoundedIcon />
+          Log out
+        </MenuItem>
       </Menu>
     </Dropdown>
   );
@@ -165,94 +225,19 @@ export default function Header(props: HeaderProps) {
           >
             <SearchRoundedIcon />
           </IconButton>
-          <Tooltip title="Joy UI overview" variant="outlined">
+          <Tooltip title="Puzlog on GitHub" variant="outlined">
             <IconButton
               size="sm"
               variant="plain"
               color="neutral"
               component="a"
-              href="/blog/first-look-at-joy/"
+              href="https://github.com/dwmkerr/puzlog"
               sx={{ alignSelf: "center" }}
             >
-              <BookRoundedIcon />
+              <GitHubIcon />
             </IconButton>
           </Tooltip>
-          <Dropdown>
-            <MenuButton
-              variant="plain"
-              size="sm"
-              sx={{
-                maxWidth: "32px",
-                maxHeight: "32px",
-                borderRadius: "9999999px",
-              }}
-            >
-              <Avatar
-                src="https://i.pravatar.cc/40?img=2"
-                srcSet="https://i.pravatar.cc/80?img=2"
-                sx={{ maxWidth: "32px", maxHeight: "32px" }}
-              />
-            </MenuButton>
-            <Menu
-              placement="bottom-end"
-              size="sm"
-              sx={{
-                zIndex: "99999",
-                p: 1,
-                gap: 1,
-                "--ListItem-radius": "var(--joy-radius-sm)",
-              }}
-            >
-              <MenuItem>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <Avatar
-                    src="https://i.pravatar.cc/40?img=2"
-                    srcSet="https://i.pravatar.cc/80?img=2"
-                    sx={{ borderRadius: "50%" }}
-                  />
-                  <Box sx={{ ml: 1.5 }}>
-                    <Typography level="title-sm" textColor="text.primary">
-                      Rick Sanchez
-                    </Typography>
-                    <Typography level="body-xs" textColor="text.tertiary">
-                      rick@email.com
-                    </Typography>
-                  </Box>
-                </Box>
-              </MenuItem>
-              <ListDivider />
-              <MenuItem>
-                <HelpRoundedIcon />
-                Help
-              </MenuItem>
-              <MenuItem>
-                <SettingsRoundedIcon />
-                Settings
-              </MenuItem>
-              <ListDivider />
-              <MenuItem component="a" href="/blog/first-look-at-joy/">
-                First look at Joy UI
-                <OpenInNewRoundedIcon />
-              </MenuItem>
-              <MenuItem
-                component="a"
-                href="https://github.com/mui/material-ui/tree/master/docs/data/joy/getting-started/templates/email"
-              >
-                Sourcecode
-                <OpenInNewRoundedIcon />
-              </MenuItem>
-              <ListDivider />
-              <MenuItem>
-                <LogoutRoundedIcon />
-                Log out
-              </MenuItem>
-            </Menu>
-          </Dropdown>
+          <UserMenuDropDown />
         </Box>
       </Box>
     </Box>
