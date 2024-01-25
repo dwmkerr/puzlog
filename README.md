@@ -31,6 +31,7 @@ Chrome Web Store: [Install TODO](https://chrome.google.com/webstore/detail/chatg
   - [Verifying Pull Requests](#verifying-pull-requests)
   - [Firebase](#firebase)
 - [Task List](#task-list)
+- [Epic - Login](#epic---login)
 
 <!-- vim-markdown-toc -->
 
@@ -333,3 +334,7 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 - [ ] feat: auto track progress based on jquery/expressions (e.g. selecting completed clues)
 - [ ] feat: crossword series, setter, publish date, based on expressions, could be combined with the above
 - [ ] feat: nullable fields should have an 'unset' style in the grid (e.g. grey) so users know to fill them in
+
+## Epic - Login
+
+- [ ] login as guest initially, add userid to puzzles

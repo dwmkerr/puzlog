@@ -21,7 +21,7 @@ import {
   fromSerializableObject,
   SerializablePuzzle,
 } from "./puzzleState";
-import { Unsubscribe } from "firebase/auth";
+import { Auth, Unsubscribe } from "firebase/auth";
 
 const puzzleConverter = {
   toFirestore(puzzle: WithFieldValue<PuzzleState>): SerializablePuzzle {
@@ -42,8 +42,11 @@ export class PuzzleRepository {
     SerializablePuzzle
   >;
 
+  private auth: Auth;
+
   constructor() {
-    const { db } = PuzlogFirebase.get();
+    const { db, auth } = PuzlogFirebase.get();
+    this.auth = auth;
     this.puzzlesCollection = collection(db, "puzzles").withConverter(
       puzzleConverter
     );
@@ -139,5 +142,9 @@ export class PuzzleRepository {
     );
     const backupJson = JSON.stringify(puzzlesSerializable, null, 2);
     return backupJson;
+  }
+
+  getAuth(): Auth {
+    return this.auth;
   }
 }

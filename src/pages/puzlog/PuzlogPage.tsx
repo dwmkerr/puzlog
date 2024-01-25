@@ -5,6 +5,8 @@ import { PuzzleRepository } from "../../lib/PuzzleRepository";
 import PuzzleGrid from "./PuzzleGrid";
 import Header from "../../components/Header";
 import { Typography } from "@mui/joy";
+import { signInAnonymously } from "firebase/auth";
+import ErrorSnackbar, { ErrorInfo } from "../../components/ErrorSnackbar";
 
 interface PuzlogPageProps {
   puzzleRepository: PuzzleRepository;
@@ -18,6 +20,9 @@ const PuzlogPage = ({
   // State to store the array of puzzles
   const [puzzles, setPuzzles] = useState<PuzzleState[]>([]);
   const [searchText, setSearchText] = useState("");
+  const [currentError, setCurrentError] = useState<ErrorInfo | undefined>(
+    undefined
+  );
   // const [user, setUser] = useState<ExtensionUser | null>(null);
 
   useEffect(() => {
@@ -42,6 +47,28 @@ const PuzlogPage = ({
     // Call the async function on component mount
     getPuzzles();
   }, []); // Empty dependency array ensures this effect runs only once on mount
+
+  useEffect(() => {
+    const loginAnon = async () => {
+      const auth = puzzleRepository.getAuth();
+      try {
+        throw new Error("something went bad");
+        const userCredential = await signInAnonymously(auth);
+        const user = userCredential.user;
+        console.log("User authenticated with UID:", user.uid);
+        // eslint-disable-next-line
+      } catch (err: any) {
+        setCurrentError({
+          title: "Authentication Failed",
+          message:
+            err?.message ||
+            "An unknown error occurred attemping to authenticate anonymously.",
+        });
+        console.error("authentication failed", err);
+      }
+    };
+    loginAnon();
+  }, []);
 
   // TODO bring back the user...
   // useEffect(() => {
@@ -100,6 +127,10 @@ const PuzlogPage = ({
           flexGrow: 1,
         }}
       >
+        <ErrorSnackbar
+          error={currentError}
+          onDismiss={() => setCurrentError(undefined)}
+        />
         <Typography level="h3" component="h1">
           Puzzles
         </Typography>
