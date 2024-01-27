@@ -8,7 +8,7 @@ import {
   enrichMetadata,
   scrapeCrosswordMetadata,
 } from "./lib/crossword-metadata";
-import { PuzzleState, PuzzleStatus } from "./lib/puzzleState";
+import { Puzzle, PuzzleStatus } from "./lib/puzzle";
 import { TabPuzzleData } from "./lib/extensionMessages";
 
 //  Instantiate a puzzle repository.
@@ -40,7 +40,7 @@ extensionInterface.onMessage("startTabPuzzle", async () => {
   // });
   //  This is where we create the initial puzzle object.
   const now = new Date();
-  const puzzle: Omit<PuzzleState, "id"> = {
+  const puzzle: Omit<Puzzle, "id"> = {
     userId: user.uid,
     url: localExtensionState.url,
     //  TODO: auto set the proper ttitle
@@ -67,7 +67,7 @@ extensionInterface.onMessage("startTabPuzzle", async () => {
   localExtensionState.stopwatch.pause();
 });
 
-function showTimerAndOverlay(puzzle: PuzzleState) {
+function showTimerAndOverlay(puzzle: Puzzle) {
   //  Create the extension interface. It will remain hidden until we show it.
   localExtensionState.extensionOverlay = ExtensionOverlay.create(
     document,

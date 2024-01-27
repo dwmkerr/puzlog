@@ -23,7 +23,7 @@ import {
 } from "../../lib/extensionMessages";
 import { CrosswordMetadata } from "../../lib/crossword-metadata";
 import * as extensionInterface from "../../extensionInterface";
-import { PuzzleStatus } from "../../lib/puzzleState";
+import { PuzzleStatus } from "../../lib/puzzle";
 import { isExtensionAccessibleTab } from "../../lib/helpers";
 import { PuzzleRepository } from "../../lib/PuzzleRepository";
 import { PuzlogError } from "../../lib/PuzlogError";

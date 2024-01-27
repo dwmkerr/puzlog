@@ -5,17 +5,17 @@ import { AgGridReact } from "ag-grid-react"; // React Grid Logic
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css"; // Core CSS
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Theme
-import { PuzzleState, PuzzleStatus } from "../../lib/puzzleState";
+import { Puzzle, PuzzleStatus } from "../../lib/puzzle";
 import StatusIcon from "../../components/StatusIcon";
 import StarRating from "../../components/StarRating";
 import { msToTime } from "../../lib/helpers";
 import theme from "../../theme";
 
-type UpdatePuzzleFunc = (puzzle: PuzzleState) => Promise<void>;
+type UpdatePuzzleFunc = (puzzle: Puzzle) => Promise<void>;
 type DeletePuzzleFunc = (puzzleId: string) => Promise<void>;
 
 interface PuzzleGridProps extends React.HTMLProps<HTMLDivElement> {
-  puzzles: PuzzleState[];
+  puzzles: Puzzle[];
   quickFilterText: string;
   updatePuzzle: UpdatePuzzleFunc;
   deletePuzzle: DeletePuzzleFunc;
@@ -32,7 +32,7 @@ interface PuzzleRowData {
   timeFinish: Date | null;
   elapsedTime: number;
   notes: string;
-  puzzle: PuzzleState;
+  puzzle: Puzzle;
 }
 
 const PuzzleGrid = ({

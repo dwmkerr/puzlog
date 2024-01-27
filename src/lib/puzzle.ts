@@ -7,7 +7,7 @@ export enum PuzzleStatus {
   Unknown,
 }
 
-export interface PuzzleState {
+export interface Puzzle {
   userId: string;
   id: string;
   url: string;
@@ -46,7 +46,7 @@ export interface SerializablePuzzle {
   notes: string | null;
 }
 
-export function toSerializableObject(state: PuzzleState): SerializablePuzzle {
+export function toSerializableObject(state: Puzzle): SerializablePuzzle {
   return {
     userId: state.userId,
     id: state.id,
@@ -78,16 +78,19 @@ export function toSerializableObject(state: PuzzleState): SerializablePuzzle {
 type AtLeast<T, K extends keyof T> = Partial<T> & Pick<T, K>;
 export type MinimumSerializablePuzzle = AtLeast<
   SerializablePuzzle,
-  "id" | "url" | "title"
+  "userId" | "id" | "url" | "title"
 >;
 export function fromSerializableObject(
   object: MinimumSerializablePuzzle
-): PuzzleState {
-  function parseDateString(dateString: string): Date {
+): Puzzle {
+  function parseDateString<T>(puzzle: T, fieldName: keyof T): Date {
+    const dateString = puzzle[fieldName] as string;
     const parsedDate = new Date(dateString);
 
     if (isNaN(parsedDate.getTime())) {
-      throw new Error(`date string invalid: ${dateString}`);
+      throw new Error(
+        `date field '${String(fieldName)}' is invalid: ${dateString}`
+      );
     }
 
     return parsedDate;
@@ -104,29 +107,34 @@ export function fromSerializableObject(
   //  added to the extension since the puzzle was initially logged). This is
   //  also covered in the unit tests.
   return {
-    userId: object.userId || "", // TODO remove the undefined option when auth complete,
+    userId: object.userId,
     id: object.id,
     url: object.url,
     title: object.title,
     status: parsePuzzleStatus(object.status || ""),
-    timeLoad: object.timeLoad ? parseDateString(object.timeLoad) : new Date(),
+    timeLoad: object.timeLoad
+      ? parseDateString(object, "timeLoad")
+      : new Date(),
     timeLastAccess: object.timeLastAccess
-      ? parseDateString(object.timeLastAccess)
+      ? parseDateString(object, "timeLastAccess")
       : new Date(),
     timeStart: object.timeStart
-      ? parseDateString(object.timeStart)
+      ? parseDateString(object, "timeStart")
       : new Date(),
-    timeFinish: object.timeFinish ? parseDateString(object.timeFinish) : null,
+    timeFinish: object.timeFinish
+      ? parseDateString(object, "timeFinish")
+      : null,
     elapsedTime: object.elapsedTime || 0,
-    hintsOrMistakes: object.hintsOrMistakes || 0,
-    rating: object.rating || 0,
+    hintsOrMistakes: object.hintsOrMistakes || null,
+    rating: object.rating || null,
     metadata: {
       series: object.metadata?.series || null,
       title: object.metadata?.title || null,
       setter: object.metadata?.setter || null,
-      datePublished: object.metadata?.datePublished
-        ? parseDateString(object.metadata.datePublished)
-        : null,
+      datePublished:
+        typeof object.metadata?.datePublished === "string"
+          ? parseDateString(object.metadata, "datePublished")
+          : null,
     },
     notes: object.notes || "",
   };

@@ -9,7 +9,7 @@ import {
   ResumePuzzleCommand,
   UpdatePuzzleStatusIconCommand,
 } from "./lib/extensionMessages";
-import { PuzzleStatus } from "./lib/puzzleState";
+import { PuzzleStatus } from "./lib/puzzle";
 
 //  TODO: at this point we could actually scan each tab and see if it has a
 //  loaded puzlog content script and then reload it, based on options for the

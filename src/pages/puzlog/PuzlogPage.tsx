@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Box from "@mui/joy/Box";
-import { PuzzleState } from "../../lib/puzzleState";
+import { Puzzle } from "../../lib/puzzle";
 import { PuzzleRepository } from "../../lib/PuzzleRepository";
 import PuzzleGrid from "./PuzzleGrid";
 import Header from "../../components/Header";
@@ -19,7 +19,7 @@ const PuzlogPage = ({
   selectedPuzzleId,
 }: PuzlogPageProps) => {
   const [user, setUser] = useState<User | undefined>(undefined);
-  const [puzzles, setPuzzles] = useState<PuzzleState[]>([]);
+  const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
   const [searchText, setSearchText] = useState("");
   const [currentError, setCurrentError] = useState<PuzlogError | undefined>(
     undefined
@@ -62,7 +62,7 @@ const PuzlogPage = ({
     return unsubscribe;
   }, []); // Empty dependency array ensures this effect runs only once on mount
 
-  const downloadPuzzles = async (puzzles: PuzzleState[], filename: string) => {
+  const downloadPuzzles = async (puzzles: Puzzle[], filename: string) => {
     // Create a Blob from the JSON data
     const puzzlesJson = await puzzleRepository.backup();
     const blob = new Blob([puzzlesJson], {

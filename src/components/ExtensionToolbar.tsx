@@ -4,7 +4,7 @@ import IconButton from "@mui/joy/IconButton";
 import SportsScoreIcon from "@mui/icons-material/SportsScore";
 import * as extensionInterface from "../extensionInterface";
 import { msToTime } from "../lib/helpers";
-import { PuzzleState, PuzzleStatus } from "../lib/puzzleState";
+import { Puzzle, PuzzleStatus } from "../lib/puzzle";
 import StatusIcon from "./StatusIcon";
 import { CrosswordMetadata } from "../lib/crossword-metadata";
 import { PuzzleRepository } from "../lib/PuzzleRepository";
@@ -14,7 +14,7 @@ import { Link, Typography } from "@mui/joy";
 interface ExtensionToolbarProps extends React.ComponentPropsWithoutRef<"div"> {
   puzzleId: string;
   pageTitle: string;
-  puzzle: PuzzleState | null;
+  puzzle: Puzzle | null;
 }
 
 function formatTitle(

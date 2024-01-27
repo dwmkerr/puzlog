@@ -1,9 +1,9 @@
 import { CrosswordMetadata } from "./crossword-metadata";
-import { PuzzleState, PuzzleStatus } from "./puzzleState";
+import { Puzzle, PuzzleStatus } from "./puzzle";
 import * as extensionInterface from "../extensionInterface";
 
 export interface StateUpdatedCommand {
-  puzzleState: PuzzleState;
+  puzzleState: Puzzle;
 }
 
 export interface TabCommand {

@@ -1,14 +1,14 @@
 import {
-  PuzzleState,
+  Puzzle,
   PuzzleStatus,
   toSerializableObject,
   fromSerializableObject,
   MinimumSerializablePuzzle,
-} from "./puzzleState"; // Replace 'yourFile' with the actual file path
+} from "./puzzle"; // Replace 'yourFile' with the actual file path
 
 describe("puzzleState", () => {
   it("should serialize and deserialize PuzzleState without data loss", () => {
-    const originalPuzzleState: PuzzleState = {
+    const originalPuzzleState: Puzzle = {
       userId: "TODO",
       id: "xQI9LNXf12VMm8tEkN31",
       url: "https://www.theguardian.com/crosswords/cryptic/29233",
@@ -25,7 +25,7 @@ describe("puzzleState", () => {
         title: "Cryptic 29222",
         setter: null,
         series: "Guardian Cryptic",
-        datePublished: new Date("2023-11-21T00:00:00+0000)"),
+        datePublished: new Date("2023-11-21T00:00:00Z"),
       },
       notes: "Hard 🥵 <\"';", // note complex characters...
     };
@@ -74,6 +74,7 @@ describe("puzzleState", () => {
 
   it("should set the correct values for fields which have not been stored", () => {
     const serliazedObjectPartial: MinimumSerializablePuzzle = {
+      userId: "7AitHI8tjEhbQdNPYePZs60efiw2",
       id: "5jbe0DKy57ndYwuRIeaH",
       url: "https://www.theguardian.com/crosswords/cryptic/29233",
       title: "Sample Puzzle",
@@ -86,15 +87,19 @@ describe("puzzleState", () => {
       // hintsOrMistakes: null, // should be '0'.
       // rating: null, // should be 'null'.
       // notes: null, // should be "".
-      // metadata: null // should be null
+      // metadata: null // should be an empty
     };
 
     //  Fix the dates, then check we get a Unknown PuzzleStatus.
     const deserializedObject = fromSerializableObject(serliazedObjectPartial);
-    expect(deserializedObject.userId).toEqual("");
     expect(deserializedObject.status).toEqual(PuzzleStatus.Unknown);
     expect(deserializedObject.hintsOrMistakes).toEqual(null);
     expect(deserializedObject.notes).toEqual("");
-    expect(deserializedObject.metadata).toEqual(null);
+    expect(deserializedObject.metadata).toEqual({
+      datePublished: null,
+      series: null,
+      setter: null,
+      title: null,
+    });
   });
 });

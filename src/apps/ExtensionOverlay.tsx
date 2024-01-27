@@ -4,7 +4,7 @@ import { CssVarsProvider } from "@mui/joy/styles";
 import CssBaseline from "@mui/joy/CssBaseline";
 import GlobalStyles from "@mui/joy/GlobalStyles";
 import ExtensionToolbar from "../components/ExtensionToolbar";
-import { PuzzleState } from "../lib/puzzleState";
+import { Puzzle } from "../lib/puzzle";
 import CustomIframe from "../components/CustomIframe";
 
 export class ExtensionOverlay {
@@ -17,7 +17,7 @@ export class ExtensionOverlay {
   static create(
     document: Document,
     puzzleId: string,
-    puzzle: PuzzleState | null
+    puzzle: Puzzle | null
   ): ExtensionOverlay {
     //  If this document already has an extension overlay frame, fail.
     if (document.getElementById(this.ID_IFRAME)) {

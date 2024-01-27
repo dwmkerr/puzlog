@@ -16,32 +16,29 @@ import {
 } from "firebase/firestore";
 import { PuzlogFirebase } from "./firebase";
 import {
-  PuzzleState,
+  Puzzle,
   toSerializableObject,
   fromSerializableObject,
   SerializablePuzzle,
-} from "./puzzleState";
+} from "./puzzle";
 import { Auth, Unsubscribe, User, signInAnonymously } from "firebase/auth";
 import { PuzlogError } from "./PuzlogError";
 
 const puzzleConverter = {
-  toFirestore(puzzle: WithFieldValue<PuzzleState>): SerializablePuzzle {
-    return toSerializableObject(puzzle as PuzzleState);
+  toFirestore(puzzle: WithFieldValue<Puzzle>): SerializablePuzzle {
+    return toSerializableObject(puzzle as Puzzle);
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot,
     options: SnapshotOptions
-  ): PuzzleState {
+  ): Puzzle {
     const data = snapshot.data(options) as SerializablePuzzle;
     return fromSerializableObject(data);
   },
 };
 
 export class PuzzleRepository {
-  private puzzlesCollection: CollectionReference<
-    PuzzleState,
-    SerializablePuzzle
-  >;
+  private puzzlesCollection: CollectionReference<Puzzle, SerializablePuzzle>;
 
   private auth: Auth;
 
@@ -53,13 +50,13 @@ export class PuzzleRepository {
     );
   }
 
-  async load(): Promise<PuzzleState[]> {
+  async load(): Promise<Puzzle[]> {
     const querySnapshot = await getDocs(this.puzzlesCollection);
     const puzzles = querySnapshot.docs.map((doc) => doc.data());
     return puzzles;
   }
 
-  subscribeToPuzzles(onPuzzles: (puzzles: PuzzleState[]) => void): Unsubscribe {
+  subscribeToPuzzles(onPuzzles: (puzzles: Puzzle[]) => void): Unsubscribe {
     const q = query(this.puzzlesCollection);
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const puzzles = querySnapshot.docs.map((doc) => doc.data());
@@ -68,13 +65,13 @@ export class PuzzleRepository {
     return unsubscribe;
   }
 
-  async loadPuzzle(id: string): Promise<PuzzleState | null> {
+  async loadPuzzle(id: string): Promise<Puzzle | null> {
     const docRef = doc(this.puzzlesCollection, id);
     const puzzle = (await getDoc(docRef)).data();
     return puzzle || null;
   }
 
-  async queryPuzzleByUrl(url: string): Promise<PuzzleState | null> {
+  async queryPuzzleByUrl(url: string): Promise<Puzzle | null> {
     const q = query(this.puzzlesCollection, where("url", "==", url));
     const querySnapshot = await getDocs(q);
     const puzzles = querySnapshot.docs.map((doc) => doc.data());
@@ -91,11 +88,11 @@ export class PuzzleRepository {
     await deleteDoc(docRef);
   }
 
-  async create(puzzleWithoutId: Omit<PuzzleState, "id">): Promise<PuzzleState> {
+  async create(puzzleWithoutId: Omit<Puzzle, "id">): Promise<Puzzle> {
     //  Create the document ID before we store the document - because we
     //  actually use the document ID as the puzzle id.
     const newDocumentReference = doc(this.puzzlesCollection);
-    const puzzle: PuzzleState = {
+    const puzzle: Puzzle = {
       ...puzzleWithoutId,
       id: newDocumentReference.id,
     };
@@ -105,7 +102,7 @@ export class PuzzleRepository {
     return puzzle;
   }
 
-  async save(puzzle: PuzzleState): Promise<void> {
+  async save(puzzle: Puzzle): Promise<void> {
     await setDoc(doc(this.puzzlesCollection, puzzle.id), puzzle);
   }
 
@@ -119,7 +116,7 @@ export class PuzzleRepository {
 
   subscribeToChanges(
     id: string,
-    onChange: (puzzle: PuzzleState) => void
+    onChange: (puzzle: Puzzle) => void
   ): Unsubscribe {
     return onSnapshot(doc(this.puzzlesCollection, id), (doc) => {
       const puzzle = doc.data();

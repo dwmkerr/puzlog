@@ -1,37 +1,37 @@
-import { PuzzleState } from "../../lib/puzzleState";
+import { Puzzle } from "../../lib/puzzle";
 import { msToTime, timeAgo } from "../../lib/helpers";
 import { getElementOrFail } from "../../lib/document";
 import * as extensionInterface from "../../extensionInterface";
 
 // Chrome 'sendMessage' uses the 'any' type, disable the warning.
 // eslint-disable-next-line
-async function sendMessage(message: any): Promise<PuzzleState> {
+async function sendMessage(message: any): Promise<Puzzle> {
   //  Send the start message to the current tab.
   const tabId = await extensionInterface.getCurrentTabId();
   const newState = await chrome.tabs.sendMessage(tabId, message);
   return newState;
 }
 
-async function getState(): Promise<PuzzleState> {
+async function getState(): Promise<Puzzle> {
   return await sendMessage({ command: "getState" });
 }
 
-async function start(): Promise<PuzzleState> {
+async function start(): Promise<Puzzle> {
   const newState = await sendMessage({ command: "start" });
   chrome.runtime.sendMessage({ action: "startTimer" });
 
   return newState;
 }
 
-async function stop(): Promise<PuzzleState> {
+async function stop(): Promise<Puzzle> {
   return await sendMessage({ command: "stop" });
 }
 
-async function finish(): Promise<PuzzleState> {
+async function finish(): Promise<Puzzle> {
   return await sendMessage({ command: "finish" });
 }
 
-async function reset(): Promise<PuzzleState> {
+async function reset(): Promise<Puzzle> {
   return await sendMessage({ command: "reset" });
 }
 
@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   //  This function updates our UI with state.
-  const updateUI = (state: PuzzleState) => {
+  const updateUI = (state: Puzzle) => {
     const timerDiv = getElementOrFail("timer");
     timerDiv.style.display = "block";
     timerDiv.innerText = msToTime(state.elapsedTime);
@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   updateUI(state);
   chrome.runtime.onMessage.addListener((request) => {
     if (request.command === "stateUpdated") {
-      const puzzleState = request.puzzleState as PuzzleState;
+      const puzzleState = request.puzzleState as Puzzle;
       if (puzzleState) {
         updateUI(puzzleState);
       }
