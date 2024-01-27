@@ -1,16 +1,14 @@
-import * as React from "react";
+import React, { RefObject, useCallback, useRef, useState } from "react";
 import Box from "@mui/joy/Box";
 import Typography from "@mui/joy/Typography";
 import IconButton from "@mui/joy/IconButton";
 import Stack from "@mui/joy/Stack";
-import Avatar from "@mui/joy/Avatar";
 import Input from "@mui/joy/Input";
 import Tooltip from "@mui/joy/Tooltip";
 import Dropdown from "@mui/joy/Dropdown";
 import Menu from "@mui/joy/Menu";
 import MenuButton from "@mui/joy/MenuButton";
 import MenuItem from "@mui/joy/MenuItem";
-import ListDivider from "@mui/joy/ListDivider";
 
 import ClearIcon from "@mui/icons-material/Clear";
 import UploadIcon from "@mui/icons-material/Upload";
@@ -18,10 +16,9 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 import DownloadIcon from "@mui/icons-material/Download";
 import ChecklistIcon from "@mui/icons-material/Checklist";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import FileUploadButton from "./FileUploadButton";
+import UserMenuDropdown from "./UserMenuDropdown";
 
 interface MainMenuDropDownProps {
   onBackup: () => void;
@@ -29,8 +26,44 @@ interface MainMenuDropDownProps {
 }
 
 function MainMenuDropDown(props: MainMenuDropDownProps) {
+  //  We have to jump through some hoops to stop the internal file upload button
+  //  from closing the menu when the 'input' element is selected to load the
+  //  file.
+  const fileUploadInputRef: RefObject<HTMLInputElement> = useRef(null);
+
+  //  We must handle the menu open state ourselves - preventing close if the
+  //  close event propagated from the upload input element.
+  const [open, setOpen] = useState(false);
+  const handleOpenChange = useCallback(
+    (event: React.SyntheticEvent | null, isOpen: boolean) => {
+      //  If a 'close' event is being propagated from the 'input' internally
+      //  used in the upload button, prevent the menu from closing (otherwise
+      //  we will lose the input and abort the upload).
+      const inputEventTarget = event?.target as HTMLInputElement;
+      console.log(`handleFileChange tag event target`, event);
+      if (isOpen === false && inputEventTarget === fileUploadInputRef.current) {
+        console.log(
+          `input is closing menu - preventing close`,
+          inputEventTarget
+        );
+        return;
+      }
+      setOpen(isOpen);
+    },
+    []
+  );
+
+  const onFileUploadComplete = async (fileContents: string) => {
+    //  Close the menu, as we have prevented it from closing while the file
+    //  upload is in operation.
+    setOpen(false);
+
+    //  Call the upload complete handler.
+    props.onRestoreComplete(fileContents);
+  };
+
   return (
-    <Dropdown>
+    <Dropdown open={open} onOpenChange={handleOpenChange}>
       <MenuButton
         variant="outlined"
         color="neutral"
@@ -62,70 +95,9 @@ function MainMenuDropDown(props: MainMenuDropDownProps) {
           color="neutral"
           variant="plain"
           size="sm"
-          onFileUploadComplete={props.onRestoreComplete}
+          inputElementRef={fileUploadInputRef}
+          onFileUploadComplete={onFileUploadComplete}
         />
-      </Menu>
-    </Dropdown>
-  );
-}
-
-function UserMenuDropDown() {
-  return (
-    <Dropdown>
-      <MenuButton
-        variant="plain"
-        size="sm"
-        sx={{
-          maxWidth: "32px",
-          maxHeight: "32px",
-          borderRadius: "9999999px",
-        }}
-      >
-        <Avatar sx={{ maxWidth: "32px", maxHeight: "32px" }} />
-      </MenuButton>
-      <Menu
-        placement="bottom-end"
-        size="sm"
-        sx={{
-          zIndex: "99999",
-          p: 1,
-          gap: 1,
-          "--ListItem-radius": "var(--joy-radius-sm)",
-        }}
-      >
-        <MenuItem disabled={true}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Avatar
-              sx={{
-                maxWidth: "32px",
-                maxHeight: "32px",
-                borderRadius: "50%",
-              }}
-            />
-            <Box sx={{ ml: 1.5 }}>
-              <Typography level="title-sm" textColor="text.primary">
-                Unknown User
-              </Typography>
-              <Typography level="body-xs" textColor="text.tertiary">
-                X puzzles complete
-              </Typography>
-            </Box>
-          </Box>
-        </MenuItem>
-        <ListDivider />
-        <MenuItem disabled={true}>
-          <SettingsRoundedIcon />
-          Settings
-        </MenuItem>
-        <MenuItem disabled={true}>
-          <LogoutRoundedIcon />
-          Log out
-        </MenuItem>
       </Menu>
     </Dropdown>
   );
@@ -246,7 +218,7 @@ export default function Header(props: HeaderProps) {
               <GitHubIcon />
             </IconButton>
           </Tooltip>
-          <UserMenuDropDown />
+          <UserMenuDropdown />
         </Box>
       </Box>
     </Box>

@@ -3,14 +3,10 @@ import { IconButton, Snackbar, Stack, Typography } from "@mui/joy";
 
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import CloseIcon from "@mui/icons-material/Close";
-
-export interface ErrorInfo {
-  title: string;
-  message: string;
-}
+import { PuzlogError } from "../lib/PuzlogError";
 
 export interface ErrorSnackbarProps {
-  error?: ErrorInfo;
+  error?: PuzlogError;
   onDismiss: () => void;
 }
 

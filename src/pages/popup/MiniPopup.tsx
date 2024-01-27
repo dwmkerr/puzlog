@@ -26,8 +26,11 @@ import * as extensionInterface from "../../extensionInterface";
 import { PuzzleStatus } from "../../lib/puzzleState";
 import { isExtensionAccessibleTab } from "../../lib/helpers";
 import { PuzzleRepository } from "../../lib/PuzzleRepository";
+import { PuzlogError } from "../../lib/PuzlogError";
+import { Stack } from "@mui/joy";
+import { User, signInAnonymously } from "firebase/auth";
 
-const ErrorAlert = ({ error }: { error: Error }) => {
+const ErrorAlert = ({ error }: { error: PuzlogError }) => {
   return (
     <Alert
       startDecorator={<WarningIcon />}
@@ -35,7 +38,14 @@ const ErrorAlert = ({ error }: { error: Error }) => {
       size="sm"
       color="danger"
     >
-      There was an error loading puzzle data: {error.message}
+      <Stack direction="column">
+        <Typography title="body-xs" color="danger" fontWeight="lg">
+          {error?.title}
+        </Typography>
+        <Typography level="body-xs" color="danger">
+          {error?.message}
+        </Typography>
+      </Stack>
     </Alert>
   );
 };
@@ -62,15 +72,32 @@ const CrosswordDataAlert = ({
 );
 
 export default function MiniPopup() {
+  const [user, setUser] = useState<User | undefined>(undefined);
   const [crosswordMetadata, setCrosswordMetadata] =
     useState<CrosswordMetadata | null>(null);
   const [puzzleId, setPuzzleId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<PuzlogError | undefined>(undefined);
   const [puzzleStatus, setPuzzleStatus] = useState(PuzzleStatus.Unknown);
 
+  const puzzleRepository = new PuzzleRepository();
+
+  //  On load, try and log in anonymously.
   useEffect(() => {
-    // Define your async function
+    const loginAnon = async () => {
+      const auth = puzzleRepository.getAuth();
+      try {
+        const userCredential = await signInAnonymously(auth);
+        setUser(userCredential.user);
+        // eslint-disable-next-line
+      } catch (err: any) {
+        setError(new PuzlogError("Authentication Failed", err?.message, err));
+      }
+    };
+    loginAnon();
+  }, []);
+
+  useEffect(() => {
     const getTabPuzzleStatus = async () => {
       try {
         const [tab] = await chrome.tabs.query({
@@ -110,8 +137,9 @@ export default function MiniPopup() {
           setPuzzleStatus(tabPuzzleData.status);
           setPuzzleId(tabPuzzleData.puzzleId);
         }
-      } catch (err) {
-        setError(err as Error);
+        // eslint-disable-next-line
+      } catch (err: any) {
+        setError(new PuzlogError("Cannot Load Puzzles", err?.message, err));
       } finally {
         setLoading(false);
       }
@@ -232,6 +260,7 @@ export default function MiniPopup() {
             color="primary"
             startDecorator={<PlayCircleOutline />}
             onClick={start}
+            disabled={user === undefined /* can only start when logged in */}
           >
             Start
           </Button>

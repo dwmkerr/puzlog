@@ -5,8 +5,9 @@ import { PuzzleRepository } from "../../lib/PuzzleRepository";
 import PuzzleGrid from "./PuzzleGrid";
 import Header from "../../components/Header";
 import { Typography } from "@mui/joy";
-import { signInAnonymously } from "firebase/auth";
-import ErrorSnackbar, { ErrorInfo } from "../../components/ErrorSnackbar";
+import { User, signInAnonymously } from "firebase/auth";
+import ErrorSnackbar from "../../components/ErrorSnackbar";
+import { PuzlogError } from "../../lib/PuzlogError";
 
 interface PuzlogPageProps {
   puzzleRepository: PuzzleRepository;
@@ -17,67 +18,49 @@ const PuzlogPage = ({
   puzzleRepository,
   selectedPuzzleId,
 }: PuzlogPageProps) => {
-  // State to store the array of puzzles
+  const [user, setUser] = useState<User | undefined>(undefined);
   const [puzzles, setPuzzles] = useState<PuzzleState[]>([]);
   const [searchText, setSearchText] = useState("");
-  const [currentError, setCurrentError] = useState<ErrorInfo | undefined>(
+  const [currentError, setCurrentError] = useState<PuzlogError | undefined>(
     undefined
   );
-  // const [user, setUser] = useState<ExtensionUser | null>(null);
 
-  useEffect(() => {
-    // Define your async function
-    const getPuzzles = async () => {
-      try {
-        //  Get the puzzles. If we have a selected puzzle id, we can also
-        //  get the title of the puzzle to filter to.
-        const puzzles = await puzzleRepository.load();
-        setPuzzles(puzzles);
-        if (selectedPuzzleId) {
-          const selectedPuzzle = puzzles.find((p) => p.id === selectedPuzzleId);
-          setSearchText(
-            selectedPuzzle?.metadata?.title || selectedPuzzle?.title || ""
-          );
-        }
-      } catch (error) {
-        console.error("puzlog: error getting puzzles", error);
-      }
-    };
-
-    // Call the async function on component mount
-    getPuzzles();
-  }, []); // Empty dependency array ensures this effect runs only once on mount
-
+  //  On load, try to log in anonymously.
   useEffect(() => {
     const loginAnon = async () => {
       const auth = puzzleRepository.getAuth();
       try {
-        throw new Error("something went bad");
         const userCredential = await signInAnonymously(auth);
-        const user = userCredential.user;
-        console.log("User authenticated with UID:", user.uid);
+        setUser(userCredential.user);
         // eslint-disable-next-line
       } catch (err: any) {
-        setCurrentError({
-          title: "Authentication Failed",
-          message:
+        setCurrentError(
+          new PuzlogError(
+            "Authentication Failed",
             err?.message ||
-            "An unknown error occurred attemping to authenticate anonymously.",
-        });
-        console.error("authentication failed", err);
+              "An unknown error occurred attemping to authenticate anonymously.",
+            err
+          )
+        );
       }
     };
     loginAnon();
   }, []);
 
-  // TODO bring back the user...
-  // useEffect(() => {
-  //   const getUser = async () => {
-  //     const user = await puzzleRepository.getExtensionUser();
-  //     setUser(user);
-  //   };
-  //   getUser();
-  // }, []);
+  //  On mount, watch for any changes to the puzzles collection and then update
+  //  the puzzles appropriately.
+  useEffect(() => {
+    const unsubscribe = puzzleRepository.subscribeToPuzzles((puzzles) => {
+      setPuzzles(puzzles);
+      if (selectedPuzzleId) {
+        const selectedPuzzle = puzzles.find((p) => p.id === selectedPuzzleId);
+        setSearchText(
+          selectedPuzzle?.metadata?.title || selectedPuzzle?.title || ""
+        );
+      }
+    });
+    return unsubscribe;
+  }, []); // Empty dependency array ensures this effect runs only once on mount
 
   const downloadPuzzles = async (puzzles: PuzzleState[], filename: string) => {
     // Create a Blob from the JSON data
@@ -97,13 +80,15 @@ const PuzlogPage = ({
 
   const backup = () => downloadPuzzles(puzzles, "puzzles.json");
   const restore = async (fileContents: string) => {
-    await puzzleRepository.restore(fileContents);
+    //  If we don't have a user, we are going to have to fail.
+    if (!user?.uid) {
+      throw new PuzlogError(
+        "Restore Error",
+        "Cannot restore puzzles as the user is not logged in."
+      );
+    }
+    await puzzleRepository.restore(fileContents, user.uid);
   };
-  // TODO bring it back
-  // const login = async () => {
-  //   const user = await puzzleRepository.loginWithGooglePopup();
-  //   setUser(user);
-  // };
 
   return (
     <div

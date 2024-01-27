@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import "@fontsource/inter"; // Font used by JoyUI
 import PuzlogPage from "./PuzlogPage";
 import { PuzzleRepository } from "../../lib/PuzzleRepository";
+import ErrorBoundary from "../../components/ErrorBoundary";
 
 //  Instantiate a puzzle repository.
 //  const puzzleRepository = new ChromeStoragePuzzleRepository(chrome.storage.local);
@@ -18,8 +19,10 @@ if (!container) {
 }
 const root = createRoot(container); // createRoot(container!) if you use TypeScript
 root.render(
-  <PuzlogPage
-    puzzleRepository={puzzleRepository}
-    selectedPuzzleId={selectedPuzzleId}
-  />
+  <ErrorBoundary>
+    <PuzlogPage
+      puzzleRepository={puzzleRepository}
+      selectedPuzzleId={selectedPuzzleId}
+    />
+  </ErrorBoundary>
 );

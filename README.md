@@ -299,6 +299,7 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 - [ ] epic: finish xword
 - [ ] epic: export json
 - [ ] epic: save to cloud
+- [ ] bug: content script status meta tag logic is inconsistent and needs a cleanup
 
 - [ ] build(!): consider webpack dev server to serve sample page in local dev mode
 - [ ] build(!): Create script to open a new chrome window, with the appropriate command line flags to load the dist unpacked
@@ -337,4 +338,7 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 
 ## Epic - Login
 
+- [ ] test firestore save puzzle without userid
+- [ ] refactor puzzlestate to puzzle
 - [ ] login as guest initially, add userid to puzzles
+- [ ] if a login error occurs on content script startup we throw and set the content script status but have no way of showing this to the user. Highlight it in the extension icon and in the extension icon suggest login.

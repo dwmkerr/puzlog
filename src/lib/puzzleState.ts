@@ -8,6 +8,7 @@ export enum PuzzleStatus {
 }
 
 export interface PuzzleState {
+  userId: string;
   id: string;
   url: string;
   title: string;
@@ -24,6 +25,7 @@ export interface PuzzleState {
 }
 
 export interface SerializablePuzzle {
+  userId: string;
   id: string;
   url: string;
   title: string;
@@ -46,6 +48,7 @@ export interface SerializablePuzzle {
 
 export function toSerializableObject(state: PuzzleState): SerializablePuzzle {
   return {
+    userId: state.userId,
     id: state.id,
     url: state.url,
     title: state.title,
@@ -101,6 +104,7 @@ export function fromSerializableObject(
   //  added to the extension since the puzzle was initially logged). This is
   //  also covered in the unit tests.
   return {
+    userId: object.userId || "", // TODO remove the undefined option when auth complete,
     id: object.id,
     url: object.url,
     title: object.title,

@@ -9,6 +9,7 @@ import {
 describe("puzzleState", () => {
   it("should serialize and deserialize PuzzleState without data loss", () => {
     const originalPuzzleState: PuzzleState = {
+      userId: "TODO",
       id: "xQI9LNXf12VMm8tEkN31",
       url: "https://www.theguardian.com/crosswords/cryptic/29233",
       title: "Sample Puzzle",
@@ -37,6 +38,7 @@ describe("puzzleState", () => {
 
   it("should throw an error if dates are not valid ISO8601 strings during deserialization", () => {
     const invalidSerializedObject = {
+      userId: "TODO",
       id: "xQI9LNXf12VMm8tEkN31",
       url: "https://www.theguardian.com/crosswords/cryptic/29233",
       title: "Sample Puzzle",
@@ -89,7 +91,7 @@ describe("puzzleState", () => {
 
     //  Fix the dates, then check we get a Unknown PuzzleStatus.
     const deserializedObject = fromSerializableObject(serliazedObjectPartial);
-    expect(deserializedObject.id).toEqual("");
+    expect(deserializedObject.userId).toEqual("");
     expect(deserializedObject.status).toEqual(PuzzleStatus.Unknown);
     expect(deserializedObject.hintsOrMistakes).toEqual(null);
     expect(deserializedObject.notes).toEqual("");

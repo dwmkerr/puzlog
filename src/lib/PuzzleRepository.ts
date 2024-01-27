@@ -21,7 +21,8 @@ import {
   fromSerializableObject,
   SerializablePuzzle,
 } from "./puzzleState";
-import { Auth, Unsubscribe } from "firebase/auth";
+import { Auth, Unsubscribe, User, signInAnonymously } from "firebase/auth";
+import { PuzlogError } from "./PuzlogError";
 
 const puzzleConverter = {
   toFirestore(puzzle: WithFieldValue<PuzzleState>): SerializablePuzzle {
@@ -56,6 +57,15 @@ export class PuzzleRepository {
     const querySnapshot = await getDocs(this.puzzlesCollection);
     const puzzles = querySnapshot.docs.map((doc) => doc.data());
     return puzzles;
+  }
+
+  subscribeToPuzzles(onPuzzles: (puzzles: PuzzleState[]) => void): Unsubscribe {
+    const q = query(this.puzzlesCollection);
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const puzzles = querySnapshot.docs.map((doc) => doc.data());
+      onPuzzles(puzzles);
+    });
+    return unsubscribe;
   }
 
   async loadPuzzle(id: string): Promise<PuzzleState | null> {
@@ -119,7 +129,7 @@ export class PuzzleRepository {
     });
   }
 
-  async restore(backupJson: string): Promise<void> {
+  async restore(backupJson: string, userId: string): Promise<void> {
     const puzzleRecords = JSON.parse(backupJson) as SerializablePuzzle[];
     const puzzles = puzzleRecords.map(fromSerializableObject);
 
@@ -130,7 +140,12 @@ export class PuzzleRepository {
         const newDocumentReference = doc(this.puzzlesCollection);
         puzzle.id = newDocumentReference.id;
       }
-      return await setDoc(doc(this.puzzlesCollection, puzzle.id), puzzle);
+
+      //  Load the puzzles into the database, but always set the user id.
+      return await setDoc(doc(this.puzzlesCollection, puzzle.id), {
+        ...puzzle,
+        userId,
+      });
     });
     await Promise.all(promises);
   }
@@ -146,5 +161,15 @@ export class PuzzleRepository {
 
   getAuth(): Auth {
     return this.auth;
+  }
+
+  async signInAnonymously(): Promise<User> {
+    try {
+      const userCredential = await signInAnonymously(this.auth);
+      return userCredential.user;
+      // eslint-disable-next-line
+    } catch (err: any) {
+      throw new PuzlogError("Authentication Failed", err?.message, err);
+    }
   }
 }

@@ -48,6 +48,7 @@ export enum ContentScriptStatus {
   NotPresent,
   Loading,
   Loaded,
+  Errored,
   OutOfDate,
   Unknown,
 }
@@ -131,6 +132,8 @@ export abstract class ContentScriptInterface {
           return "Loading";
         } else if (contentScriptStatus === "loaded") {
           return "Loaded";
+        } else if (contentScriptStatus === "errored") {
+          return "Errored";
         } else {
           return "Unknown";
         }

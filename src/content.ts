@@ -27,9 +27,21 @@ extensionInterface.onMessage(
 //  Typically called by the popup when the user has decided to start working on
 //  a puzzle.
 extensionInterface.onMessage("startTabPuzzle", async () => {
+  //  Asset that the user is logged in. If they are not we will have to fail.
+  const user = puzzleRepository.getAuth().currentUser;
+  if (!user) {
+    throw new Error(`user is not logged in`);
+  }
+
+  // const puzzlesRef = collection(db, "puzzles");
+  // addDoc(puzzlesRef, {
+  //   userId: user.uid,
+  //   // Other puzzle data...
+  // });
   //  This is where we create the initial puzzle object.
   const now = new Date();
   const puzzle: Omit<PuzzleState, "id"> = {
+    userId: user.uid,
     url: localExtensionState.url,
     //  TODO: auto set the proper ttitle
     title: localExtensionState.title,
@@ -77,6 +89,8 @@ function showTimerAndOverlay(puzzle: PuzzleState) {
 
 async function startup() {
   console.log("initialising puzlog...");
+
+  await puzzleRepository.signInAnonymously();
 
   //  Try and load the puzzle from storage. If it's not present, it hasn't been
   //  started yet.
@@ -164,7 +178,13 @@ function log(message: string) {
   contentScriptStatusTag.setAttribute("content", "loading");
 
   //  Start the content script code, preparing the DOM etc.
-  await startup();
+  try {
+    await startup();
+  } catch (err) {
+    //  Update the status to 'failed' - we've errored.
+    console.error("puzlog: error initialising extension", err);
+    contentScriptStatusTag.setAttribute("content", "errored");
+  }
 
   //  Update the status to 'loaded' - we're good to go.
   contentScriptStatusTag.setAttribute("content", "loaded");
