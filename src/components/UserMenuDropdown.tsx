@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { User } from "firebase/auth";
 import Box from "@mui/joy/Box";
 import Typography from "@mui/joy/Typography";
 import Avatar from "@mui/joy/Avatar";
@@ -10,55 +11,90 @@ import ListDivider from "@mui/joy/ListDivider";
 
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
-import { User, onAuthStateChanged } from "firebase/auth";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import GoogleIcon from "@mui/icons-material/Google";
+
 import { PuzzleRepository } from "../lib/PuzzleRepository";
 
-function UserInfo({ user }: { user?: User }) {
-  if (user && user?.isAnonymous) {
-    return (
-      <Box sx={{ ml: 1.5 }}>
-        <Typography level="title-sm" textColor="text.primary">
-          Guest
-        </Typography>
-        <Typography level="body-xs" textColor="text.tertiary">
-          {user.uid}
-        </Typography>
-        <Typography level="body-xs" textColor="text.tertiary">
-          X puzzles complete
-        </Typography>
-      </Box>
-    );
-  }
+function UserInfo({ user }: { user: User | undefined }) {
+  //  Work out the user name and info.
+  const puzzleRepository = new PuzzleRepository();
+  const userName = user && user?.isAnonymous ? "Guest" : user?.displayName;
+  const userDetail = user ? user.uid : "Not Logged In";
+
+  //  Based on the state of the user, we will have options to link/logout.
+  const showGuestSignInButton = !user;
+  const showGoogleSignInButton = !user;
+  const showLinkButton = user && user.isAnonymous;
+
   return (
-    <Box sx={{ ml: 1.5 }}>
-      <Typography level="title-sm" textColor="text.primary">
-        Not Logged In
-      </Typography>
-    </Box>
+    <div>
+      <MenuItem disabled={true}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <Avatar
+            src={user?.photoURL || undefined}
+            sx={{
+              maxWidth: "32px",
+              maxHeight: "32px",
+              borderRadius: "50%",
+            }}
+          />
+          <Box sx={{ ml: 1.5 }}>
+            <Typography level="title-sm" textColor="text.primary">
+              {userName || "Unknown User"}
+            </Typography>
+            {user?.email && (
+              <Typography level="body-xs" textColor="text.tertiary">
+                {user.email}
+              </Typography>
+            )}
+            <Typography level="body-xs" textColor="text.tertiary">
+              {userDetail}
+            </Typography>
+            {user && (
+              <Typography level="body-xs" textColor="text.tertiary">
+                X puzzles complete
+              </Typography>
+            )}
+          </Box>
+        </Box>
+      </MenuItem>
+      <ListDivider />
+      {showGuestSignInButton && (
+        <MenuItem onClick={() => puzzleRepository.signInAnonymously()}>
+          <AccountCircleIcon />
+          Sign In as Guest
+        </MenuItem>
+      )}
+      {showGoogleSignInButton && (
+        <MenuItem onClick={() => puzzleRepository.signInWithGoogle()}>
+          <GoogleIcon />
+          Sign In with Google
+        </MenuItem>
+      )}
+      {showLinkButton && (
+        <MenuItem
+          onClick={() => puzzleRepository.linkAnonymousUserWithGoogle(user)}
+        >
+          <GoogleIcon />
+          Link Google Account
+        </MenuItem>
+      )}
+    </div>
   );
 }
-export default function UserMenuDropdown() {
+
+interface UserMenuDropdownProps {
+  user?: User;
+}
+
+export default function UserMenuDropdown(props: UserMenuDropdownProps) {
   const puzzleRepository = new PuzzleRepository();
-  const [user, setUser] = useState<User | undefined>(undefined);
-
-  //  If we were not provided with an initial user object, get the current user.
-  useEffect(() => {
-    const getUser = async () => {
-      const signedInUser = await puzzleRepository.signInAnonymously();
-      setUser(signedInUser);
-    };
-    getUser();
-  }, []);
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      puzzleRepository.getAuth(),
-      (user) => {
-        setUser(user || undefined);
-      }
-    );
-
-    return () => unsubscribe();
-  }, []);
 
   return (
     <Dropdown>
@@ -83,29 +119,16 @@ export default function UserMenuDropdown() {
           "--ListItem-radius": "var(--joy-radius-sm)",
         }}
       >
-        <MenuItem disabled={true}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Avatar
-              sx={{
-                maxWidth: "32px",
-                maxHeight: "32px",
-                borderRadius: "50%",
-              }}
-            />
-            <UserInfo user={user} />
-          </Box>
-        </MenuItem>
+        <UserInfo user={props.user} />
         <ListDivider />
         <MenuItem disabled={true}>
           <SettingsRoundedIcon />
           Settings
         </MenuItem>
-        <MenuItem disabled={true}>
+        <MenuItem
+          disabled={!props.user}
+          onClick={() => puzzleRepository.signOut()}
+        >
           <LogoutRoundedIcon />
           Log out
         </MenuItem>

@@ -1,4 +1,10 @@
-import React, { RefObject, useCallback, useRef, useState } from "react";
+import React, {
+  RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import Box from "@mui/joy/Box";
 import Typography from "@mui/joy/Typography";
 import IconButton from "@mui/joy/IconButton";
@@ -19,6 +25,8 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import FileUploadButton from "./FileUploadButton";
 import UserMenuDropdown from "./UserMenuDropdown";
+import { PuzzleRepository } from "../lib/PuzzleRepository";
+import { User, onAuthStateChanged } from "firebase/auth";
 
 interface MainMenuDropDownProps {
   onBackup: () => void;
@@ -109,6 +117,21 @@ type HeaderProps = MainMenuDropDownProps & {
 };
 
 export default function Header(props: HeaderProps) {
+  const puzzleRepository = new PuzzleRepository();
+  const [user, setUser] = useState<User | null>(
+    puzzleRepository.getUser() || null
+  );
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(
+      puzzleRepository.getAuth(),
+      (user) => {
+        setUser(user || null);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
   return (
     <Box
       component="header"
@@ -218,7 +241,7 @@ export default function Header(props: HeaderProps) {
               <GitHubIcon />
             </IconButton>
           </Tooltip>
-          <UserMenuDropdown />
+          <UserMenuDropdown user={user || undefined} />
         </Box>
       </Box>
     </Box>

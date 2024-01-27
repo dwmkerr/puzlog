@@ -26,9 +26,9 @@ import * as extensionInterface from "../../extensionInterface";
 import { PuzzleStatus } from "../../lib/puzzle";
 import { isExtensionAccessibleTab } from "../../lib/helpers";
 import { PuzzleRepository } from "../../lib/PuzzleRepository";
-import { PuzlogError } from "../../lib/PuzlogError";
+import { PuzlogError } from "../../lib/Errors";
 import { Stack } from "@mui/joy";
-import { User, signInAnonymously } from "firebase/auth";
+import { User } from "firebase/auth";
 
 const ErrorAlert = ({ error }: { error: PuzlogError }) => {
   return (
@@ -72,30 +72,15 @@ const CrosswordDataAlert = ({
 );
 
 export default function MiniPopup() {
-  const [user, setUser] = useState<User | undefined>(undefined);
+  const puzzleRepository = new PuzzleRepository();
+
+  const [user] = useState<User | null>(puzzleRepository.getUser());
   const [crosswordMetadata, setCrosswordMetadata] =
     useState<CrosswordMetadata | null>(null);
   const [puzzleId, setPuzzleId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<PuzlogError | undefined>(undefined);
   const [puzzleStatus, setPuzzleStatus] = useState(PuzzleStatus.Unknown);
-
-  const puzzleRepository = new PuzzleRepository();
-
-  //  On load, try and log in anonymously.
-  useEffect(() => {
-    const loginAnon = async () => {
-      const auth = puzzleRepository.getAuth();
-      try {
-        const userCredential = await signInAnonymously(auth);
-        setUser(userCredential.user);
-        // eslint-disable-next-line
-      } catch (err: any) {
-        setError(new PuzlogError("Authentication Failed", err?.message, err));
-      }
-    };
-    loginAnon();
-  }, []);
 
   useEffect(() => {
     const getTabPuzzleStatus = async () => {

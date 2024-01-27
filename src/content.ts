@@ -90,35 +90,47 @@ function showTimerAndOverlay(puzzle: Puzzle) {
 async function startup() {
   console.log("initialising puzlog...");
 
-  await puzzleRepository.signInAnonymously();
+  //  Get the current user. Assume we cannot load any puzzle data for now.
+  const user = puzzleRepository.getUser();
+  localExtensionState.puzzleId = "";
+  localExtensionState.puzzleStatus = PuzzleStatus.NotStarted;
+  let puzzle: Puzzle | null = null;
 
-  //  Try and load the puzzle from storage. If it's not present, it hasn't been
-  //  started yet.
-  const puzzle = await puzzleRepository.queryPuzzleByUrl(
-    puzzleIdFromUrl(location.href)
-  );
-  localExtensionState.puzzleId = puzzle?.id || "";
-  localExtensionState.puzzleStatus = puzzle?.status || PuzzleStatus.NotStarted;
-
-  //  Scrape the crossword metadata.
+  //  Scrape the crossword metadata. We will use this later to either enrich
+  //  the puzzle we are currently working on, or show some inforamation about
+  //  the puzzle in the action popup.
   localExtensionState.crosswordMetadata = scrapeCrosswordMetadata(
     location.href,
     document
   );
 
-  //  It is possible that our metadata we have just scraped is not set in the
-  //  crossword, or only partially set. If so set it now. This'll happen if we
-  //  didn't scrape everything we can before.
-  if (puzzle && localExtensionState.crosswordMetadata) {
-    puzzle.metadata = enrichMetadata(
-      puzzle.metadata,
-      localExtensionState.crosswordMetadata
+  //  If we are signed in, try and load the puzzle data in case the user has
+  //  already worked on it.
+  if (user) {
+    puzzle = await puzzleRepository.queryPuzzleByUrl(
+      puzzleIdFromUrl(location.href)
     );
-    await puzzleRepository.save(puzzle);
   }
 
-  //  If the puzzle has been loaded, we can show the overlay and start the timer.
+  //  If we have loaded the puzzle, we can set its state locally, enrich it and
+  //  start the timer.
   if (puzzle) {
+    //  Update the extension state.
+    localExtensionState.puzzleId = puzzle.id;
+    localExtensionState.puzzleStatus = puzzle.status;
+
+    //  It is possible that our metadata we have just scraped is not set in the
+    //  crossword, or only partially set. If so set it now. This'll happen if we
+    //  didn't scrape everything we can before.
+    if (localExtensionState.crosswordMetadata) {
+      puzzle.metadata = enrichMetadata(
+        puzzle.metadata,
+        localExtensionState.crosswordMetadata
+      );
+      await puzzleRepository.save(puzzle);
+    }
+
+    //  Show the overlay and start the timer.
     showTimerAndOverlay(puzzle);
   }
 

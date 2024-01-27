@@ -21,8 +21,16 @@ import {
   fromSerializableObject,
   SerializablePuzzle,
 } from "./puzzle";
-import { Auth, Unsubscribe, User, signInAnonymously } from "firebase/auth";
-import { PuzlogError } from "./PuzlogError";
+import {
+  Auth,
+  GoogleAuthProvider,
+  Unsubscribe,
+  User,
+  signInAnonymously,
+  signInWithCredential,
+  linkWithCredential,
+} from "firebase/auth";
+import { PuzlogError } from "./Errors";
 
 const puzzleConverter = {
   toFirestore(puzzle: WithFieldValue<Puzzle>): SerializablePuzzle {
@@ -160,6 +168,10 @@ export class PuzzleRepository {
     return this.auth;
   }
 
+  getUser(): User | null {
+    return this.auth.currentUser;
+  }
+
   async signInAnonymously(): Promise<User> {
     try {
       const userCredential = await signInAnonymously(this.auth);
@@ -168,5 +180,62 @@ export class PuzzleRepository {
     } catch (err: any) {
       throw new PuzlogError("Authentication Failed", err?.message, err);
     }
+  }
+
+  async signInWithGoogle(): Promise<User | null> {
+    //  Get an auth token via chrome's identity api, interactive if needed.
+    const { token } = await chrome.identity.getAuthToken({
+      interactive: true,
+      scopes: ["profile", "email"],
+    });
+    if (chrome.runtime.lastError) {
+      throw new PuzlogError(
+        "Sign In Error",
+        chrome.runtime.lastError.message || "Unknown error"
+      );
+    }
+
+    //  If we haven't received a token, return false.
+    if (!token) {
+      console.log("puzlog: sign in returned null token");
+      return null;
+    }
+
+    //  Now sign in to firebase using a a google credential based on the token.
+    try {
+      const response = await signInWithCredential(
+        this.auth,
+        GoogleAuthProvider.credential(null, token)
+      );
+      console.log("puzlog: signed in!", response);
+      return response.user;
+      // eslint-disable-next-line
+    } catch (err: any) {
+      throw new PuzlogError("Sign In Error", err?.message, err);
+    }
+  }
+
+  async linkAnonymousUserWithGoogle(currentUser: User) {
+    try {
+      const { token } = await chrome.identity.getAuthToken({
+        interactive: true,
+        scopes: ["profile", "email"],
+      });
+      const credential = GoogleAuthProvider.credential(null, token);
+
+      //  Link the google account to the current anonymous user.
+      const userCredential = await linkWithCredential(currentUser, credential);
+      console.log("puzlog: Account linking successful:", userCredential.user);
+      // eslint-disable-next-line
+    } catch (err: any) {
+      throw new PuzlogError("Link Account Error", err?.message, err);
+    }
+  }
+
+  async signOut() {
+    //  Clear the chrome cached for any signed-in identities and sing out from
+    //  Firebase.
+    await chrome.identity.clearAllCachedAuthTokens();
+    this.auth.signOut();
   }
 }

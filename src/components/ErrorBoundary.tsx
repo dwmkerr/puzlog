@@ -3,7 +3,7 @@ import { IconButton, Snackbar, Stack, Typography } from "@mui/joy";
 
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import CloseIcon from "@mui/icons-material/Close";
-import { PuzlogError } from "../lib/PuzlogError";
+import { PuzlogError } from "../lib/Errors";
 
 interface Props {
   children?: ReactNode;

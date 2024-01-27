@@ -338,7 +338,15 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 
 ## Epic - Login
 
-- [ ] test firestore save puzzle without userid
-- [ ] refactor puzzlestate to puzzle
+- [ ] feat: user initiated sign in as guest
+- [ ] feat: user initiated sign in with google
+- [ ] feat: on initial start puzzle, sign in as an anonymous user if there is no current user
+- [ ] test: sign out, sign in with google, sign up again with google, proper error
+- [ ] feat: if logged in as a guest user show a warning on the puzlog page telling link accounts
+- [ ] feat: link accounts
+- [ ] feat: link accounts retrieve puzzles if was signed in before
+- [ ] feat: limit firebase read puzzles to current user id - clean up puzzles then re-import
+- [x] refactor puzzlestate to puzzle
 - [ ] login as guest initially, add userid to puzzles
 - [ ] if a login error occurs on content script startup we throw and set the content script status but have no way of showing this to the user. Highlight it in the extension icon and in the extension icon suggest login.
+- [ ] bug: user.email is missing after sign in with chrome, permissions? or does it need to be enriched with a call to identity.getProfileInfo?

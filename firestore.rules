@@ -27,6 +27,8 @@ service cloud.firestore {
       // available in rules.
       match /puzzles/{documents=**} {
         allow read: if request.time < timestamp.date(2024, 2, 8);
+        // uncomment to allow reading of all puzzles regardless of user
+        // allow read: if request.time < timestamp.date(2024, 2, 8);
         allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
         allow create: if request.auth != null;
       }
