@@ -17,6 +17,7 @@ Chrome Web Store: [Install TODO](https://chrome.google.com/webstore/detail/chatg
 <!-- vim-markdown-toc GFM -->
 
 - [Quickstart](#quickstart)
+- [User Accounts](#user-accounts)
 - [Developer Guide](#developer-guide)
   - [Developer Commands](#developer-commands)
   - [Code Structure](#code-structure)
@@ -50,6 +51,12 @@ Open [Chrome Extensions](chrome://extensions), choose 'Load Unpacked' and select
 Press the 'Puzlog' button in the toolbar, you will now have the option to record timings, track progress and so on.
 
 ![Screenshot of TODO](./docs/demo-show-diagram.png)
+
+## User Accounts
+
+Initially when you start Puzlog you will be logged in with a "Guest Account". This anonymous account allows you to save progress on puzzles and persist data. However, Guest Accounts will not persist if you uninstall and reinstall the extension.
+
+To avoid data loss, you should use the "Link Google Account" option to link your Google account. When you are using a Google account your puzzles will be persisted even if you restart the extension.
 
 ## Developer Guide
 
@@ -338,8 +345,10 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 
 ## Epic - Login
 
-- [ ] feat: user initiated sign in as guest
-- [ ] feat: user initiated sign in with google
+- [ ] feat: show success snackbar when user accounts linked TODO refactor success/warning/etc into single component
+- [x] feat: welcome panel on popup for sign in
+- [x] feat: user initiated sign in as guest
+- [x] feat: user initiated sign in with google
 - [ ] feat: on initial start puzzle, sign in as an anonymous user if there is no current user
 - [ ] test: sign out, sign in with google, sign up again with google, proper error
 - [ ] feat: if logged in as a guest user show a warning on the puzlog page telling link accounts
@@ -350,3 +359,6 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 - [ ] login as guest initially, add userid to puzzles
 - [ ] if a login error occurs on content script startup we throw and set the content script status but have no way of showing this to the user. Highlight it in the extension icon and in the extension icon suggest login.
 - [ ] bug: user.email is missing after sign in with chrome, permissions? or does it need to be enriched with a call to identity.getProfileInfo?
+- [ ] on extension startup, request login. If the user chooses a guest account, nudge them later to link a google account.
+- [ ] when logged in with a guest account, nudge the 'link user accounts'
+- [ ] login page shows 'google' or 'continue as guest' with a warning about the guest accounts

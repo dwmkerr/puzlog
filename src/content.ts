@@ -90,8 +90,8 @@ function showTimerAndOverlay(puzzle: Puzzle) {
 async function startup() {
   console.log("initialising puzlog...");
 
-  //  Get the current user. Assume we cannot load any puzzle data for now.
-  const user = puzzleRepository.getUser();
+  //  Wait for the current user. Assume we cannot load any puzzle data for now.
+  const user = await puzzleRepository.waitForUser();
   localExtensionState.puzzleId = "";
   localExtensionState.puzzleStatus = PuzzleStatus.NotStarted;
   let puzzle: Puzzle | null = null;

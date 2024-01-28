@@ -8,7 +8,13 @@ import { Typography } from "@mui/joy";
 import { User, onAuthStateChanged } from "firebase/auth";
 import ErrorSnackbar from "../../components/ErrorSnackbar";
 import { PuzlogError, WarningError } from "../../lib/Errors";
-import WarningSnackbar from "../../components/WarningSnackbar";
+import WarningSnackbar, {
+  SuccessSnackbar,
+} from "../../components/WarningSnackbar";
+import {
+  AlertContextProvider,
+  useAlertContext,
+} from "../../components/AlertContext";
 
 interface PuzlogPageProps {
   puzzleRepository: PuzzleRepository;
@@ -19,7 +25,11 @@ const PuzlogPage = ({
   puzzleRepository,
   selectedPuzzleId,
 }: PuzlogPageProps) => {
-  const [user, setUser] = useState<User | null>(puzzleRepository.getUser());
+  //  The user is initially 'undefined' while we wait for firebase to resolve
+  //  it. Then if they are not logged in it is 'null', or a user object
+  //  otherwise.
+  const [user, setUser] = useState<User | null | undefined>(undefined);
+
   const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
   const [searchText, setSearchText] = useState("");
   const [currentError, setCurrentError] = useState<PuzlogError | undefined>(
@@ -29,9 +39,27 @@ const PuzlogPage = ({
     WarningError | undefined
   >(undefined);
 
+  //  Access the alert context so that we can render the alerts.
+  const { alert, setAlert } = useAlertContext();
+
+  //  Wait for the user to load.
   useEffect(() => {
-    //  If the user is not signed in at all, show an error.
-    if (!user) {
+    const waitForUser = async () => {
+      const user = await puzzleRepository.waitForUser();
+      setUser(user);
+    };
+    waitForUser();
+  });
+
+  useEffect(() => {
+    //  If the user is undefined we are still waiting for its state, so no
+    //  alerts should be shown.
+    if (user === undefined) {
+      return;
+    }
+
+    //  If the user is not signed in, show an error.
+    if (user === null) {
       setCurrentWarning(
         new WarningError(
           "Not Signed In",
@@ -41,7 +69,7 @@ const PuzlogPage = ({
     }
 
     //  If the user is not signed in, set the warning state.
-    if (user && user?.isAnonymous) {
+    if (user?.isAnonymous) {
       setCurrentWarning(
         new WarningError(
           "Guest Account Warning",
@@ -61,34 +89,6 @@ const PuzlogPage = ({
 
     return () => unsubscribe();
   }, []);
-
-  //  On load, try to log in anonymously.
-  // useEffect(() => {
-  //   const loginAnon = async () => {
-  //     const auth = puzzleRepository.getAuth();
-  //     try {
-  //       const userCredential = await signInAnonymously(auth);
-  //       setUser(userCredential.user);
-  //       setCurrentWarning(
-  //         new WarningError(
-  //           "Guest Account Warning",
-  //           "Guest accounts do not have their puzzles backed up - link a social account to backup your puzzles."
-  //         )
-  //       );
-  //       // eslint-disable-next-line
-  //     } catch (err: any) {
-  //       setCurrentError(
-  //         new PuzlogError(
-  //           "Authentication Failed",
-  //           err?.message ||
-  //             "An unknown error occurred attemping to authenticate anonymously.",
-  //           err
-  //         )
-  //       );
-  //     }
-  //   };
-  //   loginAnon();
-  // }, []);
 
   //  On mount, watch for any changes to the puzzles collection and then update
   //  the puzzles appropriately.
@@ -163,6 +163,9 @@ const PuzlogPage = ({
           warning={currentWarning}
           onDismiss={() => setCurrentWarning(undefined)}
         />
+        {alert && (
+          <SuccessSnackbar info={alert} onDismiss={() => setAlert(null)} />
+        )}
         <Typography level="h3" component="h1">
           Puzzles
         </Typography>

@@ -4,6 +4,7 @@ import "@fontsource/inter"; // Font used by JoyUI
 import PuzlogPage from "./PuzlogPage";
 import { PuzzleRepository } from "../../lib/PuzzleRepository";
 import ErrorBoundary from "../../components/ErrorBoundary";
+import { AlertContextProvider } from "../../components/AlertContext";
 
 //  Instantiate a puzzle repository.
 //  const puzzleRepository = new ChromeStoragePuzzleRepository(chrome.storage.local);
@@ -20,9 +21,11 @@ if (!container) {
 const root = createRoot(container); // createRoot(container!) if you use TypeScript
 root.render(
   <ErrorBoundary>
-    <PuzlogPage
-      puzzleRepository={puzzleRepository}
-      selectedPuzzleId={selectedPuzzleId}
-    />
+    <AlertContextProvider>
+      <PuzlogPage
+        puzzleRepository={puzzleRepository}
+        selectedPuzzleId={selectedPuzzleId}
+      />
+    </AlertContextProvider>
   </ErrorBoundary>
 );

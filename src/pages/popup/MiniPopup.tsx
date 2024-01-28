@@ -5,16 +5,17 @@ import Button from "@mui/joy/Button";
 import Card from "@mui/joy/Card";
 import CardContent from "@mui/joy/CardContent";
 import CardActions from "@mui/joy/CardActions";
-import HomeOutlined from "@mui/icons-material/HomeOutlined";
 import SportsScoreIcon from "@mui/icons-material/SportsScore";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import LinearProgress from "@mui/joy/LinearProgress";
 import Link from "@mui/joy/Link";
-import InfoOutlined from "@mui/icons-material/InfoOutlined";
-import WarningIcon from "@mui/icons-material/Warning";
-import PlayCircleOutline from "@mui/icons-material/PlayCircleOutline";
 import IconButton from "@mui/joy/IconButton";
 import Typography from "@mui/joy/Typography";
+
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import WarningIcon from "@mui/icons-material/Warning";
+import PlayCircleOutline from "@mui/icons-material/PlayCircleOutline";
 
 import {
   ContentScriptInterface,
@@ -28,7 +29,8 @@ import { isExtensionAccessibleTab } from "../../lib/helpers";
 import { PuzzleRepository } from "../../lib/PuzzleRepository";
 import { PuzlogError } from "../../lib/Errors";
 import { Stack } from "@mui/joy";
-import { User } from "firebase/auth";
+import { User, onAuthStateChanged } from "firebase/auth";
+import MiniPopupWelcome from "../../components/WelcomeCard";
 
 const ErrorAlert = ({ error }: { error: PuzlogError }) => {
   return (
@@ -59,7 +61,7 @@ const CrosswordDataAlert = ({
     variant="outlined"
     color="primary"
     size="sm"
-    startDecorator={<InfoOutlined />}
+    startDecorator={<InfoOutlinedIcon />}
   >
     Series: {crosswordMetadata?.series}
     <br />
@@ -74,13 +76,40 @@ const CrosswordDataAlert = ({
 export default function MiniPopup() {
   const puzzleRepository = new PuzzleRepository();
 
-  const [user] = useState<User | null>(puzzleRepository.getUser());
+  //  State for the current user, which will initially be loading while we wait
+  //  for it.
+  const [user, setUser] = useState<User | null>(null);
+  const [waitingForUser, setWaitingForUser] = useState(true);
+
   const [crosswordMetadata, setCrosswordMetadata] =
     useState<CrosswordMetadata | null>(null);
   const [puzzleId, setPuzzleId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<PuzlogError | undefined>(undefined);
   const [puzzleStatus, setPuzzleStatus] = useState(PuzzleStatus.Unknown);
+
+  //  On mount, wait for the current user (if any). This waits for firebase
+  //  to load based on any cached credentials.
+  useEffect(() => {
+    const waitForUser = async () => {
+      const user = await puzzleRepository.waitForUser();
+      setUser(user);
+      setWaitingForUser(false);
+    };
+    waitForUser();
+  });
+
+  //  Track the user state.
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(
+      puzzleRepository.getAuth(),
+      (user) => {
+        setUser(user || null);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const getTabPuzzleStatus = async () => {
@@ -180,10 +209,31 @@ export default function MiniPopup() {
     }
   };
 
+  //  If we are waiting for the user show a loader.
+  if (waitingForUser) {
+    return (
+      <Card
+        sx={{
+          width: 380,
+          /*"--Card-radius": "0px" TODO setting card readius works but changes all the children, find alternative... */
+        }}
+      >
+        <CardContent>
+          <LinearProgress />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  //  If the user is not logged in, show the Welcome card.
+  if (!waitingForUser && !user) {
+    return <MiniPopupWelcome />;
+  }
+
   return (
     <Card
       sx={{
-        width: 320,
+        width: 380,
         /*"--Card-radius": "0px" TODO setting card readius works but changes all the children, find alternative... */
       }}
     >
@@ -201,7 +251,7 @@ export default function MiniPopup() {
           sx={{ position: "absolute", top: "0.875rem", right: "0.5rem" }}
           onClick={home}
         >
-          <HomeOutlined />
+          <HomeOutlinedIcon />
         </IconButton>
         {loading && <LinearProgress />}
         {puzzleStatus === PuzzleStatus.NotStarted && (
@@ -237,7 +287,7 @@ export default function MiniPopup() {
           sx={{ mr: "auto" }}
           onClick={home}
         >
-          <HomeOutlined />
+          <HomeOutlinedIcon />
         </IconButton>
         {puzzleStatus === PuzzleStatus.NotStarted && (
           <Button

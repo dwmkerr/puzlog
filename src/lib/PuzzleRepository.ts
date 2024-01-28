@@ -29,6 +29,8 @@ import {
   signInAnonymously,
   signInWithCredential,
   linkWithCredential,
+  updateEmail,
+  updateProfile,
 } from "firebase/auth";
 import { PuzlogError } from "./Errors";
 
@@ -172,13 +174,18 @@ export class PuzzleRepository {
     return this.auth.currentUser;
   }
 
+  async waitForUser(): Promise<User | null> {
+    //  Wait for any cached credentials to be used to load the current user.
+    await this.auth.authStateReady();
+    return this.auth.currentUser;
+  }
+
   async signInAnonymously(): Promise<User> {
     try {
       const userCredential = await signInAnonymously(this.auth);
       return userCredential.user;
-      // eslint-disable-next-line
-    } catch (err: any) {
-      throw new PuzlogError("Authentication Failed", err?.message, err);
+    } catch (err) {
+      throw PuzlogError.fromError("Authentication Failed", err);
     }
   }
 
@@ -207,11 +214,9 @@ export class PuzzleRepository {
         this.auth,
         GoogleAuthProvider.credential(null, token)
       );
-      console.log("puzlog: signed in!", response);
       return response.user;
-      // eslint-disable-next-line
-    } catch (err: any) {
-      throw new PuzlogError("Sign In Error", err?.message, err);
+    } catch (err) {
+      throw PuzlogError.fromError("Sign In Error", err);
     }
   }
 
@@ -224,11 +229,27 @@ export class PuzzleRepository {
       const credential = GoogleAuthProvider.credential(null, token);
 
       //  Link the google account to the current anonymous user.
-      const userCredential = await linkWithCredential(currentUser, credential);
-      console.log("puzlog: Account linking successful:", userCredential.user);
-      // eslint-disable-next-line
-    } catch (err: any) {
-      throw new PuzlogError("Link Account Error", err?.message, err);
+      /* const userCredential = */ await linkWithCredential(
+        currentUser,
+        credential
+      );
+
+      //  The original anonymous user account will be missing the photo url and
+      //  display name - copy them from the google provider.
+      const googleProviderData = currentUser.providerData.find(
+        (provider) => provider.providerId === GoogleAuthProvider.PROVIDER_ID
+      );
+      if (googleProviderData) {
+        if (googleProviderData.email) {
+          await updateEmail(currentUser, googleProviderData.email);
+        }
+        await updateProfile(currentUser, {
+          displayName: googleProviderData.displayName,
+          photoURL: googleProviderData.photoURL,
+        });
+      }
+    } catch (err) {
+      throw PuzlogError.fromError("Link Account Error", err);
     }
   }
 

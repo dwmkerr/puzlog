@@ -114,6 +114,7 @@ function MainMenuDropDown(props: MainMenuDropDownProps) {
 type HeaderProps = MainMenuDropDownProps & {
   searchText: string;
   onSearchTextChanged: (searchText: string) => void;
+  // onUserAccountLinked: (user: User) => void;
 };
 
 export default function Header(props: HeaderProps) {

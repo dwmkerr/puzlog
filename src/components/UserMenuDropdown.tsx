@@ -15,6 +15,8 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import GoogleIcon from "@mui/icons-material/Google";
 
 import { PuzzleRepository } from "../lib/PuzzleRepository";
+import { useAlertContext } from "../components/AlertContext";
+import { PuzlogError } from "../lib/Errors";
 
 function UserInfo({ user }: { user: User | undefined }) {
   //  Work out the user name and info.
@@ -26,6 +28,22 @@ function UserInfo({ user }: { user: User | undefined }) {
   const showGuestSignInButton = !user;
   const showGoogleSignInButton = !user;
   const showLinkButton = user && user.isAnonymous;
+
+  const { setAlert } = useAlertContext();
+
+  const linkGoogleAccount = async () => {
+    if (!user) {
+      throw new PuzlogError(
+        "Link Account Error",
+        "Unexpected null user when linking accounts"
+      );
+    }
+    await puzzleRepository.linkAnonymousUserWithGoogle(user);
+    setAlert({
+      title: "Accounts Linked",
+      message: "Successfully linked your Google Account",
+    });
+  };
 
   return (
     <div>
@@ -56,11 +74,6 @@ function UserInfo({ user }: { user: User | undefined }) {
             <Typography level="body-xs" textColor="text.tertiary">
               {userDetail}
             </Typography>
-            {user && (
-              <Typography level="body-xs" textColor="text.tertiary">
-                X puzzles complete
-              </Typography>
-            )}
           </Box>
         </Box>
       </MenuItem>
@@ -78,9 +91,7 @@ function UserInfo({ user }: { user: User | undefined }) {
         </MenuItem>
       )}
       {showLinkButton && (
-        <MenuItem
-          onClick={() => puzzleRepository.linkAnonymousUserWithGoogle(user)}
-        >
+        <MenuItem onClick={linkGoogleAccount}>
           <GoogleIcon />
           Link Google Account
         </MenuItem>
@@ -93,7 +104,7 @@ interface UserMenuDropdownProps {
   user?: User;
 }
 
-export default function UserMenuDropdown(props: UserMenuDropdownProps) {
+export default function UserMenuDropdown({ user }: UserMenuDropdownProps) {
   const puzzleRepository = new PuzzleRepository();
 
   return (
@@ -107,7 +118,10 @@ export default function UserMenuDropdown(props: UserMenuDropdownProps) {
           borderRadius: "9999999px",
         }}
       >
-        <Avatar sx={{ maxWidth: "32px", maxHeight: "32px" }} />
+        <Avatar
+          sx={{ maxWidth: "32px", maxHeight: "32px" }}
+          src={user?.photoURL || undefined}
+        />
       </MenuButton>
       <Menu
         placement="bottom-end"
@@ -119,16 +133,13 @@ export default function UserMenuDropdown(props: UserMenuDropdownProps) {
           "--ListItem-radius": "var(--joy-radius-sm)",
         }}
       >
-        <UserInfo user={props.user} />
+        <UserInfo user={user} />
         <ListDivider />
         <MenuItem disabled={true}>
           <SettingsRoundedIcon />
           Settings
         </MenuItem>
-        <MenuItem
-          disabled={!props.user}
-          onClick={() => puzzleRepository.signOut()}
-        >
+        <MenuItem disabled={!user} onClick={() => puzzleRepository.signOut()}>
           <LogoutRoundedIcon />
           Log out
         </MenuItem>
