@@ -15,7 +15,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import GoogleIcon from "@mui/icons-material/Google";
 
 import { PuzzleRepository } from "../lib/PuzzleRepository";
-import { useAlertContext } from "../components/AlertContext";
+import { AlertType, useAlertContext } from "../components/AlertContext";
 import { PuzlogError } from "../lib/Errors";
 
 function UserInfo({ user }: { user: User | undefined }) {
@@ -29,7 +29,7 @@ function UserInfo({ user }: { user: User | undefined }) {
   const showGoogleSignInButton = !user;
   const showLinkButton = user && user.isAnonymous;
 
-  const { setAlert } = useAlertContext();
+  const { setAlertInfo } = useAlertContext();
 
   const linkGoogleAccount = async () => {
     if (!user) {
@@ -39,7 +39,8 @@ function UserInfo({ user }: { user: User | undefined }) {
       );
     }
     await puzzleRepository.linkAnonymousUserWithGoogle(user);
-    setAlert({
+    setAlertInfo({
+      type: AlertType.Success,
       title: "Accounts Linked",
       message: "Successfully linked your Google Account",
     });

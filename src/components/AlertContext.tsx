@@ -4,11 +4,23 @@ import React, {
   useContext,
   useState,
 } from "react";
-import { AlertInfo } from "./WarningSnackbar";
+
+export enum AlertType {
+  Info,
+  Warning,
+  Error,
+  Success,
+}
+
+export interface AlertInfo {
+  type: AlertType;
+  title: string;
+  message: string;
+}
 
 interface AlertContextValue {
-  alert: AlertInfo | null;
-  setAlert: (alert: AlertInfo | null) => void;
+  alertInfo: AlertInfo | null;
+  setAlertInfo: (alert: AlertInfo | null) => void;
 }
 
 const AlertContext = createContext<AlertContextValue | null>(null);
@@ -16,11 +28,11 @@ const AlertContext = createContext<AlertContextValue | null>(null);
 export const AlertContextProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
-  const [alert, setAlert] = useState<AlertInfo | null>(null);
+  const [alertInfo, setAlertInfo] = useState<AlertInfo | null>(null);
 
   const value: AlertContextValue = {
-    alert,
-    setAlert,
+    alertInfo,
+    setAlertInfo,
   };
 
   return (

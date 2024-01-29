@@ -345,7 +345,9 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 
 ## Epic - Login
 
-- [ ] feat: show success snackbar when user accounts linked TODO refactor success/warning/etc into single component
+- [x] feat: show success snackbar when user accounts linked
+- [ ] refactor: error snackbar into alert snackbar
+- [ ] feat: show spinners when loggig in, new button prop for usermenu?
 - [x] feat: welcome panel on popup for sign in
 - [x] feat: user initiated sign in as guest
 - [x] feat: user initiated sign in with google

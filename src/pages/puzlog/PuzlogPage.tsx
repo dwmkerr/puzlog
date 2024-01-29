@@ -7,14 +7,9 @@ import Header from "../../components/Header";
 import { Typography } from "@mui/joy";
 import { User, onAuthStateChanged } from "firebase/auth";
 import ErrorSnackbar from "../../components/ErrorSnackbar";
-import { PuzlogError, WarningError } from "../../lib/Errors";
-import WarningSnackbar, {
-  SuccessSnackbar,
-} from "../../components/WarningSnackbar";
-import {
-  AlertContextProvider,
-  useAlertContext,
-} from "../../components/AlertContext";
+import { PuzlogError } from "../../lib/Errors";
+import { AlertType, useAlertContext } from "../../components/AlertContext";
+import { AlertSnackbar } from "../../components/AlertSnackbar";
 
 interface PuzlogPageProps {
   puzzleRepository: PuzzleRepository;
@@ -35,12 +30,9 @@ const PuzlogPage = ({
   const [currentError, setCurrentError] = useState<PuzlogError | undefined>(
     undefined
   );
-  const [currentWarning, setCurrentWarning] = useState<
-    WarningError | undefined
-  >(undefined);
 
   //  Access the alert context so that we can render the alerts.
-  const { alert, setAlert } = useAlertContext();
+  const { alertInfo, setAlertInfo } = useAlertContext();
 
   //  Wait for the user to load.
   useEffect(() => {
@@ -60,22 +52,22 @@ const PuzlogPage = ({
 
     //  If the user is not signed in, show an error.
     if (user === null) {
-      setCurrentWarning(
-        new WarningError(
-          "Not Signed In",
-          "You are not signed in and puzzle progress cannot be saved. Create a Guest account or Sign In to start."
-        )
-      );
+      setAlertInfo({
+        type: AlertType.Warning,
+        title: "Not Signed In",
+        message:
+          "You are not signed in and puzzle progress cannot be saved. Create a Guest account or Sign In to start.",
+      });
     }
 
     //  If the user is not signed in, set the warning state.
     if (user?.isAnonymous) {
-      setCurrentWarning(
-        new WarningError(
-          "Guest Account Warning",
-          "Guest accounts do not have their puzzles backed up - link a social account to backup your puzzles."
-        )
-      );
+      setAlertInfo({
+        type: AlertType.Warning,
+        title: "Signed in as Guest",
+        message:
+          "Guest accounts do not have their puzzles backed up - link a social account to backup your puzzles.",
+      });
     }
   }, [user]);
 
@@ -159,12 +151,11 @@ const PuzlogPage = ({
           error={currentError}
           onDismiss={() => setCurrentError(undefined)}
         />
-        <WarningSnackbar
-          warning={currentWarning}
-          onDismiss={() => setCurrentWarning(undefined)}
-        />
-        {alert && (
-          <SuccessSnackbar info={alert} onDismiss={() => setAlert(null)} />
+        {alertInfo && (
+          <AlertSnackbar
+            alertInfo={alertInfo}
+            onDismiss={() => setAlertInfo(null)}
+          />
         )}
         <Typography level="h3" component="h1">
           Puzzles
