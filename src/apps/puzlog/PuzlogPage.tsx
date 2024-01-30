@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Box from "@mui/joy/Box";
 import { Puzzle } from "../../lib/puzzle";
 import { PuzzleRepository } from "../../lib/PuzzleRepository";
-import PuzzleGrid from "./PuzzleGrid";
+import PuzzleGrid from "../../components/PuzzleGrid";
 import Header from "../../components/Header";
 import { Typography } from "@mui/joy";
 import { User, onAuthStateChanged } from "firebase/auth";
@@ -151,12 +151,6 @@ const PuzlogPage = ({
           error={currentError}
           onDismiss={() => setCurrentError(undefined)}
         />
-        {alertInfo && (
-          <AlertSnackbar
-            alertInfo={alertInfo}
-            onDismiss={() => setAlertInfo(null)}
-          />
-        )}
         <Typography level="h3" component="h1">
           Puzzles
         </Typography>
@@ -170,6 +164,12 @@ const PuzlogPage = ({
           style={{ width: "100%", flexGrow: 1 }}
         />
       </Box>
+      {alertInfo && (
+        <AlertSnackbar
+          alertInfo={alertInfo}
+          onDismiss={() => setAlertInfo(null)}
+        />
+      )}
     </div>
   );
 };

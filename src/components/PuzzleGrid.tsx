@@ -5,11 +5,11 @@ import { AgGridReact } from "ag-grid-react"; // React Grid Logic
 import { ColDef, ICellRendererParams } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css"; // Core CSS
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Theme
-import { Puzzle, PuzzleStatus } from "../../lib/puzzle";
-import StatusIcon from "../../components/StatusIcon";
-import StarRating from "../../components/StarRating";
-import { msToTime } from "../../lib/helpers";
-import theme from "../../theme";
+import { Puzzle, PuzzleStatus } from "../lib/puzzle";
+import StatusIcon from "./StatusIcon";
+import StarRating from "./StarRating";
+import { msToTime } from "../lib/helpers";
+import theme from "../theme";
 
 type UpdatePuzzleFunc = (puzzle: Puzzle) => Promise<void>;
 type DeletePuzzleFunc = (puzzleId: string) => Promise<void>;

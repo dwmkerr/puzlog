@@ -47,6 +47,10 @@ const puzzleConverter = {
   },
 };
 
+const constants = {
+  LOCAL_STORAGE_AUTH_TOKEN: "authToken",
+};
+
 export class PuzzleRepository {
   private puzzlesCollection: CollectionReference<Puzzle, SerializablePuzzle>;
 
@@ -183,6 +187,7 @@ export class PuzzleRepository {
   async signInAnonymously(): Promise<User> {
     try {
       const userCredential = await signInAnonymously(this.auth);
+
       return userCredential.user;
     } catch (err) {
       throw PuzlogError.fromError("Authentication Failed", err);
@@ -201,6 +206,38 @@ export class PuzzleRepository {
         chrome.runtime.lastError.message || "Unknown error"
       );
     }
+
+    //  If we haven't received a token, return false.
+    if (!token) {
+      console.log("puzlog: sign in returned null token");
+      return null;
+    }
+
+    //  Now sign in to firebase using a a google credential based on the token.
+    try {
+      const response = await signInWithCredential(
+        this.auth,
+        GoogleAuthProvider.credential(null, token)
+      );
+
+      //  We have signed in successfully - store this token in local storage
+      //  so that we can use it to sign in with the stored token there then
+      //  return the user.
+      await chrome.storage.local.set({
+        [constants.LOCAL_STORAGE_AUTH_TOKEN]: token,
+      });
+      return response.user;
+    } catch (err) {
+      throw PuzlogError.fromError("Sign In Error", err);
+    }
+  }
+
+  async signInWithCachedToken(): Promise<User | null> {
+    //  Get an auth token via chrome's identity api, but non-interactive.
+    const data = await chrome.storage.local.get(
+      constants.LOCAL_STORAGE_AUTH_TOKEN
+    );
+    const token = data[constants.LOCAL_STORAGE_AUTH_TOKEN];
 
     //  If we haven't received a token, return false.
     if (!token) {

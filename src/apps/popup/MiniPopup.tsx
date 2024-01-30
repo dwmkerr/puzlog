@@ -31,6 +31,8 @@ import { PuzlogError } from "../../lib/Errors";
 import { Stack } from "@mui/joy";
 import { User, onAuthStateChanged } from "firebase/auth";
 import MiniPopupWelcome from "../../components/WelcomeCard";
+import { AlertType, useAlertContext } from "../../components/AlertContext";
+import { AlertSnackbar } from "../../components/AlertSnackbar";
 
 const ErrorAlert = ({ error }: { error: PuzlogError }) => {
   return (
@@ -87,6 +89,9 @@ export default function MiniPopup() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<PuzlogError | undefined>(undefined);
   const [puzzleStatus, setPuzzleStatus] = useState(PuzzleStatus.Unknown);
+
+  //  Access the alert context so that we can render the alerts.
+  const { alertInfo, setAlertInfo } = useAlertContext();
 
   //  On mount, wait for the current user (if any). This waits for firebase
   //  to load based on any cached credentials.
@@ -193,8 +198,17 @@ export default function MiniPopup() {
   };
 
   const start = async () => {
-    const tabId = await extensionInterface.getCurrentTabId();
-    await ContentScriptInterface.start(tabId);
+    try {
+      const tabId = await extensionInterface.getCurrentTabId();
+      await ContentScriptInterface.start(tabId);
+    } catch (err) {
+      const error = PuzlogError.fromError("Start Error", err);
+      setAlertInfo({
+        type: AlertType.Error,
+        title: error.title,
+        message: error.message,
+      });
+    }
   };
   const finish = async () => {
     if (puzzleId) {
@@ -331,6 +345,12 @@ export default function MiniPopup() {
           </Button>
         )}
       </CardActions>
+      {alertInfo && (
+        <AlertSnackbar
+          alertInfo={alertInfo}
+          onDismiss={() => setAlertInfo(null)}
+        />
+      )}
     </Card>
   );
 }

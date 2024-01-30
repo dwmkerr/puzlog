@@ -1,5 +1,5 @@
 import * as extensionInterface from "./extensionInterface";
-import { ExtensionOverlay } from "./apps/ExtensionOverlay";
+import { ExtensionOverlay } from "./apps/toolbar/ExtensionOverlay";
 import { puzzleIdFromUrl } from "./lib/helpers";
 import { Stopwatch } from "./lib/stopwatch";
 import { PuzzleRepository } from "./lib/PuzzleRepository";
@@ -10,6 +10,7 @@ import {
 } from "./lib/crossword-metadata";
 import { Puzzle, PuzzleStatus } from "./lib/puzzle";
 import { TabPuzzleData } from "./lib/extensionMessages";
+import { User } from "firebase/auth";
 
 //  Instantiate a puzzle repository.
 const puzzleRepository = new PuzzleRepository();
@@ -28,21 +29,16 @@ extensionInterface.onMessage(
 //  a puzzle.
 extensionInterface.onMessage("startTabPuzzle", async () => {
   //  Asset that the user is logged in. If they are not we will have to fail.
-  const user = puzzleRepository.getAuth().currentUser;
+  const user = await puzzleRepository.waitForUser();
   if (!user) {
     throw new Error(`user is not logged in`);
   }
 
-  // const puzzlesRef = collection(db, "puzzles");
-  // addDoc(puzzlesRef, {
-  //   userId: user.uid,
-  //   // Other puzzle data...
-  // });
   //  This is where we create the initial puzzle object.
   const now = new Date();
   const puzzle: Omit<Puzzle, "id"> = {
     userId: user.uid,
-    url: localExtensionState.url,
+    url: puzzleIdFromUrl(localExtensionState.url),
     //  TODO: auto set the proper ttitle
     title: localExtensionState.title,
     status: PuzzleStatus.Started,
@@ -91,7 +87,15 @@ async function startup() {
   console.log("initialising puzlog...");
 
   //  Wait for the current user. Assume we cannot load any puzzle data for now.
-  const user = await puzzleRepository.waitForUser();
+  console.log("puzlog: checking for cached sign in...");
+  let user: User | null = null;
+  try {
+    user = await puzzleRepository.signInWithCachedToken();
+  } catch (err) {
+    console.log("puzlog: cached token error", err);
+  }
+  console.log("puzlog: got user", user);
+
   localExtensionState.puzzleId = "";
   localExtensionState.puzzleStatus = PuzzleStatus.NotStarted;
   let puzzle: Puzzle | null = null;

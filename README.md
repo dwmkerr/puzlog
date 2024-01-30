@@ -345,7 +345,7 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 
 ## Epic - Login
 
-- [x] feat: show success snackbar when user accounts linked
+- [x] feat: show success snackbar when user accounts inked
 - [ ] refactor: error snackbar into alert snackbar
 - [ ] feat: show spinners when loggig in, new button prop for usermenu?
 - [x] feat: welcome panel on popup for sign in
@@ -364,3 +364,4 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 - [ ] on extension startup, request login. If the user chooses a guest account, nudge them later to link a google account.
 - [ ] when logged in with a guest account, nudge the 'link user accounts'
 - [ ] login page shows 'google' or 'continue as guest' with a warning about the guest accounts
+- [ ] when cached token has expired on content script show an error in the popup

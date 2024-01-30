@@ -3,9 +3,9 @@ import { createRoot } from "react-dom/client";
 import { CssVarsProvider } from "@mui/joy/styles";
 import CssBaseline from "@mui/joy/CssBaseline";
 import GlobalStyles from "@mui/joy/GlobalStyles";
-import ExtensionToolbar from "../components/ExtensionToolbar";
-import { Puzzle } from "../lib/puzzle";
-import CustomIframe from "../components/CustomIframe";
+import ExtensionToolbar from "../../components/ExtensionToolbar";
+import { Puzzle } from "../../lib/puzzle";
+import CustomIframe from "../../components/CustomIframe";
 
 export class ExtensionOverlay {
   private static readonly ID_IFRAME = "puzlog-extension-frame";
