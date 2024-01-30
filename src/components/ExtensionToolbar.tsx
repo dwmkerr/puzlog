@@ -10,6 +10,7 @@ import { CrosswordMetadata } from "../lib/crossword-metadata";
 import { PuzzleRepository } from "../lib/PuzzleRepository";
 import { ServiceWorkerInterface } from "../lib/extensionMessages";
 import { Link, Typography } from "@mui/joy";
+import { Theme, useTheme } from "@mui/joy/styles";
 
 interface ExtensionToolbarProps extends React.ComponentPropsWithoutRef<"div"> {
   puzzleId: string;
@@ -30,12 +31,30 @@ function formatTitle(
   }
 }
 
+function puzzleStatusToBackgroundColor(
+  puzzleStatus: PuzzleStatus,
+  theme: Theme
+) {
+  switch (puzzleStatus) {
+    case PuzzleStatus.NotStarted:
+      return `rgba(${theme.vars.palette.primary.mainChannel} / 0.05)`;
+    case PuzzleStatus.Started:
+      return `rgba(${theme.vars.palette.primary.mainChannel} / 0.1)`;
+    case PuzzleStatus.Finished:
+      return `rgba(${theme.vars.palette.success.mainChannel} / 0.1)`;
+    case PuzzleStatus.Unknown:
+      return `rgba(${theme.vars.palette.neutral.mainChannel} / 0.1)`;
+  }
+}
+
 const ExtensionToolbar = ({
   puzzleId,
   pageTitle,
   puzzle,
   ...props
 }: ExtensionToolbarProps) => {
+  //  Get the joyui theme.
+  const theme = useTheme();
   const puzzleRepository = new PuzzleRepository();
   const [timerMilliseconds, setTimerMilliseconds] = useState(
     puzzle?.elapsedTime || 0
@@ -45,6 +64,9 @@ const ExtensionToolbar = ({
   );
   const [status, setStatus] = useState<PuzzleStatus>(
     puzzle?.status || PuzzleStatus.Unknown
+  );
+  const [backgroundColor, setBackgroundColor] = useState(
+    puzzleStatusToBackgroundColor(puzzle?.status || PuzzleStatus.Unknown, theme)
   );
 
   //  Handle changes to the puzzle which come from external sources (most
@@ -66,9 +88,10 @@ const ExtensionToolbar = ({
   }, []);
 
   //  Update the service worker when our status changes - so that it can update
-  //  the action icon for the page.
+  //  the action icon for the page. We also update our current color.
   useEffect(() => {
     ServiceWorkerInterface.updatePuzzleStatusIcon(status);
+    setBackgroundColor(puzzleStatusToBackgroundColor(status, theme));
   }, [status]);
 
   const finish = async () => {
@@ -87,18 +110,18 @@ const ExtensionToolbar = ({
       style={{
         borderBottom: "grey 1px solid",
         boxShadow: "0 2px 4px -1px rgba(0,0,0,0.8)",
+        backgroundColor: "white",
       }}
       {...props}
     >
-      {/* <style>{style}</style> */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           height: "40px",
-          backgroundColor: "white",
           color: "rgba(4, 30, 73, 0.7)", // nice dark grey
           padding: "0 10px",
+          backgroundColor: backgroundColor,
         }}
       >
         <div

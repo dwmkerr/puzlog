@@ -275,9 +275,12 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 
 Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should offer a tooltip saying 'sign in to sync' - this is the nudge to the user to auth. When synced show a cloud/tick icon
 
+- [x] feat: color toolbar based on puzzle state
 - [x] refactor: remove old icons lib
 - [ ] refactor: move stopwatch into puzzle toolbar
+- [ ] feat: if puzzle is identified on content load, show the toolbar ready to go
 - [ ] feat: update popup when puzzle state changes
+- [ ] feat: recent puzzles in popup, with puzzles updating their last access time properly
 - [x] feat: show status icon in puzzle page
 - [x] bug: set status icon doesn't work consistently, try hitting start/finish/resume from a combo of the popup and toolbar and the bug is apparent. Notes are in the TODO in the code in service_worker
 - [wip] refactor: 'series' config which contains code to check if a crossword is part of series and then parse crossword metadata
@@ -345,9 +348,11 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 
 ## Epic - Login
 
-- [x] feat: show success snackbar when user accounts inked
+- [ ] when cached token has expired on content script show an error in the popup NOTE this is happening v quickly, fix is to auth in background script via message?
 - [ ] refactor: error snackbar into alert snackbar
+- [x] feat: show success snackbar when user accounts inked
 - [ ] feat: show spinners when loggig in, new button prop for usermenu?
+- [ ] feat: retire anon login as we cannot cache credentials for it
 - [x] feat: welcome panel on popup for sign in
 - [x] feat: user initiated sign in as guest
 - [x] feat: user initiated sign in with google
@@ -364,4 +369,3 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 - [ ] on extension startup, request login. If the user chooses a guest account, nudge them later to link a google account.
 - [ ] when logged in with a guest account, nudge the 'link user accounts'
 - [ ] login page shows 'google' or 'continue as guest' with a warning about the guest accounts
-- [ ] when cached token has expired on content script show an error in the popup
