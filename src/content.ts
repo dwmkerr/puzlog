@@ -63,23 +63,24 @@ extensionInterface.onMessage("finish", async () => {
   localExtensionState.stopwatch.pause();
 });
 
-function showTimerAndOverlay(puzzle: Puzzle) {
+function showTimerAndOverlay(puzzle: Puzzle | undefined) {
   //  Create the extension interface. It will remain hidden until we show it.
   localExtensionState.extensionOverlay = ExtensionOverlay.create(
     document,
-    puzzle.id,
     puzzle
   );
 
   //  Set the stopwatch time. If the puzzle is started, start the stopwatch.
-  localExtensionState.stopwatch.setElapsedTime(puzzle.elapsedTime);
-  if (puzzle.status === PuzzleStatus.Started) {
-    localExtensionState.stopwatch.start(async (elapsedTime: number) => {
-      //  Update the elapsed time.
-      puzzleRepository.update(puzzle.id, {
-        elapsedTime: elapsedTime,
-      });
-    }, 1000);
+  if (puzzle) {
+    localExtensionState.stopwatch.setElapsedTime(puzzle.elapsedTime);
+    if (puzzle.status === PuzzleStatus.Started) {
+      localExtensionState.stopwatch.start(async (elapsedTime: number) => {
+        //  Update the elapsed time.
+        puzzleRepository.update(puzzle.id, {
+          elapsedTime: elapsedTime,
+        });
+      }, 1000);
+    }
   }
 }
 
@@ -98,7 +99,7 @@ async function startup() {
 
   localExtensionState.puzzleId = "";
   localExtensionState.puzzleStatus = PuzzleStatus.NotStarted;
-  let puzzle: Puzzle | null = null;
+  let puzzle: Puzzle | undefined = undefined;
 
   //  Scrape the crossword metadata. We will use this later to either enrich
   //  the puzzle we are currently working on, or show some inforamation about
@@ -110,9 +111,10 @@ async function startup() {
   //  If we are signed in, try and load the puzzle data in case the user has
   //  already worked on it.
   if (user) {
-    puzzle = await puzzleRepository.queryPuzzleByUrl(
-      puzzleIdFromUrl(location.href)
-    );
+    puzzle =
+      (await puzzleRepository.queryPuzzleByUrl(
+        puzzleIdFromUrl(location.href)
+      )) || undefined;
   }
 
   //  If we have loaded the puzzle, we can set its state locally, enrich it and
@@ -132,8 +134,12 @@ async function startup() {
       );
       await puzzleRepository.save(puzzle);
     }
+  }
 
-    //  Show the overlay and start the timer.
+  //  If we have a puzzle OR we have identified a provider, show the overlay.
+  if (puzzle || metadataProvider) {
+    //  Show the overlay. This will also start the timer if the puzzle is in
+    //  the 'started' state.
     showTimerAndOverlay(puzzle);
   }
 

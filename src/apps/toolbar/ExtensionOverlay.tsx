@@ -16,8 +16,7 @@ export class ExtensionOverlay {
 
   static create(
     document: Document,
-    puzzleId: string,
-    puzzle: Puzzle | null
+    puzzle: Puzzle | undefined
   ): ExtensionOverlay {
     //  If this document already has an extension overlay frame, fail.
     if (document.getElementById(this.ID_IFRAME)) {
@@ -39,7 +38,7 @@ export class ExtensionOverlay {
           top: "0",
           left: "0",
           width: "100%",
-          height: "50px",
+          height: "100px", // give space for shadow/tooltip
           border: "none", // Remove border
           zIndex: 9999, // try and sit on top of everthing
         }}
@@ -53,11 +52,7 @@ export class ExtensionOverlay {
               },
             }}
           />
-          <ExtensionToolbar
-            puzzleId={puzzleId}
-            pageTitle={document.title}
-            puzzle={puzzle}
-          />
+          <ExtensionToolbar pageTitle={document.title} puzzle={puzzle} />
         </CssVarsProvider>
       </CustomIframe>
     );

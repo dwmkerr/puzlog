@@ -349,6 +349,8 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 ## Epic - Login
 
 - [ ] refactor: crossword identifier
+- [ ] refactor: extensionoverlay should not need the puzzle id as a separate parameter
+      // TODO: we can probably retire 'status' and just watch the puzzle as above
 - [ ] feat: show toolbar if crossword identified
 - [ ] feat: find number of completed clues
 - [ ] feat: show progress of clues, update on timer tick
