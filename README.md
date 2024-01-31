@@ -348,6 +348,12 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 
 ## Epic - Login
 
+- [ ] refactor: crossword identifier
+- [ ] feat: show toolbar if crossword identified
+- [ ] feat: find number of completed clues
+- [ ] feat: show progress of clues, update on timer tick
+- [ ] refactor: remove 'formatTitle' and just get the title right on load
+- [ ] feat: minimise button
 - [ ] when cached token has expired on content script show an error in the popup NOTE this is happening v quickly, fix is to auth in background script via message?
 - [ ] refactor: error snackbar into alert snackbar
 - [x] feat: show success snackbar when user accounts inked

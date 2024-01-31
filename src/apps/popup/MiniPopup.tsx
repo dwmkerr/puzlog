@@ -22,7 +22,6 @@ import {
   ContentScriptStatus,
   ServiceWorkerInterface,
 } from "../../lib/extensionMessages";
-import { CrosswordMetadata } from "../../lib/crossword-metadata";
 import * as extensionInterface from "../../extensionInterface";
 import { PuzzleStatus } from "../../lib/puzzle";
 import { isExtensionAccessibleTab } from "../../lib/helpers";
@@ -33,6 +32,7 @@ import { User, onAuthStateChanged } from "firebase/auth";
 import MiniPopupWelcome from "../../components/WelcomeCard";
 import { AlertType, useAlertContext } from "../../components/AlertContext";
 import { AlertSnackbar } from "../../components/AlertSnackbar";
+import { CrosswordMetadata } from "../../lib/crossword-metadata/CrosswordMetadataProvider";
 
 const ErrorAlert = ({ error }: { error: PuzlogError }) => {
   return (
@@ -57,7 +57,7 @@ const ErrorAlert = ({ error }: { error: PuzlogError }) => {
 const CrosswordDataAlert = ({
   crosswordMetadata,
 }: {
-  crosswordMetadata: CrosswordMetadata;
+  crosswordMetadata: Partial<CrosswordMetadata>;
 }) => (
   <Alert
     variant="outlined"
@@ -83,8 +83,9 @@ export default function MiniPopup() {
   const [user, setUser] = useState<User | null>(null);
   const [waitingForUser, setWaitingForUser] = useState(true);
 
-  const [crosswordMetadata, setCrosswordMetadata] =
-    useState<CrosswordMetadata | null>(null);
+  const [crosswordMetadata, setCrosswordMetadata] = useState<
+    Partial<CrosswordMetadata>
+  >({});
   const [puzzleId, setPuzzleId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<PuzlogError | undefined>(undefined);

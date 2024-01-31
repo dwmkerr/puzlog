@@ -23,7 +23,7 @@ describe("puzzleState", () => {
       rating: null,
       metadata: {
         title: "Cryptic 29222",
-        setter: null,
+        setter: undefined,
         series: "Guardian Cryptic",
         datePublished: new Date("2023-11-21T00:00:00Z"),
       },

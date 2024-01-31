@@ -1,4 +1,4 @@
-import { CrosswordMetadata } from "./crossword-metadata";
+import { CrosswordMetadata } from "./crossword-metadata/CrosswordMetadataProvider";
 
 export enum PuzzleStatus {
   NotStarted,
@@ -20,7 +20,7 @@ export interface Puzzle {
   elapsedTime: number;
   hintsOrMistakes: number | null;
   rating: number | null;
-  metadata: CrosswordMetadata;
+  metadata: Partial<CrosswordMetadata>;
   notes: string | null;
 }
 
@@ -61,9 +61,9 @@ export function toSerializableObject(state: Puzzle): SerializablePuzzle {
     hintsOrMistakes: state.hintsOrMistakes,
     rating: state.rating,
     metadata: {
-      series: state.metadata.series,
-      title: state.metadata.title,
-      setter: state.metadata.setter,
+      series: state.metadata.series || null,
+      title: state.metadata.title || null,
+      setter: state.metadata.setter || null,
       datePublished: state.metadata.datePublished?.toISOString() || null,
     },
     notes: state.notes,
@@ -128,13 +128,13 @@ export function fromSerializableObject(
     hintsOrMistakes: object.hintsOrMistakes || null,
     rating: object.rating || null,
     metadata: {
-      series: object.metadata?.series || null,
-      title: object.metadata?.title || null,
-      setter: object.metadata?.setter || null,
+      series: object.metadata?.series || undefined,
+      title: object.metadata?.title || undefined,
+      setter: object.metadata?.setter || undefined,
       datePublished:
         typeof object.metadata?.datePublished === "string"
           ? parseDateString(object.metadata, "datePublished")
-          : null,
+          : undefined,
     },
     notes: object.notes || "",
   };

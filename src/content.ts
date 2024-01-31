@@ -3,14 +3,14 @@ import { ExtensionOverlay } from "./apps/toolbar/ExtensionOverlay";
 import { puzzleIdFromUrl } from "./lib/helpers";
 import { Stopwatch } from "./lib/stopwatch";
 import { PuzzleRepository } from "./lib/PuzzleRepository";
-import {
-  CrosswordMetadata,
-  enrichMetadata,
-  scrapeCrosswordMetadata,
-} from "./lib/crossword-metadata";
 import { Puzzle, PuzzleStatus } from "./lib/puzzle";
 import { TabPuzzleData } from "./lib/extensionMessages";
 import { User } from "firebase/auth";
+import {
+  enrichMetadata,
+  findMetadataProvider,
+} from "./lib/crossword-metadata/crossword-metadata";
+import { CrosswordMetadata } from "./lib/crossword-metadata/CrosswordMetadataProvider";
 
 //  Instantiate a puzzle repository.
 const puzzleRepository = new PuzzleRepository();
@@ -59,7 +59,7 @@ extensionInterface.onMessage("startTabPuzzle", async () => {
 });
 
 //  When the puzzle is finished, we can stop the stopwatch.
-extensionInterface.onMessage("startTabPuzzle", async () => {
+extensionInterface.onMessage("finish", async () => {
   localExtensionState.stopwatch.pause();
 });
 
@@ -103,10 +103,9 @@ async function startup() {
   //  Scrape the crossword metadata. We will use this later to either enrich
   //  the puzzle we are currently working on, or show some inforamation about
   //  the puzzle in the action popup.
-  localExtensionState.crosswordMetadata = scrapeCrosswordMetadata(
-    location.href,
-    document
-  );
+  const metadataProvider = findMetadataProvider(location.href, document);
+  localExtensionState.crosswordMetadata =
+    metadataProvider?.loadMetadata(location.href, document) || {};
 
   //  If we are signed in, try and load the puzzle data in case the user has
   //  already worked on it.
@@ -170,7 +169,7 @@ const localExtensionState = {
   puzzleStatus: PuzzleStatus.Unknown,
   stopwatch: new Stopwatch(),
   extensionOverlay: null as ExtensionOverlay | null,
-  crosswordMetadata: {} as CrosswordMetadata,
+  crosswordMetadata: {} as Partial<CrosswordMetadata>,
 };
 
 function log(message: string) {

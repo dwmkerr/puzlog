@@ -1,6 +1,6 @@
-import { CrosswordMetadata } from "./crossword-metadata";
 import { Puzzle, PuzzleStatus } from "./puzzle";
 import * as extensionInterface from "../extensionInterface";
+import { CrosswordMetadata } from "./crossword-metadata/CrosswordMetadataProvider";
 
 export interface StateUpdatedCommand {
   puzzleState: Puzzle;
@@ -27,7 +27,7 @@ export interface OpenPuzlogTabCommand {
 export interface TabPuzzleData {
   puzzleId: string;
   status: PuzzleStatus;
-  crosswordMetadata: CrosswordMetadata | null;
+  crosswordMetadata: Partial<CrosswordMetadata>;
 }
 
 export interface UpdatePuzzleStatusIconCommand {
@@ -102,12 +102,12 @@ export abstract class ContentScriptInterface {
       puzzleId: result.puzzleId || null,
       status: result.status as PuzzleStatus,
       crosswordMetadata: {
-        series: result?.crosswordMetadata?.series || "",
-        title: result?.crosswordMetadata?.title || "",
-        setter: result?.crosswordMetadata?.setter || "",
+        series: result?.crosswordMetadata?.series,
+        title: result?.crosswordMetadata?.title,
+        setter: result?.crosswordMetadata?.setter,
         datePublished: result?.crosswordMetadata?.datePublished
           ? new Date(result.crosswordMetadata.datePublished as string)
-          : null,
+          : undefined,
       },
     };
     return tabPuzzleData;

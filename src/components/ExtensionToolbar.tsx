@@ -6,11 +6,11 @@ import * as extensionInterface from "../extensionInterface";
 import { msToTime } from "../lib/helpers";
 import { Puzzle, PuzzleStatus } from "../lib/puzzle";
 import StatusIcon from "./StatusIcon";
-import { CrosswordMetadata } from "../lib/crossword-metadata";
 import { PuzzleRepository } from "../lib/PuzzleRepository";
 import { ServiceWorkerInterface } from "../lib/extensionMessages";
 import { Link, Typography } from "@mui/joy";
 import { Theme, useTheme } from "@mui/joy/styles";
+import { CrosswordMetadata } from "../lib/crossword-metadata/CrosswordMetadataProvider";
 
 interface ExtensionToolbarProps extends React.ComponentPropsWithoutRef<"div"> {
   puzzleId: string;
@@ -20,7 +20,7 @@ interface ExtensionToolbarProps extends React.ComponentPropsWithoutRef<"div"> {
 
 function formatTitle(
   pageTitle: string,
-  crosswordMetadata: CrosswordMetadata | null
+  crosswordMetadata: Partial<CrosswordMetadata>
 ) {
   if (crosswordMetadata?.title && crosswordMetadata?.setter) {
     return `${crosswordMetadata.title} - ${crosswordMetadata.setter}`;
@@ -60,7 +60,7 @@ const ExtensionToolbar = ({
     puzzle?.elapsedTime || 0
   );
   const [title, setTitle] = useState(
-    formatTitle(pageTitle, puzzle?.metadata || null)
+    formatTitle(pageTitle, puzzle?.metadata || {})
   );
   const [status, setStatus] = useState<PuzzleStatus>(
     puzzle?.status || PuzzleStatus.Unknown
