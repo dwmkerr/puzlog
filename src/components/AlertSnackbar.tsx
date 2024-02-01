@@ -1,50 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { IconButton, Snackbar, Stack, Typography } from "@mui/joy";
-import { DefaultColorPalette } from "@mui/joy/styles/types";
 
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import CloseIcon from "@mui/icons-material/Close";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import InfoIcon from "@mui/icons-material/Info";
 
-import { AlertInfo, AlertType } from "./AlertContext";
+import {
+  AlertInfo,
+  AlertType,
+  alertTypeToColor,
+  alertTypeToIcon,
+} from "./AlertContext";
 
 interface AlertSnackbarProps {
   alertInfo?: AlertInfo;
   onDismiss: () => void;
 }
-
-const alertTypeToColor = (type: AlertType): DefaultColorPalette => {
-  switch (type) {
-    case AlertType.Info:
-      return "neutral";
-    case AlertType.Warning:
-      return "warning";
-    case AlertType.Error:
-      return "danger";
-    case AlertType.Success:
-      return "success";
-    default:
-      return "neutral";
-  }
-};
-
-const alertTypeToIcon = (type: AlertType) => {
-  switch (type) {
-    case AlertType.Info:
-      return <InfoIcon />;
-    case AlertType.Warning:
-      return <WarningAmberIcon />;
-    case AlertType.Error:
-      return <ErrorOutlineIcon />;
-    case AlertType.Success:
-      return <CheckCircleOutlineIcon />;
-    default:
-      return <HelpOutlineIcon />;
-  }
-};
 
 export function AlertSnackbar({ alertInfo, onDismiss }: AlertSnackbarProps) {
   const [open, setOpen] = useState(!!alertInfo);

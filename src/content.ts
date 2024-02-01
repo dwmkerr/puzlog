@@ -64,11 +64,15 @@ extensionInterface.onMessage("finish", async () => {
 });
 
 function showTimerAndOverlay(puzzle: Puzzle | undefined) {
-  //  Create the extension interface. It will remain hidden until we show it.
-  localExtensionState.extensionOverlay = ExtensionOverlay.create(
-    document,
-    puzzle
-  );
+  //  Create or update the extension overlay.
+  if (!localExtensionState.extensionOverlay) {
+    localExtensionState.extensionOverlay = ExtensionOverlay.create(
+      document,
+      puzzle
+    );
+  } else {
+    localExtensionState.extensionOverlay.render(puzzle);
+  }
 
   //  Set the stopwatch time. If the puzzle is started, start the stopwatch.
   if (puzzle) {
@@ -91,7 +95,13 @@ async function startup() {
   console.log("puzlog: checking for cached sign in...");
   let user: User | null = null;
   try {
-    user = await puzzleRepository.signInWithCachedToken();
+    //  See if we can simply load the user state from firebase.
+    user = await puzzleRepository.waitForUser();
+
+    //  As a fallback, try and sign in with the cached token.
+    if (!user) {
+      user = await puzzleRepository.signInWithCachedToken();
+    }
   } catch (err) {
     console.log("puzlog: cached token error", err);
   }

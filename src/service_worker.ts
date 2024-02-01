@@ -25,6 +25,16 @@ extensionInterface.onMessage(
   }
 );
 
+extensionInterface.onMessage("start", async (tabId) => {
+  if (!tabId) {
+    console.error(
+      "puzlog: error - cannot call 'start' without providing tabId"
+    );
+    return;
+  }
+  ContentScriptInterface.start(tabId);
+});
+
 extensionInterface.onMessage(
   "finish",
   async (tabId, message: FinishPuzzleCommand) => {

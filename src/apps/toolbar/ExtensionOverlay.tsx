@@ -1,17 +1,20 @@
 import React from "react";
-import { createRoot } from "react-dom/client";
+import { Root, createRoot } from "react-dom/client";
 import { CssVarsProvider } from "@mui/joy/styles";
 import CssBaseline from "@mui/joy/CssBaseline";
 import GlobalStyles from "@mui/joy/GlobalStyles";
 import ExtensionToolbar from "../../components/ExtensionToolbar";
 import { Puzzle } from "../../lib/puzzle";
 import CustomIframe from "../../components/CustomIframe";
+import { AlertContextProvider } from "../../components/AlertContext";
 
 export class ExtensionOverlay {
   private static readonly ID_IFRAME = "puzlog-extension-frame";
+  private readonly root: Root;
 
-  private constructor() {
+  private constructor(root: Root) {
     //  Private as this is created only via the 'create' factory function.
+    this.root = root;
   }
 
   static create(
@@ -29,8 +32,16 @@ export class ExtensionOverlay {
     const div = document.createElement<"div">("div");
     div.id = this.ID_IFRAME;
     document.body.appendChild(div);
-    const root = createRoot(div); // createRoot(container!) if you use TypeScript
-    root.render(
+    const root = createRoot(div);
+
+    //  Create and render the extension overlay.
+    const overlay = new ExtensionOverlay(root);
+    overlay.render(puzzle);
+    return overlay;
+  }
+
+  render(puzzle: Puzzle | undefined) {
+    this.root.render(
       <CustomIframe
         style={{
           display: "block",
@@ -52,11 +63,11 @@ export class ExtensionOverlay {
               },
             }}
           />
-          <ExtensionToolbar pageTitle={document.title} puzzle={puzzle} />
+          <AlertContextProvider>
+            <ExtensionToolbar pageTitle={document.title} puzzle={puzzle} />
+          </AlertContextProvider>
         </CssVarsProvider>
       </CustomIframe>
     );
-
-    return new ExtensionOverlay();
   }
 }

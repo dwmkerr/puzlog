@@ -277,8 +277,7 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 
 - [x] feat: color toolbar based on puzzle state
 - [x] refactor: remove old icons lib
-- [ ] refactor: move stopwatch into puzzle toolbar
-- [ ] feat: if puzzle is identified on content load, show the toolbar ready to go
+- [x] feat: if puzzle is identified on content load, show the toolbar ready to go
 - [ ] feat: update popup when puzzle state changes
 - [ ] feat: recent puzzles in popup, with puzzles updating their last access time properly
 - [x] feat: show status icon in puzzle page
@@ -348,15 +347,17 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 
 ## Epic - Login
 
-- [ ] refactor: crossword identifier
-- [ ] refactor: extensionoverlay should not need the puzzle id as a separate parameter
-      // TODO: we can probably retire 'status' and just watch the puzzle as above
-- [ ] feat: show toolbar if crossword identified
+- [ ] bug: fix start/stop timer bugs
+- [ ] feat: pause button on toolbar
+- [x] refactor: extensionoverlay should not need the puzzle id as a separate parameter
+- [x] feat: show toolbar if crossword identified
+- [ ] if a login error occurs on content script startup we throw and set the content script status but have no way of showing this to the user. Highlight it in the extension icon and in the extension icon suggest login.
+- [ ] when cached token has expired on content script show an error in the popup NOTE this is happening v quickly, fix is to auth in background script via message?
+- [ ] cleanup: for a not started puzzle have a better status icon in the toolbar and don't have a link to puzlog home?
 - [ ] feat: find number of completed clues
 - [ ] feat: show progress of clues, update on timer tick
 - [ ] refactor: remove 'formatTitle' and just get the title right on load
 - [ ] feat: minimise button
-- [ ] when cached token has expired on content script show an error in the popup NOTE this is happening v quickly, fix is to auth in background script via message?
 - [ ] refactor: error snackbar into alert snackbar
 - [x] feat: show success snackbar when user accounts inked
 - [ ] feat: show spinners when loggig in, new button prop for usermenu?
@@ -367,13 +368,9 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 - [ ] feat: on initial start puzzle, sign in as an anonymous user if there is no current user
 - [ ] test: sign out, sign in with google, sign up again with google, proper error
 - [ ] feat: if logged in as a guest user show a warning on the puzlog page telling link accounts
-- [ ] feat: link accounts
-- [ ] feat: link accounts retrieve puzzles if was signed in before
 - [ ] feat: limit firebase read puzzles to current user id - clean up puzzles then re-import
 - [x] refactor puzzlestate to puzzle
 - [ ] login as guest initially, add userid to puzzles
-- [ ] if a login error occurs on content script startup we throw and set the content script status but have no way of showing this to the user. Highlight it in the extension icon and in the extension icon suggest login.
-- [ ] bug: user.email is missing after sign in with chrome, permissions? or does it need to be enriched with a call to identity.getProfileInfo?
 - [ ] on extension startup, request login. If the user chooses a guest account, nudge them later to link a google account.
 - [ ] when logged in with a guest account, nudge the 'link user accounts'
 - [ ] login page shows 'google' or 'continue as guest' with a warning about the guest accounts

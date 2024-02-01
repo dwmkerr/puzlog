@@ -80,13 +80,17 @@ function UserInfo({ user }: { user: User | undefined }) {
       </MenuItem>
       <ListDivider />
       {showGuestSignInButton && (
-        <MenuItem onClick={() => puzzleRepository.signInAnonymously()}>
+        <MenuItem
+          onClick={async () => await puzzleRepository.signInAnonymously()}
+        >
           <AccountCircleIcon />
           Sign In as Guest
         </MenuItem>
       )}
       {showGoogleSignInButton && (
-        <MenuItem onClick={() => puzzleRepository.signInWithGoogle()}>
+        <MenuItem
+          onClick={async () => await puzzleRepository.signInWithGoogle()}
+        >
           <GoogleIcon />
           Sign In with Google
         </MenuItem>

@@ -213,14 +213,12 @@ export default function MiniPopup() {
   };
   const finish = async () => {
     if (puzzleId) {
-      const tabId = await extensionInterface.getCurrentTabId();
-      ServiceWorkerInterface.finishPuzzle(tabId, puzzleId);
+      ServiceWorkerInterface.finishPuzzle(puzzleId);
     }
   };
   const resume = async () => {
     if (puzzleId) {
-      const tabId = await extensionInterface.getCurrentTabId();
-      ServiceWorkerInterface.resumePuzzle(tabId, puzzleId);
+      ServiceWorkerInterface.resumePuzzle(puzzleId);
     }
   };
 
