@@ -50,7 +50,7 @@ extensionInterface.onMessage("startTabPuzzle", async () => {
     hintsOrMistakes: 0,
     rating: null,
     notes: "",
-    metadata: localExtensionState.crosswordMetadata,
+    metadata: localExtensionState.crosswordMetadata || {},
   };
 
   //  Save the newly created puzzle, show the overlay.
@@ -116,7 +116,7 @@ async function startup() {
   //  the puzzle in the action popup.
   const metadataProvider = findMetadataProvider(location.href, document);
   localExtensionState.crosswordMetadata =
-    metadataProvider?.loadMetadata(location.href, document) || {};
+    metadataProvider?.loadMetadata(location.href, document) || null;
 
   //  If we are signed in, try and load the puzzle data in case the user has
   //  already worked on it.
@@ -185,7 +185,7 @@ const localExtensionState = {
   puzzleStatus: PuzzleStatus.Unknown,
   stopwatch: new Stopwatch(),
   extensionOverlay: null as ExtensionOverlay | null,
-  crosswordMetadata: {} as Partial<CrosswordMetadata>,
+  crosswordMetadata: null as Partial<CrosswordMetadata> | null,
 };
 
 function log(message: string) {

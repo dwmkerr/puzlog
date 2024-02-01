@@ -13,7 +13,7 @@ const ToolbarSignIn = () => {
   //  for it.
   const [loading, setLoading] = useState<boolean>(false);
 
-  //  Access the alert context so that we can render the alerts.
+  //  Use our alert context so that we can set error statuses.
   const { setAlertFromError } = useAlertContext();
 
   const login = async () => {

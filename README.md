@@ -347,7 +347,10 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 
 ## Epic - Login
 
+- [x] feat: set alert state in handlers for the toolbar actions
+- [x] bug; icon is wrong - blue on invalid pages and empty on valid ones
 - [ ] bug: fix start/stop timer bugs
+- [ ] bug: sign out doesn't sign out from content page, just keep the user id in the chrome storage and use this as an indicator that the user was signed in or not
 - [ ] feat: pause button on toolbar
 - [x] refactor: extensionoverlay should not need the puzzle id as a separate parameter
 - [x] feat: show toolbar if crossword identified

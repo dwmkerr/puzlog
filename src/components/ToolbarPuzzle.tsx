@@ -15,6 +15,7 @@ import { ServiceWorkerInterface } from "../lib/extensionMessages";
 import { CrosswordMetadata } from "../lib/crossword-metadata/CrosswordMetadataProvider";
 import { PuzlogError } from "../lib/Errors";
 import StatusIcon from "./StatusIcon";
+import { useAlertContext } from "./AlertContext";
 
 export interface ToolbarPuzzleProps
   extends React.ComponentPropsWithoutRef<"div"> {
@@ -69,6 +70,9 @@ const ToolbarPuzzle = ({ pageTitle, puzzle, ...props }: ToolbarPuzzleProps) => {
   const [backgroundColor, setBackgroundColor] = useState(
     puzzleStatusToBackgroundColor(puzzle?.status, theme)
   );
+
+  //  Use our alert context so that we can set error statuses.
+  const { setAlertFromError } = useAlertContext();
 
   //  Handle changes to the puzzle which come from external sources (most
   //  commonly, the popup page) so that the puzzle state is updated.
@@ -128,35 +132,39 @@ const ToolbarPuzzle = ({ pageTitle, puzzle, ...props }: ToolbarPuzzleProps) => {
     try {
       await ServiceWorkerInterface.start();
     } catch (err) {
-      throw PuzlogError.fromError("Start Error", err);
+      return setAlertFromError(PuzlogError.fromError("Start Error", err));
     }
   };
 
   const resume = async () => {
     if (!puzzle) {
-      throw new PuzlogError(
-        "Resume Error",
-        "Cannot resume a puzzle that has not been created"
+      return setAlertFromError(
+        new PuzlogError(
+          "Resume Error",
+          "Cannot resume a puzzle that has not been created"
+        )
       );
     }
     try {
       ServiceWorkerInterface.resumePuzzle(puzzle.id);
     } catch (err) {
-      throw PuzlogError.fromError("Resume Error", err);
+      setAlertFromError(PuzlogError.fromError("Resume Error", err));
     }
   };
 
   const finish = async () => {
     if (!puzzle) {
-      throw new PuzlogError(
-        "Finish Error",
-        "Cannot finish a puzzle that has not been created"
+      return setAlertFromError(
+        new PuzlogError(
+          "Finish Error",
+          "Cannot finish a puzzle that has not been created"
+        )
       );
     }
     try {
       ServiceWorkerInterface.finishPuzzle(puzzle.id);
     } catch (err) {
-      throw PuzlogError.fromError("Finish Error", err);
+      return setAlertFromError(PuzlogError.fromError("Finish Error", err));
     }
   };
   const openPuzlogPage = async () => {

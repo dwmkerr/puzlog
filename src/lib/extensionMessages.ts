@@ -25,7 +25,9 @@ export interface OpenPuzlogTabCommand {
 export interface TabPuzzleData {
   puzzleId: string;
   status: PuzzleStatus;
-  crosswordMetadata: Partial<CrosswordMetadata>;
+  //  Crossword metadata is null if we haven't identified a data provider (i.e.
+  //  the page is not something we recognise as a crossword).
+  crosswordMetadata: Partial<CrosswordMetadata> | null;
 }
 
 export interface UpdatePuzzleStatusIconCommand {

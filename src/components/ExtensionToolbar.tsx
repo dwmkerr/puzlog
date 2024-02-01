@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { User } from "firebase/auth";
+import { User, onAuthStateChanged } from "firebase/auth";
 import { Alert, IconButton, LinearProgress, Stack, Typography } from "@mui/joy";
 
 import CloseIcon from "@mui/icons-material/Close";
@@ -13,6 +13,7 @@ import {
   alertTypeToIcon,
   useAlertContext,
 } from "./AlertContext";
+import { PuzzleRepository } from "../lib/PuzzleRepository";
 
 interface AlertToolbarProps {
   alertInfo: AlertInfo;
@@ -75,6 +76,7 @@ const ExtensionToolbar = ({
   puzzle,
   ...props
 }: ExtensionToolbarProps) => {
+  const puzzleRepository = new PuzzleRepository();
   //  Access the alert context so that we can render the alerts.
   const { alertInfo, setAlertInfo } = useAlertContext();
 
@@ -86,23 +88,23 @@ const ExtensionToolbar = ({
   //  On mount, wait for the current user (if any). This waits for firebase
   //  to load based on any cached credentials.
   useEffect(() => {
-    // const waitForUser = async () => {
-    //   const user = await puzzleRepository.waitForUser();
-    //   setUser(user);
-    //   setWaitingForUser(false);
-    // };
-    // waitForUser();
+    const waitForUser = async () => {
+      const user = await puzzleRepository.waitForUser();
+      setUser(user);
+      setWaitingForUser(false);
+    };
+    waitForUser();
   });
 
   //  Track the user state.
   useEffect(() => {
-    // const unsubscribe = onAuthStateChanged(
-    //   puzzleRepository.getAuth(),
-    //   (user) => {
-    //     setUser(user || null);
-    //   }
-    // );
-    // return () => unsubscribe();
+    const unsubscribe = onAuthStateChanged(
+      puzzleRepository.getAuth(),
+      (user) => {
+        setUser(user || null);
+      }
+    );
+    return () => unsubscribe();
   }, []);
 
   const setToolbarContent = () => {

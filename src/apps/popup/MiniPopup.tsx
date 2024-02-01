@@ -153,7 +153,7 @@ export default function MiniPopup() {
         //  If we have a puzzle, set its status and id. From now on the next
         //  useEffect will watch for status changes.
         if (tabPuzzleData) {
-          setCrosswordMetadata(tabPuzzleData.crosswordMetadata);
+          setCrosswordMetadata(tabPuzzleData.crosswordMetadata || {});
           setPuzzleStatus(tabPuzzleData.status);
           setPuzzleId(tabPuzzleData.puzzleId);
         }

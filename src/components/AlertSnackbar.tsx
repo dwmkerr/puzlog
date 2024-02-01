@@ -3,12 +3,7 @@ import { IconButton, Snackbar, Stack, Typography } from "@mui/joy";
 
 import CloseIcon from "@mui/icons-material/Close";
 
-import {
-  AlertInfo,
-  AlertType,
-  alertTypeToColor,
-  alertTypeToIcon,
-} from "./AlertContext";
+import { AlertInfo, alertTypeToColor, alertTypeToIcon } from "./AlertContext";
 
 interface AlertSnackbarProps {
   alertInfo?: AlertInfo;
