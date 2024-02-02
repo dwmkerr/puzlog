@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import HomeOutlined from "@mui/icons-material/HomeOutlined";
 import IconButton from "@mui/joy/IconButton";
 import { Link, Stack, Tooltip, Typography } from "@mui/joy";
@@ -16,6 +16,7 @@ import { CrosswordMetadata } from "../lib/crossword-metadata/CrosswordMetadataPr
 import { PuzlogError } from "../lib/Errors";
 import StatusIcon from "./StatusIcon";
 import { useAlertContext } from "./AlertContext";
+import { Stopwatch } from "../lib/stopwatch";
 
 export interface ToolbarPuzzleProps
   extends React.ComponentPropsWithoutRef<"div"> {
@@ -57,6 +58,10 @@ function puzzleStatusToBackgroundColor(
 
 const ToolbarPuzzle = ({ pageTitle, puzzle, ...props }: ToolbarPuzzleProps) => {
   const theme = useTheme();
+
+  //  Create the stopwatch - its state should be persisted between renders.
+  const stopwatchRef = useRef(new Stopwatch());
+
   const puzzleRepository = new PuzzleRepository();
   const [timerMilliseconds, setTimerMilliseconds] = useState(
     puzzle?.elapsedTime || 0
@@ -83,6 +88,10 @@ const ToolbarPuzzle = ({ pageTitle, puzzle, ...props }: ToolbarPuzzleProps) => {
       return () => undefined;
     }
 
+    //  When we initially set the puzzle, set the stopwatch time.
+    stopwatchRef.current.setElapsedTime(puzzle.elapsedTime);
+    setTimerMilliseconds(puzzle.elapsedTime);
+
     const unsubscribe = puzzleRepository.subscribeToChanges(
       puzzle.id,
       (changedPuzzle) => {
@@ -91,6 +100,9 @@ const ToolbarPuzzle = ({ pageTitle, puzzle, ...props }: ToolbarPuzzleProps) => {
         //  right from the metadata on puzzle create...
         setTitle(formatTitle(changedPuzzle.title, changedPuzzle.metadata));
         setStatus(changedPuzzle.status);
+        if (changedPuzzle.status === PuzzleStatus.Finished) {
+          console.log("finished");
+        }
       }
     );
 
@@ -104,28 +116,49 @@ const ToolbarPuzzle = ({ pageTitle, puzzle, ...props }: ToolbarPuzzleProps) => {
   useEffect(() => {
     ServiceWorkerInterface.updatePuzzleStatusIcon(status);
     setBackgroundColor(puzzleStatusToBackgroundColor(status, theme));
+
+    //  When the status changes we will start/stop/pause the stopwatch.
+    if (!puzzle?.id) {
+      return;
+    }
+    switch (status) {
+      case PuzzleStatus.Started:
+        stopwatchRef.current.start(async (elapsedTime: number) => {
+          //  Update the elapsed time.
+          puzzleRepository.update(puzzle.id, {
+            elapsedTime: elapsedTime,
+          });
+        }, 1000);
+        break;
+      case PuzzleStatus.Finished:
+        stopwatchRef.current.pause();
+        break;
+    }
+
+    //  Our cleanup function stops the stopwatch.
+    return () => stopwatchRef.current.pause();
   }, [status]);
 
-  //  On mount, wait for the current user (if any). This waits for firebase
-  //  to load based on any cached credentials.
-  useEffect(() => {
-    // const waitForUser = async () => {
-    //   const user = await puzzleRepository.waitForUser();
-    //   setUser(user);
-    //   setWaitingForUser(false);
-    // };
-    // waitForUser();
-  });
+  //  Create a callback that persists between renders to handle the changes to
+  //  the visiblity state and update the timer.
+  const handleVisibilityChange = useCallback(() => {
+    // If the puzzle is not started we don't need to update the timer.
+    if (status !== PuzzleStatus.Started) {
+      return;
+    }
+    if (document.visibilityState === "visible") {
+      stopwatchRef.current.resume();
+    } else {
+      stopwatchRef.current.pause();
+    }
+  }, [status]);
 
-  //  Track the user state.
+  //  On mount, watch for visibility changes.
   useEffect(() => {
-    // const unsubscribe = onAuthStateChanged(
-    //   puzzleRepository.getAuth(),
-    //   (user) => {
-    //     setUser(user || null);
-    //   }
-    // );
-    // return () => unsubscribe();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   const start = async () => {

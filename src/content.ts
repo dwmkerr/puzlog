@@ -1,7 +1,6 @@
 import * as extensionInterface from "./extensionInterface";
 import { ExtensionOverlay } from "./apps/toolbar/ExtensionOverlay";
 import { puzzleIdFromUrl } from "./lib/helpers";
-import { Stopwatch } from "./lib/stopwatch";
 import { PuzzleRepository } from "./lib/PuzzleRepository";
 import { Puzzle, PuzzleStatus } from "./lib/puzzle";
 import { TabPuzzleData } from "./lib/extensionMessages";
@@ -58,11 +57,6 @@ extensionInterface.onMessage("startTabPuzzle", async () => {
   showTimerAndOverlay(savedPuzzle);
 });
 
-//  When the puzzle is finished, we can stop the stopwatch.
-extensionInterface.onMessage("finish", async () => {
-  localExtensionState.stopwatch.pause();
-});
-
 function showTimerAndOverlay(puzzle: Puzzle | undefined) {
   //  Create or update the extension overlay.
   if (!localExtensionState.extensionOverlay) {
@@ -72,19 +66,6 @@ function showTimerAndOverlay(puzzle: Puzzle | undefined) {
     );
   } else {
     localExtensionState.extensionOverlay.render(puzzle);
-  }
-
-  //  Set the stopwatch time. If the puzzle is started, start the stopwatch.
-  if (puzzle) {
-    localExtensionState.stopwatch.setElapsedTime(puzzle.elapsedTime);
-    if (puzzle.status === PuzzleStatus.Started) {
-      localExtensionState.stopwatch.start(async (elapsedTime: number) => {
-        //  Update the elapsed time.
-        puzzleRepository.update(puzzle.id, {
-          elapsedTime: elapsedTime,
-        });
-      }, 1000);
-    }
   }
 }
 
@@ -153,25 +134,6 @@ async function startup() {
     showTimerAndOverlay(puzzle);
   }
 
-  //  We'll now wait for visibility changes (e.g. chrome minimised, tab hidden
-  //  and so on). If the timer has been started, we'll pause it when the tab
-  //  becomes invisible. We could make it an option to automatically restart
-  //  the timer when it is visible again.
-  document.addEventListener("visibilitychange", () => {
-    log(`visibilitychanged - ${document.visibilityState}`);
-    if (document.visibilityState === "visible") {
-      //  If we have a started crossword, resume the stopwatch.
-      if (localExtensionState.puzzleStatus === PuzzleStatus.Started) {
-        localExtensionState.stopwatch.resume();
-      }
-    } else {
-      //  If we have a started crossword, pause the stopwatch.
-      if (localExtensionState.puzzleStatus === PuzzleStatus.Started) {
-        localExtensionState.stopwatch.pause();
-      }
-    }
-  });
-
   log("...initialised");
 }
 
@@ -183,7 +145,6 @@ const localExtensionState = {
   title: document.title,
   puzzleId: "",
   puzzleStatus: PuzzleStatus.Unknown,
-  stopwatch: new Stopwatch(),
   extensionOverlay: null as ExtensionOverlay | null,
   crosswordMetadata: null as Partial<CrosswordMetadata> | null,
 };

@@ -44,6 +44,10 @@ export class Stopwatch {
     this.elapsedTime = value;
   }
 
+  isStarted() {
+    return this.intervalId !== null;
+  }
+
   private tick() {
     if (this.startTime === null || this.tickHandler === null) {
       return;
