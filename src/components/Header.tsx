@@ -118,7 +118,7 @@ type HeaderProps = MainMenuDropDownProps & {
 };
 
 export default function Header(props: HeaderProps) {
-  const puzzleRepository = new PuzzleRepository();
+  const puzzleRepository = PuzzleRepository.get();
   const [user, setUser] = useState<User | null>(
     puzzleRepository.getUser() || null
   );

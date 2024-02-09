@@ -12,7 +12,7 @@ import {
 import { CrosswordMetadata } from "./lib/crossword-metadata/CrosswordMetadataProvider";
 
 //  Instantiate a puzzle repository.
-const puzzleRepository = new PuzzleRepository();
+const puzzleRepository = PuzzleRepository.get();
 
 //  Typically called by the popup to find out our current puzzle id.
 extensionInterface.onMessage(

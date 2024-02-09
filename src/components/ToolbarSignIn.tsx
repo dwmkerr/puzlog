@@ -8,7 +8,7 @@ import { PuzzleRepository } from "../lib/PuzzleRepository";
 import { useAlertContext } from "./AlertContext";
 
 const ToolbarSignIn = () => {
-  const puzzleRepository = new PuzzleRepository();
+  const puzzleRepository = PuzzleRepository.get();
   //  State for the current user, which will initially be loading while we wait
   //  for it.
   const [loading, setLoading] = useState<boolean>(false);

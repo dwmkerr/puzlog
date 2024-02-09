@@ -76,7 +76,7 @@ const CrosswordDataAlert = ({
 );
 
 export default function MiniPopup() {
-  const puzzleRepository = new PuzzleRepository();
+  const puzzleRepository = PuzzleRepository.get();
 
   //  State for the current user, which will initially be loading while we wait
   //  for it.
@@ -179,7 +179,6 @@ export default function MiniPopup() {
     //  We have a puzzle id, so we can watch for changes. These could be
     //  triggered by this popup or by the puzzle toolbar (or even other parts of
     //  the app).
-    const puzzleRepository = new PuzzleRepository();
     const unsubscribe = puzzleRepository.subscribeToChanges(
       puzzleId,
       (changedPuzzle) => {

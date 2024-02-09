@@ -7,8 +7,7 @@ import ErrorBoundary from "../../components/ErrorBoundary";
 import { AlertContextProvider } from "../../components/AlertContext";
 
 //  Instantiate a puzzle repository.
-//  const puzzleRepository = new ChromeStoragePuzzleRepository(chrome.storage.local);
-const puzzleRepository = new PuzzleRepository();
+const puzzleRepository = PuzzleRepository.get();
 
 //  Get the puzzle id if we have one in the query parameters.
 const urlParams = new URLSearchParams(window.location.search);

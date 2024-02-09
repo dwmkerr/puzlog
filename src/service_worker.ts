@@ -16,7 +16,7 @@ import { PuzzleStatus } from "./lib/puzzle";
 //  extension.
 
 //  Instantiate a puzzle repository.
-const puzzleRepository = new PuzzleRepository();
+const puzzleRepository = PuzzleRepository.get();
 
 extensionInterface.onMessage(
   "OpenPuzlogTab",

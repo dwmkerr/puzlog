@@ -58,11 +58,11 @@ function puzzleStatusToBackgroundColor(
 
 const ToolbarPuzzle = ({ pageTitle, puzzle, ...props }: ToolbarPuzzleProps) => {
   const theme = useTheme();
+  const puzzleRepository = PuzzleRepository.get();
 
   //  Create the stopwatch - its state should be persisted between renders.
   const stopwatchRef = useRef(new Stopwatch());
 
-  const puzzleRepository = new PuzzleRepository();
   const [timerMilliseconds, setTimerMilliseconds] = useState(
     puzzle?.elapsedTime || 0
   );

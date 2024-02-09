@@ -1,3 +1,4 @@
+import { initializeApp } from "firebase/app";
 import {
   collection,
   onSnapshot,
@@ -13,8 +14,10 @@ import {
   query,
   where,
   updateDoc,
+  connectFirestoreEmulator,
+  getFirestore,
+  Firestore,
 } from "firebase/firestore";
-import { PuzlogFirebase } from "./firebase";
 import {
   Puzzle,
   toSerializableObject,
@@ -31,6 +34,7 @@ import {
   linkWithCredential,
   updateEmail,
   updateProfile,
+  getAuth,
 } from "firebase/auth";
 import { PuzlogError } from "./Errors";
 
@@ -51,17 +55,42 @@ const constants = {
   LOCAL_STORAGE_AUTH_TOKEN: "authToken",
 };
 
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAy-ANZoEBRhB43WXaQ7FCjYX4-Vo3T5s8",
+  authDomain: "puzlog.firebaseapp.com",
+  projectId: "puzlog",
+  storageBucket: "puzlog.appspot.com",
+  messagingSenderId: "1076573815185",
+  appId: "1:1076573815185:web:36e623b00cc43fb71d5a30",
+  measurementId: "G-BZYWGBHV98",
+};
+
 export class PuzzleRepository {
+  private static instance: PuzzleRepository;
+  private auth: Auth;
+  private db: Firestore;
   private puzzlesCollection: CollectionReference<Puzzle, SerializablePuzzle>;
 
-  private auth: Auth;
-
-  constructor() {
-    const { db, auth } = PuzlogFirebase.get();
-    this.auth = auth;
-    this.puzzlesCollection = collection(db, "puzzles").withConverter(
+  private constructor() {
+    //  Setup the app, auth and the emulator.
+    initializeApp(firebaseConfig);
+    this.auth = getAuth();
+    this.db = getFirestore();
+    connectFirestoreEmulator(this.db, "127.0.0.1", 8080);
+    this.puzzlesCollection = collection(this.db, "puzzles").withConverter(
       puzzleConverter
     );
+  }
+
+  public static get(): PuzzleRepository {
+    if (PuzzleRepository.instance) {
+      return PuzzleRepository.instance;
+    }
+
+    PuzzleRepository.instance = new PuzzleRepository();
+    return PuzzleRepository.instance;
   }
 
   async load(): Promise<Puzzle[]> {
@@ -77,6 +106,18 @@ export class PuzzleRepository {
       onPuzzles(puzzles);
     });
     return unsubscribe;
+  }
+
+  subscribeToChanges(
+    id: string,
+    onChange: (puzzle: Puzzle) => void
+  ): Unsubscribe {
+    return onSnapshot(doc(this.puzzlesCollection, id), (doc) => {
+      const puzzle = doc.data();
+      if (puzzle) {
+        onChange(puzzle);
+      }
+    });
   }
 
   async loadPuzzle(id: string): Promise<Puzzle | null> {
@@ -126,18 +167,6 @@ export class PuzzleRepository {
   ): Promise<void> {
     const docRef = doc(this.puzzlesCollection, id);
     await updateDoc(docRef, puzzleFields);
-  }
-
-  subscribeToChanges(
-    id: string,
-    onChange: (puzzle: Puzzle) => void
-  ): Unsubscribe {
-    return onSnapshot(doc(this.puzzlesCollection, id), (doc) => {
-      const puzzle = doc.data();
-      if (puzzle) {
-        onChange(puzzle);
-      }
-    });
   }
 
   async restore(backupJson: string, userId: string): Promise<void> {
@@ -291,7 +320,7 @@ export class PuzzleRepository {
   }
 
   async signOut() {
-    //  Clear the chrome cached for any signed-in identities and sing out from
+    //  Clear the chrome cached for any signed-in identities and sign out from
     //  Firebase.
     await chrome.identity.clearAllCachedAuthTokens();
     this.auth.signOut();

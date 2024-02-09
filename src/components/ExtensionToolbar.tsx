@@ -76,7 +76,7 @@ const ExtensionToolbar = ({
   puzzle,
   ...props
 }: ExtensionToolbarProps) => {
-  const puzzleRepository = new PuzzleRepository();
+  const puzzleRepository = PuzzleRepository.get();
   //  Access the alert context so that we can render the alerts.
   const { alertInfo, setAlertInfo } = useAlertContext();
 

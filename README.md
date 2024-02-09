@@ -31,6 +31,11 @@ Chrome Web Store: [Install TODO](https://chrome.google.com/webstore/detail/chatg
   - [Reloading the Extension](#reloading-the-extension)
   - [Verifying Pull Requests](#verifying-pull-requests)
   - [Firebase](#firebase)
+- [Versioning](#versioning)
+  - [Updating Rules](#updating-rules)
+- [Releasing](#releasing)
+  - [Manifest Permissions](#manifest-permissions)
+  - [Extension Screenshots](#extension-screenshots)
 - [Task List](#task-list)
 - [Epic - Login](#epic---login)
 
@@ -209,6 +214,7 @@ firebase login
 # Start the emulator, optionally open the web interface.
 firebase emulators:start
 open http://localhost:4000
+```
 
 ## Versioning
 
@@ -221,6 +227,14 @@ If you need to manually trigger a release, run:
 ```bash
 git commit --allow-empty -m "chore: release 2.0.0" -m "Release-As: 2.0.0"
 ````
+
+### Updating Rules
+
+Deploy changes to rules with:
+
+```bash
+firebase deploy --only firestore:rules
+```
 
 ## Releasing
 

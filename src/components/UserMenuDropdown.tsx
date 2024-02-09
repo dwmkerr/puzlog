@@ -20,7 +20,7 @@ import { PuzlogError } from "../lib/Errors";
 
 function UserInfo({ user }: { user: User | undefined }) {
   //  Work out the user name and info.
-  const puzzleRepository = new PuzzleRepository();
+  const puzzleRepository = PuzzleRepository.get();
   const userName = user && user?.isAnonymous ? "Guest" : user?.displayName;
   const userDetail = user ? user.uid : "Not Logged In";
 
@@ -110,7 +110,7 @@ interface UserMenuDropdownProps {
 }
 
 export default function UserMenuDropdown({ user }: UserMenuDropdownProps) {
-  const puzzleRepository = new PuzzleRepository();
+  const puzzleRepository = PuzzleRepository.get();
 
   return (
     <Dropdown>

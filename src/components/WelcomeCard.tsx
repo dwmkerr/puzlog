@@ -38,7 +38,7 @@ const ErrorAlert = ({ error }: { error: PuzlogError }) => {
 };
 
 export default function MiniPopupWelcome() {
-  const puzzleRepository = new PuzzleRepository();
+  const puzzleRepository = PuzzleRepository.get();
 
   const [error, setError] = useState<PuzlogError | undefined>(undefined);
   const [loadingGuestSignIn, setLoadingGuestSignIn] = useState(false);
