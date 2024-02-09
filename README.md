@@ -17,6 +17,7 @@ Chrome Web Store: [Install TODO](https://chrome.google.com/webstore/detail/chatg
 <!-- vim-markdown-toc GFM -->
 
 - [Quickstart](#quickstart)
+- [User Accounts](#user-accounts)
 - [Developer Guide](#developer-guide)
   - [Developer Commands](#developer-commands)
   - [Code Structure](#code-structure)
@@ -30,7 +31,13 @@ Chrome Web Store: [Install TODO](https://chrome.google.com/webstore/detail/chatg
   - [Reloading the Extension](#reloading-the-extension)
   - [Verifying Pull Requests](#verifying-pull-requests)
   - [Firebase](#firebase)
+- [Versioning](#versioning)
+  - [Updating Rules](#updating-rules)
+- [Releasing](#releasing)
+  - [Manifest Permissions](#manifest-permissions)
+  - [Extension Screenshots](#extension-screenshots)
 - [Task List](#task-list)
+- [Epic - Login](#epic---login)
 
 <!-- vim-markdown-toc -->
 
@@ -49,6 +56,12 @@ Open [Chrome Extensions](chrome://extensions), choose 'Load Unpacked' and select
 Press the 'Puzlog' button in the toolbar, you will now have the option to record timings, track progress and so on.
 
 ![Screenshot of TODO](./docs/demo-show-diagram.png)
+
+## User Accounts
+
+Initially when you start Puzlog you will be logged in with a "Guest Account". This anonymous account allows you to save progress on puzzles and persist data. However, Guest Accounts will not persist if you uninstall and reinstall the extension.
+
+To avoid data loss, you should use the "Link Google Account" option to link your Google account. When you are using a Google account your puzzles will be persisted even if you restart the extension.
 
 ## Developer Guide
 
@@ -201,6 +214,7 @@ firebase login
 # Start the emulator, optionally open the web interface.
 firebase emulators:start
 open http://localhost:4000
+```
 
 ## Versioning
 
@@ -213,6 +227,14 @@ If you need to manually trigger a release, run:
 ```bash
 git commit --allow-empty -m "chore: release 2.0.0" -m "Release-As: 2.0.0"
 ````
+
+### Updating Rules
+
+Deploy changes to rules with:
+
+```bash
+firebase deploy --only firestore:rules
+```
 
 ## Releasing
 
@@ -267,9 +289,11 @@ Items with a `!` could be applied to the ChatGPT diagrams extension.
 
 Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should offer a tooltip saying 'sign in to sync' - this is the nudge to the user to auth. When synced show a cloud/tick icon
 
+- [x] feat: color toolbar based on puzzle state
 - [x] refactor: remove old icons lib
-- [ ] refactor: move stopwatch into puzzle toolbar
+- [x] feat: if puzzle is identified on content load, show the toolbar ready to go
 - [ ] feat: update popup when puzzle state changes
+- [ ] feat: recent puzzles in popup, with puzzles updating their last access time properly
 - [x] feat: show status icon in puzzle page
 - [x] bug: set status icon doesn't work consistently, try hitting start/finish/resume from a combo of the popup and toolbar and the bug is apparent. Notes are in the TODO in the code in service_worker
 - [wip] refactor: 'series' config which contains code to check if a crossword is part of series and then parse crossword metadata
@@ -277,32 +301,25 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 - [ ] feat: show title / setter / series in puzzle page
       show something sensible if not found
 - [ ] feat: extension icon overlay - 'suggest/info' / started / completed
-- [ ] refactor: remove old icons library
-- [ ] feat: option to reload crossword tabs when extension changes (see TODO in service worker)
+- [x] refactor: remove old icons library
 - [ ] feat: finish button takes you to puzlog with the crossword selected
 - [ ] bug: receiving issues - try ports
 - [ ] wip: show timer increment
-- [ ] wip: puzzle id in puzlog page link
+- [x] wip: puzzle id in puzlog page link
 - [ ] feat: allow resume puzzle
 - [ ] feat: move logic from content to background - note that we get a promise failure if we try and change values from the puzlog page - does it expect a content script running?
-- [ ] refactor: no stopwatch for now - just total time, stopwatch can come later
-      when adding stopwatch time this'll then be a separate storage key to avoid
-      the timer blatting puzzle state.
 - [x] feat: finished status and icon
 - [x] feat: cheated clues
 - [x] bug: cannot sort or filter by 'title'
 - [x] feat: sort by date started
 - [x] bug(!): it seems all scripts are executed twice (loaded twice, even with `{ once: true }` in DOM Content Loaded
-- [ ] check: see if a basic status indicator in the tab icon would be possible
 - [ ] optional text next to button icons
-- [ ] epic: finish xword
-- [ ] epic: export json
 - [ ] epic: save to cloud
+- [ ] bug: content script status meta tag logic is inconsistent and needs a cleanup
 
 - [ ] build(!): consider webpack dev server to serve sample page in local dev mode
 - [ ] build(!): Create script to open a new chrome window, with the appropriate command line flags to load the dist unpacked
 
-- [ ] refactor: create a 'puzzleId' based on a number rather than a URL - easier for links etc, however hold off on this as it might make sharing harder
 - [ ] highlight selected
 
 **Easy / Nice to Have**
@@ -333,3 +350,37 @@ Sync: show a 'cloud' icon with a cross to indiciate 'not synched' this should of
 - [ ] feat: auto track progress based on jquery/expressions (e.g. selecting completed clues)
 - [ ] feat: crossword series, setter, publish date, based on expressions, could be combined with the above
 - [ ] feat: nullable fields should have an 'unset' style in the grid (e.g. grey) so users know to fill them in
+- [ ] feat: option to reload crossword tabs when extension changes (see TODO in service worker)
+
+## Epic - Login
+
+- [x] feat: set alert state in handlers for the toolbar actions
+- [x] bug; icon is wrong - blue on invalid pages and empty on valid ones
+- [ ] bug: fix start/stop timer bugs
+- [ ] bug: sign out doesn't sign out from content page, just keep the user id in the chrome storage and use this as an indicator that the user was signed in or not
+- [ ] feat: pause button on toolbar
+- [x] refactor: extensionoverlay should not need the puzzle id as a separate parameter
+- [x] feat: show toolbar if crossword identified
+- [ ] if a login error occurs on content script startup we throw and set the content script status but have no way of showing this to the user. Highlight it in the extension icon and in the extension icon suggest login.
+- [ ] when cached token has expired on content script show an error in the popup NOTE this is happening v quickly, fix is to auth in background script via message?
+- [ ] cleanup: for a not started puzzle have a better status icon in the toolbar and don't have a link to puzlog home?
+- [ ] feat: find number of completed clues
+- [ ] feat: show progress of clues, update on timer tick
+- [ ] refactor: remove 'formatTitle' and just get the title right on load
+- [ ] feat: minimise button
+- [ ] refactor: error snackbar into alert snackbar
+- [x] feat: show success snackbar when user accounts inked
+- [ ] feat: show spinners when loggig in, new button prop for usermenu?
+- [ ] feat: retire anon login as we cannot cache credentials for it
+- [x] feat: welcome panel on popup for sign in
+- [x] feat: user initiated sign in as guest
+- [x] feat: user initiated sign in with google
+- [ ] feat: on initial start puzzle, sign in as an anonymous user if there is no current user
+- [ ] test: sign out, sign in with google, sign up again with google, proper error
+- [ ] feat: if logged in as a guest user show a warning on the puzlog page telling link accounts
+- [ ] feat: limit firebase read puzzles to current user id - clean up puzzles then re-import
+- [x] refactor puzzlestate to puzzle
+- [ ] login as guest initially, add userid to puzzles
+- [ ] on extension startup, request login. If the user chooses a guest account, nudge them later to link a google account.
+- [ ] when logged in with a guest account, nudge the 'link user accounts'
+- [ ] login page shows 'google' or 'continue as guest' with a warning about the guest accounts

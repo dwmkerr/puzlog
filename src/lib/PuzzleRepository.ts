@@ -1,3 +1,4 @@
+import { initializeApp } from "firebase/app";
 import {
   collection,
   onSnapshot,
@@ -13,55 +14,119 @@ import {
   query,
   where,
   updateDoc,
+  connectFirestoreEmulator,
+  getFirestore,
+  Firestore,
 } from "firebase/firestore";
-import { PuzlogFirebase } from "./firebase";
 import {
-  PuzzleState,
+  Puzzle,
   toSerializableObject,
   fromSerializableObject,
   SerializablePuzzle,
-} from "./puzzleState";
-import { Unsubscribe } from "firebase/auth";
+} from "./puzzle";
+import {
+  Auth,
+  GoogleAuthProvider,
+  Unsubscribe,
+  User,
+  signInAnonymously,
+  signInWithCredential,
+  linkWithCredential,
+  updateEmail,
+  updateProfile,
+  getAuth,
+} from "firebase/auth";
+import { PuzlogError } from "./Errors";
 
 const puzzleConverter = {
-  toFirestore(puzzle: WithFieldValue<PuzzleState>): SerializablePuzzle {
-    return toSerializableObject(puzzle as PuzzleState);
+  toFirestore(puzzle: WithFieldValue<Puzzle>): SerializablePuzzle {
+    return toSerializableObject(puzzle as Puzzle);
   },
   fromFirestore(
     snapshot: QueryDocumentSnapshot,
     options: SnapshotOptions
-  ): PuzzleState {
+  ): Puzzle {
     const data = snapshot.data(options) as SerializablePuzzle;
     return fromSerializableObject(data);
   },
 };
 
-export class PuzzleRepository {
-  private puzzlesCollection: CollectionReference<
-    PuzzleState,
-    SerializablePuzzle
-  >;
+const constants = {
+  LOCAL_STORAGE_AUTH_TOKEN: "authToken",
+};
 
-  constructor() {
-    const { db } = PuzlogFirebase.get();
-    this.puzzlesCollection = collection(db, "puzzles").withConverter(
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAy-ANZoEBRhB43WXaQ7FCjYX4-Vo3T5s8",
+  authDomain: "puzlog.firebaseapp.com",
+  projectId: "puzlog",
+  storageBucket: "puzlog.appspot.com",
+  messagingSenderId: "1076573815185",
+  appId: "1:1076573815185:web:36e623b00cc43fb71d5a30",
+  measurementId: "G-BZYWGBHV98",
+};
+
+export class PuzzleRepository {
+  private static instance: PuzzleRepository;
+  private auth: Auth;
+  private db: Firestore;
+  private puzzlesCollection: CollectionReference<Puzzle, SerializablePuzzle>;
+
+  private constructor() {
+    //  Setup the app, auth and the emulator.
+    initializeApp(firebaseConfig);
+    this.auth = getAuth();
+    this.db = getFirestore();
+    connectFirestoreEmulator(this.db, "127.0.0.1", 8080);
+    this.puzzlesCollection = collection(this.db, "puzzles").withConverter(
       puzzleConverter
     );
   }
 
-  async load(): Promise<PuzzleState[]> {
+  public static get(): PuzzleRepository {
+    if (PuzzleRepository.instance) {
+      return PuzzleRepository.instance;
+    }
+
+    PuzzleRepository.instance = new PuzzleRepository();
+    return PuzzleRepository.instance;
+  }
+
+  async load(): Promise<Puzzle[]> {
     const querySnapshot = await getDocs(this.puzzlesCollection);
     const puzzles = querySnapshot.docs.map((doc) => doc.data());
     return puzzles;
   }
 
-  async loadPuzzle(id: string): Promise<PuzzleState | null> {
+  subscribeToPuzzles(onPuzzles: (puzzles: Puzzle[]) => void): Unsubscribe {
+    const q = query(this.puzzlesCollection);
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const puzzles = querySnapshot.docs.map((doc) => doc.data());
+      onPuzzles(puzzles);
+    });
+    return unsubscribe;
+  }
+
+  subscribeToChanges(
+    id: string,
+    onChange: (puzzle: Puzzle) => void
+  ): Unsubscribe {
+    return onSnapshot(doc(this.puzzlesCollection, id), (doc) => {
+      const puzzle = doc.data();
+      if (puzzle) {
+        onChange(puzzle);
+      }
+    });
+  }
+
+  async loadPuzzle(id: string): Promise<Puzzle | null> {
     const docRef = doc(this.puzzlesCollection, id);
     const puzzle = (await getDoc(docRef)).data();
     return puzzle || null;
   }
 
-  async queryPuzzleByUrl(url: string): Promise<PuzzleState | null> {
+  async queryPuzzleByUrl(url: string): Promise<Puzzle | null> {
     const q = query(this.puzzlesCollection, where("url", "==", url));
     const querySnapshot = await getDocs(q);
     const puzzles = querySnapshot.docs.map((doc) => doc.data());
@@ -78,11 +143,11 @@ export class PuzzleRepository {
     await deleteDoc(docRef);
   }
 
-  async create(puzzleWithoutId: Omit<PuzzleState, "id">): Promise<PuzzleState> {
+  async create(puzzleWithoutId: Omit<Puzzle, "id">): Promise<Puzzle> {
     //  Create the document ID before we store the document - because we
     //  actually use the document ID as the puzzle id.
     const newDocumentReference = doc(this.puzzlesCollection);
-    const puzzle: PuzzleState = {
+    const puzzle: Puzzle = {
       ...puzzleWithoutId,
       id: newDocumentReference.id,
     };
@@ -92,7 +157,7 @@ export class PuzzleRepository {
     return puzzle;
   }
 
-  async save(puzzle: PuzzleState): Promise<void> {
+  async save(puzzle: Puzzle): Promise<void> {
     await setDoc(doc(this.puzzlesCollection, puzzle.id), puzzle);
   }
 
@@ -104,19 +169,7 @@ export class PuzzleRepository {
     await updateDoc(docRef, puzzleFields);
   }
 
-  subscribeToChanges(
-    id: string,
-    onChange: (puzzle: PuzzleState) => void
-  ): Unsubscribe {
-    return onSnapshot(doc(this.puzzlesCollection, id), (doc) => {
-      const puzzle = doc.data();
-      if (puzzle) {
-        onChange(puzzle);
-      }
-    });
-  }
-
-  async restore(backupJson: string): Promise<void> {
+  async restore(backupJson: string, userId: string): Promise<void> {
     const puzzleRecords = JSON.parse(backupJson) as SerializablePuzzle[];
     const puzzles = puzzleRecords.map(fromSerializableObject);
 
@@ -127,7 +180,12 @@ export class PuzzleRepository {
         const newDocumentReference = doc(this.puzzlesCollection);
         puzzle.id = newDocumentReference.id;
       }
-      return await setDoc(doc(this.puzzlesCollection, puzzle.id), puzzle);
+
+      //  Load the puzzles into the database, but always set the user id.
+      return await setDoc(doc(this.puzzlesCollection, puzzle.id), {
+        ...puzzle,
+        userId,
+      });
     });
     await Promise.all(promises);
   }
@@ -139,5 +197,132 @@ export class PuzzleRepository {
     );
     const backupJson = JSON.stringify(puzzlesSerializable, null, 2);
     return backupJson;
+  }
+
+  getAuth(): Auth {
+    return this.auth;
+  }
+
+  getUser(): User | null {
+    return this.auth.currentUser;
+  }
+
+  async waitForUser(): Promise<User | null> {
+    //  Wait for any cached credentials to be used to load the current user.
+    await this.auth.authStateReady();
+    return this.auth.currentUser;
+  }
+
+  async signInAnonymously(): Promise<User> {
+    try {
+      const userCredential = await signInAnonymously(this.auth);
+
+      return userCredential.user;
+    } catch (err) {
+      throw PuzlogError.fromError("Authentication Failed", err);
+    }
+  }
+
+  async signInWithGoogle(): Promise<User | null> {
+    //  Get an auth token via chrome's identity api, interactive if needed.
+    const { token } = await chrome.identity.getAuthToken({
+      interactive: true,
+      scopes: ["profile", "email"],
+    });
+    if (chrome.runtime.lastError) {
+      throw new PuzlogError(
+        "Sign In Error",
+        chrome.runtime.lastError.message || "Unknown error"
+      );
+    }
+
+    //  If we haven't received a token, return false.
+    if (!token) {
+      console.log("puzlog: sign in returned null token");
+      return null;
+    }
+
+    //  Now sign in to firebase using a a google credential based on the token.
+    try {
+      const response = await signInWithCredential(
+        this.auth,
+        GoogleAuthProvider.credential(null, token)
+      );
+
+      //  We have signed in successfully - store this token in local storage
+      //  so that we can use it to sign in with the stored token there then
+      //  return the user.
+      await chrome.storage.local.set({
+        [constants.LOCAL_STORAGE_AUTH_TOKEN]: token,
+      });
+      return response.user;
+    } catch (err) {
+      throw PuzlogError.fromError("Sign In Error", err);
+    }
+  }
+
+  async signInWithCachedToken(): Promise<User | null> {
+    //  Get an auth token via chrome's identity api, but non-interactive.
+    const data = await chrome.storage.local.get(
+      constants.LOCAL_STORAGE_AUTH_TOKEN
+    );
+    const token = data[constants.LOCAL_STORAGE_AUTH_TOKEN];
+
+    //  If we haven't received a token, return false.
+    if (!token) {
+      console.log("puzlog: sign in returned null token");
+      return null;
+    }
+
+    //  Now sign in to firebase using a a google credential based on the token.
+    try {
+      const response = await signInWithCredential(
+        this.auth,
+        GoogleAuthProvider.credential(null, token)
+      );
+      return response.user;
+    } catch (err) {
+      throw PuzlogError.fromError("Sign In Error", err);
+    }
+  }
+
+  async linkAnonymousUserWithGoogle(currentUser: User) {
+    try {
+      const { token } = await chrome.identity.getAuthToken({
+        interactive: true,
+        scopes: ["profile", "email"],
+      });
+      const credential = GoogleAuthProvider.credential(null, token);
+
+      //  Link the google account to the current anonymous user.
+      /* const userCredential = */ await linkWithCredential(
+        currentUser,
+        credential
+      );
+
+      //  The original anonymous user account will be missing the photo url and
+      //  display name - copy them from the google provider.
+      const googleProviderData = currentUser.providerData.find(
+        (provider) => provider.providerId === GoogleAuthProvider.PROVIDER_ID
+      );
+      if (googleProviderData) {
+        if (googleProviderData.email) {
+          await updateEmail(currentUser, googleProviderData.email);
+        }
+        await updateProfile(currentUser, {
+          displayName: googleProviderData.displayName,
+          photoURL: googleProviderData.photoURL,
+        });
+      }
+    } catch (err) {
+      throw PuzlogError.fromError("Link Account Error", err);
+    }
+  }
+
+  async signOut() {
+    //  Clear the chrome cached for any signed-in identities and sign out from
+    //  Firebase.
+    await chrome.identity.clearAllCachedAuthTokens();
+    this.auth.signOut();
   }
 }

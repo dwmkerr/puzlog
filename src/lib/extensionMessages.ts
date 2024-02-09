@@ -1,9 +1,9 @@
-import { CrosswordMetadata } from "./crossword-metadata";
-import { PuzzleState, PuzzleStatus } from "./puzzleState";
+import { Puzzle, PuzzleStatus } from "./puzzle";
 import * as extensionInterface from "../extensionInterface";
+import { CrosswordMetadata } from "./crossword-metadata/CrosswordMetadataProvider";
 
 export interface StateUpdatedCommand {
-  puzzleState: PuzzleState;
+  puzzleState: Puzzle;
 }
 
 export interface TabCommand {
@@ -11,12 +11,10 @@ export interface TabCommand {
 }
 
 export interface FinishPuzzleCommand {
-  tabId: number | null;
   puzzleId: string;
 }
 
 export interface ResumePuzzleCommand {
-  tabId: number | null;
   puzzleId: string;
 }
 
@@ -27,7 +25,9 @@ export interface OpenPuzlogTabCommand {
 export interface TabPuzzleData {
   puzzleId: string;
   status: PuzzleStatus;
-  crosswordMetadata: CrosswordMetadata | null;
+  //  Crossword metadata is null if we haven't identified a data provider (i.e.
+  //  the page is not something we recognise as a crossword).
+  crosswordMetadata: Partial<CrosswordMetadata> | null;
 }
 
 export interface UpdatePuzzleStatusIconCommand {
@@ -35,8 +35,11 @@ export interface UpdatePuzzleStatusIconCommand {
 }
 
 export type ExtensionMessageNameMap = {
+  //  Service worker messages.
+  ["start"]: null;
   ["finish"]: FinishPuzzleCommand;
   ["resume"]: ResumePuzzleCommand;
+
   ["stateUpdated"]: StateUpdatedCommand;
   ["getTabPuzzleStatus"]: null;
   ["startTabPuzzle"]: object;
@@ -48,27 +51,24 @@ export enum ContentScriptStatus {
   NotPresent,
   Loading,
   Loaded,
+  Errored,
   OutOfDate,
   Unknown,
 }
 
 export abstract class ServiceWorkerInterface {
-  public static async finishPuzzle(
-    tabId: number,
-    puzzleId: string
-  ): Promise<void> {
-    await extensionInterface.sendRuntimeMessage("finish", {
-      tabId,
+  public static async start(): Promise<void> {
+    await extensionInterface.sendRuntimeMessage("start", null);
+  }
+
+  public static async resumePuzzle(puzzleId: string): Promise<void> {
+    await extensionInterface.sendRuntimeMessage("resume", {
       puzzleId,
     });
   }
 
-  public static async resumePuzzle(
-    tabId: number,
-    puzzleId: string
-  ): Promise<void> {
-    await extensionInterface.sendRuntimeMessage("resume", {
-      tabId,
+  public static async finishPuzzle(puzzleId: string): Promise<void> {
+    await extensionInterface.sendRuntimeMessage("finish", {
       puzzleId,
     });
   }
@@ -101,12 +101,12 @@ export abstract class ContentScriptInterface {
       puzzleId: result.puzzleId || null,
       status: result.status as PuzzleStatus,
       crosswordMetadata: {
-        series: result?.crosswordMetadata?.series || "",
-        title: result?.crosswordMetadata?.title || "",
-        setter: result?.crosswordMetadata?.setter || "",
+        series: result?.crosswordMetadata?.series,
+        title: result?.crosswordMetadata?.title,
+        setter: result?.crosswordMetadata?.setter,
         datePublished: result?.crosswordMetadata?.datePublished
           ? new Date(result.crosswordMetadata.datePublished as string)
-          : null,
+          : undefined,
       },
     };
     return tabPuzzleData;
@@ -131,6 +131,8 @@ export abstract class ContentScriptInterface {
           return "Loading";
         } else if (contentScriptStatus === "loaded") {
           return "Loaded";
+        } else if (contentScriptStatus === "errored") {
+          return "Errored";
         } else {
           return "Unknown";
         }

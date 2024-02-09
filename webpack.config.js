@@ -32,10 +32,10 @@ export default (_, argv) => ({
     type: "filesystem",
   },
   entry: {
-    ["mini-popup"]: "./src/pages/popup/mini-popup.tsx",
+    ["mini-popup"]: "./src/apps/popup/mini-popup.tsx",
     content: "./src/content.ts",
     service_worker: "./src/service_worker.ts",
-    puzlog: "./src/pages/puzlog/puzlog.tsx",
+    puzlog: "./src/apps/puzlog/puzlog.tsx",
   },
   output: {
     publicPath: "",
@@ -64,7 +64,7 @@ export default (_, argv) => ({
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "src/pages/popup/mini-popup.html",
+      template: "src/apps/popup/mini-popup.html",
       filename: "popup.html",
       hash: true,
       inject: false,
@@ -76,7 +76,7 @@ export default (_, argv) => ({
     //   inject: false,
     // }),
     new HtmlWebpackPlugin({
-      template: "src/pages/puzlog/puzlog.html",
+      template: "src/apps/puzlog/puzlog.html",
       filename: "puzlog.html",
       hash: true,
       inject: false,

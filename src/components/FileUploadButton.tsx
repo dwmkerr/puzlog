@@ -1,4 +1,4 @@
-import React from "react";
+import React, { RefObject, useState } from "react";
 import Button, { ButtonProps } from "@mui/joy/Button";
 import { styled } from "@mui/joy";
 
@@ -15,6 +15,7 @@ const VisuallyHiddenInput = styled("input")`
 `;
 
 type FileUploadButtonProps = ButtonProps & {
+  inputElementRef: RefObject<HTMLInputElement>;
   onFileUploadComplete: (contents: string) => Promise<void>;
 };
 
@@ -22,6 +23,8 @@ export default function FileUploadButton({
   onFileUploadComplete,
   ...props
 }: FileUploadButtonProps) {
+  const [loading, setLoading] = useState(false);
+
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -55,12 +58,21 @@ export default function FileUploadButton({
   };
 
   return (
-    <Button component="label" role={undefined} tabIndex={-1} {...props}>
+    <Button
+      component="label"
+      role={undefined}
+      tabIndex={-1}
+      loading={loading}
+      loadingPosition="start"
+      {...props}
+    >
       Upload a file
       <VisuallyHiddenInput
+        ref={props.inputElementRef}
         type="file"
         onChange={handleFileChange}
         accept=".json"
+        onClick={() => setLoading(true)}
       />
     </Button>
   );

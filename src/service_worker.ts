@@ -9,14 +9,14 @@ import {
   ResumePuzzleCommand,
   UpdatePuzzleStatusIconCommand,
 } from "./lib/extensionMessages";
-import { PuzzleStatus } from "./lib/puzzleState";
+import { PuzzleStatus } from "./lib/puzzle";
 
 //  TODO: at this point we could actually scan each tab and see if it has a
 //  loaded puzlog content script and then reload it, based on options for the
 //  extension.
 
 //  Instantiate a puzzle repository.
-const puzzleRepository = new PuzzleRepository();
+const puzzleRepository = PuzzleRepository.get();
 
 extensionInterface.onMessage(
   "OpenPuzlogTab",
@@ -24,6 +24,16 @@ extensionInterface.onMessage(
     extensionInterface.navigateToPuzlogInterface(message.puzzleId);
   }
 );
+
+extensionInterface.onMessage("start", async (tabId) => {
+  if (!tabId) {
+    console.error(
+      "puzlog: error - cannot call 'start' without providing tabId"
+    );
+    return;
+  }
+  ContentScriptInterface.start(tabId);
+});
 
 extensionInterface.onMessage(
   "finish",
@@ -68,12 +78,19 @@ extensionInterface.onMessage(
 //  state is. This means we'll need to send a message to the content script
 //  telling it to update the icon (if it is loaded).
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
-  const tab = await chrome.tabs.get(tabId);
-  //  Don't try and interact with internal / chrome tabs.
-  if (!isExtensionAccessibleTab(tab.url)) {
-    return;
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    //  Don't try and interact with internal / chrome tabs.
+    if (!isExtensionAccessibleTab(tab.url)) {
+      return;
+    }
+    await updateIcon(tabId);
+  } catch (error) {
+    console.warn(
+      `puzlog: an error occured checking extension status for tab id ${tabId}`,
+      error
+    );
   }
-  await updateIcon(tabId);
 });
 
 //listen for current tab to be changed
